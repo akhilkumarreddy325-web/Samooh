@@ -137,8 +137,8 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
           <ArrowUpRight className="w-3.5 h-3.5" />
         </button>
         <button 
-          onClick={() => onAccept(recommendation.id)}
-          className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm"
+          onClick={() => onAccept(recommendation)}
+          className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm active:scale-95"
         >
           <Check className="w-4 h-4" />
           <span>{t('acceptPoolBtn')}</span>
