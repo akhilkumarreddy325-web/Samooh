@@ -549,9 +549,31 @@ export function AppProvider({ children }) {
     return translations[lang]?.[key] || translations['en']?.[key] || key;
   };
 
-  const loginWithGoogle = () => {
-    const googleUser = DEMO_USERS.google_partner;
+  const loginWithGoogle = (providedEmail = null) => {
+    const rawEmail = (providedEmail || 'akhilkumarreddy325@gmail.com').trim().toLowerCase();
+    const email = rawEmail.includes('@') ? rawEmail : `${rawEmail}@gmail.com`;
+    const namePart = email.split('@')[0];
+    const formattedName = namePart
+      .split(/[\._\-]/)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ');
+
+    const googleUser = {
+      id: `usr_google_${Date.now()}`,
+      storeName: `${formattedName} Kirana & General Store`,
+      ownerName: formattedName || 'Google Kirana Partner',
+      email: email,
+      password: 'google_authenticated',
+      clusterHub: 'Hyderabad Tech Corridor Cluster #1',
+      address: 'Door 101, Tech Corridor, Gachibowli, Hyderabad (500032)',
+      monthlyBudget: '₹3,50,000',
+      totalSaved: '₹58,400',
+      rating: 4.95,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${namePart}`,
+      isGoogle: true
+    };
     setUser(googleUser);
+    localStorage.setItem('samooh_user', JSON.stringify(googleUser));
     return googleUser;
   };
 
@@ -561,9 +583,11 @@ export function AppProvider({ children }) {
     );
     if (found) {
       setUser(found);
+      localStorage.setItem('samooh_user', JSON.stringify(found));
       return { success: true, user: found };
     }
     // Fallback: create dynamic session for any email
+    const isG = email.toLowerCase().endsWith('@gmail.com');
     const dynamicUser = {
       id: `usr_${Date.now()}`,
       storeName: email.split('@')[0].toUpperCase() + ' Kirana Store',
@@ -575,10 +599,11 @@ export function AppProvider({ children }) {
       monthlyBudget: '₹2,00,000',
       totalSaved: '₹15,000',
       rating: 4.8,
-      avatar: null,
-      isGoogle: false
+      avatar: isG ? `https://api.dicebear.com/7.x/bottts/svg?seed=${email.split('@')[0]}` : null,
+      isGoogle: isG
     };
     setUser(dynamicUser);
+    localStorage.setItem('samooh_user', JSON.stringify(dynamicUser));
     return { success: true, user: dynamicUser };
   };
 
