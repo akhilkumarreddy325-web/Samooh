@@ -128,14 +128,14 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
 
       {/* Mobile Slide-Over Drawer Navigation */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
+        <div className="fixed inset-0 z-50 flex md:hidden animate-fade-in">
           {/* Backdrop Blur Overlay */}
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity duration-300"
             onClick={onCloseMobile}
           />
           {/* Drawer Sidebar */}
-          <div className="relative flex-1 max-w-xs w-full bg-[#0B1020]">
+          <div className="relative flex-1 max-w-[280px] w-full h-full shadow-2xl z-50 overflow-y-auto">
             {sidebarContent}
           </div>
         </div>

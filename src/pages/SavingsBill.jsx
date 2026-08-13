@@ -102,9 +102,9 @@ export default function SavingsBill() {
   };
 
   return (
-    <div className="p-6 space-y-8 max-w-5xl mx-auto">
+    <div className="p-3 sm:p-6 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
       {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <button
           onClick={() => navigate('/builder')}
           className={`px-3 py-2 rounded-xl border text-xs font-semibold transition flex items-center space-x-1.5 w-fit ${
@@ -117,10 +117,10 @@ export default function SavingsBill() {
           <span>Back to Demand Builder</span>
         </button>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <button
             onClick={handlePrint}
-            className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 shadow-sm ${
+            className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm ${
               theme === 'light'
                 ? 'bg-white border-slate-200 text-slate-800 hover:bg-slate-100'
                 : 'bg-[#131A2A] border-slate-800 text-slate-200 hover:bg-slate-800'
@@ -132,7 +132,7 @@ export default function SavingsBill() {
 
           <button
             onClick={handleDownload}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center space-x-1.5 active:scale-95"
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center space-x-1.5 active:scale-95"
           >
             <Download className="w-4 h-4" />
             <span>{t('downloadPdfBtn')}</span>
@@ -141,7 +141,7 @@ export default function SavingsBill() {
       </div>
 
       {/* Main Printable Invoice Card */}
-      <div className={`glass-card rounded-3xl p-8 border shadow-2xl transition-all duration-300 ${
+      <div className={`glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 border shadow-2xl transition-all duration-300 ${
         theme === 'light'
           ? 'bg-white border-slate-200/90 text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.06)]'
           : 'bg-[#131A2A] border-slate-700/80 text-white'
@@ -153,7 +153,7 @@ export default function SavingsBill() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-base shadow-sm">
                 S
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-blue-600 dark:text-accentBlue">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-blue-600 dark:text-accentBlue">
                 Samooh <span className="text-purple-600 text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">Group Invoice</span>
               </h1>
             </div>
@@ -204,9 +204,12 @@ export default function SavingsBill() {
 
         {/* Itemized Price Comparison Table */}
         <div className="my-6 space-y-3">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
-            {t('itemizedBreakdown')} ({invoice.items.length} Products)
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
+              {t('itemizedBreakdown')} ({invoice.items.length} Products)
+            </h3>
+            <span className="text-[10px] text-slate-400 sm:hidden">Swipe right →</span>
+          </div>
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
             <table className="w-full text-left text-xs">

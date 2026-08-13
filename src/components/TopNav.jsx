@@ -60,8 +60,8 @@ export default function TopNav({ onToggleMobileMenu }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="relative w-44 sm:w-64 lg:w-72">
-          <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${
+        <div className="relative flex-1 max-w-[180px] sm:max-w-xs md:w-72">
+          <Search className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 ${
             theme === 'light' ? 'text-slate-400' : 'text-slate-500'
           }`} />
           <input 
@@ -69,7 +69,7 @@ export default function TopNav({ onToggleMobileMenu }) {
             placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full border rounded-xl pl-9 pr-3 py-1.5 text-xs transition focus:outline-none ${
+            className={`w-full border rounded-xl pl-8 pr-2.5 py-1.5 text-[11px] sm:text-xs transition focus:outline-none ${
               theme === 'light'
                 ? 'bg-slate-100/90 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white'
                 : 'bg-[#131A2A] border-slate-800 text-slate-200 placeholder-slate-500 focus:border-accentBlue'
@@ -79,11 +79,11 @@ export default function TopNav({ onToggleMobileMenu }) {
       </div>
 
       {/* Right Header Actions */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         {/* Language Switcher Toggle (ENG <-> HINDI) */}
         <button
           onClick={toggleLanguage}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 shadow-sm hover:scale-105 active:scale-95 ${
+          className={`px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition flex items-center space-x-1 shadow-sm hover:scale-105 active:scale-95 ${
             lang === 'hi'
               ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400 shadow-amber-500/20'
               : theme === 'light'
@@ -99,7 +99,7 @@ export default function TopNav({ onToggleMobileMenu }) {
         {/* Theme Switcher Toggle (LIGHT GLASS <-> DARK GLASS) */}
         <button
           onClick={toggleTheme}
-          className={`p-2 rounded-xl border text-xs font-semibold transition flex items-center justify-center hover:scale-105 active:scale-95 ${
+          className={`p-1.5 sm:p-2 rounded-xl border text-xs font-semibold transition flex items-center justify-center hover:scale-105 active:scale-95 ${
             theme === 'light'
               ? 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm'
               : 'bg-[#131A2A] border-slate-800 text-indigo-400 hover:bg-slate-800'
@@ -109,11 +109,11 @@ export default function TopNav({ onToggleMobileMenu }) {
           {theme === 'light' ? <Sun className="w-4 h-4 text-amber-500 fill-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400 fill-indigo-400/20" />}
         </button>
 
-        {/* 1-Click Launch Hackathon Demo Button */}
+        {/* 1-Click Launch Hackathon Demo Button (Desktop/Tablet) */}
         <button
           onClick={handleLaunchDemo}
           disabled={isLaunchingDemo}
-          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition flex items-center space-x-1.5 active:scale-95"
+          className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition items-center space-x-1.5 active:scale-95"
           title="Launch Parle-G 800g 100% Deterministic Hackathon Demo Scenario"
         >
           <Rocket className={`w-3.5 h-3.5 ${isLaunchingDemo ? 'animate-bounce' : ''}`} />
@@ -122,7 +122,7 @@ export default function TopNav({ onToggleMobileMenu }) {
 
         {/* Live / Mock Mode Indicator */}
         <div 
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold ${
+          className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold ${
             isOnline 
               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
               : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
@@ -130,7 +130,7 @@ export default function TopNav({ onToggleMobileMenu }) {
           title={isOnline ? "Connected to live FastAPI backend" : "Running in Standalone Demo Mode with local mock data store"}
         >
           {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-          <span className="hidden sm:inline">{isOnline ? t('fastapiConnected') : t('demoMode')}</span>
+          <span className="hidden lg:inline">{isOnline ? t('fastapiConnected') : t('demoMode')}</span>
         </div>
 
         {/* Notifications Icon */}

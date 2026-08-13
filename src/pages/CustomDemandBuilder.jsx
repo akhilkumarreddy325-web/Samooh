@@ -353,6 +353,34 @@ export default function CustomDemandBuilder() {
           </div>
         </div>
       </div>
+
+      {/* Sticky Mobile Floating Checkout Dock (Zepto/Swiggy Native Style) */}
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 p-3.5 border-t backdrop-blur-xl shadow-[0_-10px_25px_rgba(0,0,0,0.15)] flex items-center justify-between transition-all ${
+        theme === 'light'
+          ? 'bg-white/95 border-slate-200 text-slate-900'
+          : 'bg-[#0B1020]/95 border-slate-800 text-white'
+      }`}>
+        <div>
+          <div className="flex items-center space-x-1.5">
+            <span className="text-xs font-bold">{totalItemsCount} Units</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+              Save ₹{totalSavings.toLocaleString()}
+            </span>
+          </div>
+          <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+            ₹{totalWholesaleCost.toLocaleString()}
+          </div>
+        </div>
+
+        <button
+          onClick={handleGenerateInvoice}
+          disabled={selectedLineItems.length === 0}
+          className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-xs shadow-md flex items-center space-x-1.5 active:scale-95 disabled:opacity-50"
+        >
+          <span>Create Order</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
