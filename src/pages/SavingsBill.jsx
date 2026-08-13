@@ -219,10 +219,34 @@ View live bill: https://samooh1.web.app/invoice`;
           <span>Back to Demand Builder</span>
         </button>
 
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* PROMINENT WHATSAPP BUTTON */}
+          <button
+            onClick={() => setShowWhatsAppModal(true)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 active:scale-95 cursor-pointer ring-2 ring-emerald-400/30 animate-pulse"
+            title="Send WhatsApp Order Alert to Kirana Store Owner"
+          >
+            <MessageCircle className="w-4 h-4 text-white" />
+            <span>📱 WhatsApp Order Alert</span>
+          </button>
+
+          {/* PROMINENT CSV EXPORT BUTTON */}
+          <button
+            onClick={handleExportCSV}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 ${
+              theme === 'light'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+            }`}
+            title="Export Itemized Invoice Data to CSV File"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+            <span>Export CSV</span>
+          </button>
+
           <button
             onClick={handlePrint}
-            className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm ${
+            className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm ${
               theme === 'light'
                 ? 'bg-white border-slate-200 text-slate-800 hover:bg-slate-100'
                 : 'bg-[#131A2A] border-slate-800 text-slate-200 hover:bg-slate-800'
@@ -234,7 +258,7 @@ View live bill: https://samooh1.web.app/invoice`;
 
           <button
             onClick={handleDownload}
-            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center space-x-1.5 active:scale-95"
+            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center space-x-1.5 active:scale-95"
           >
             <Download className="w-4 h-4" />
             <span>{t('downloadPdfBtn')}</span>
@@ -302,6 +326,32 @@ View live bill: https://samooh1.web.app/invoice`;
               ✓ 4 Kirana Stores Pooled in Cluster
             </span>
           </div>
+        </div>
+
+        {/* WhatsApp Instant Dispatch Alert Banner (Prominent Callout) */}
+        <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md flex-shrink-0">
+              <MessageCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center">
+                <span>WhatsApp Order Alert System Active</span>
+                <span className="ml-2 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-600 text-white">Live SMS/WA</span>
+              </h4>
+              <p className={`text-[11px] mt-0.5 ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                Simulate sending this official ₹{invoice.totalSavings ? invoice.totalSavings.toLocaleString() : 0} savings bill directly to Kirana Store phone (+91 98490 12345).
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowWhatsAppModal(true)}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md flex items-center justify-center space-x-2 transition active:scale-95 flex-shrink-0 cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>📱 Dispatch WA Alert</span>
+          </button>
         </div>
 
         {/* Itemized Price Comparison Table */}

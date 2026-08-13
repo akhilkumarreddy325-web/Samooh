@@ -165,13 +165,18 @@ export default function OrderProcessing() {
 
         {/* Manual Redirect Button Option */}
         {step === 4 && (
-          <button
-            onClick={() => navigate('/invoice')}
-            className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 animate-bounce"
-          >
-            <span>View Official Group Savings Bill</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => navigate('/invoice')}
+              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 animate-bounce"
+            >
+              <span>View Official Group Savings Bill</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center space-x-1">
+              <span>📱 Simulated WhatsApp Order Alert Sent to +91 98490 12345</span>
+            </p>
+          </div>
         )}
       </div>
     </div>
