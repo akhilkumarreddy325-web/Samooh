@@ -9,36 +9,20 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-// Create Axios client instance
+// Create Axios client instance with ultra-short timeout for instant fallback
 const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 5000,
+  timeout: 600,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// Retry Mechanism: Exponential backoff retry handler
+// Fast response handler without long retry pauses
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const config = error.config;
-    if (!config || config.__retryCount >= 2) {
-      return Promise.reject(error);
-    }
-    config.__retryCount = config.__retryCount || 0;
-    const shouldRetry = !error.response || (error.response.status >= 500 && error.response.status <= 599);
-
-    if (shouldRetry) {
-      config.__retryCount += 1;
-      const backoffDelay = Math.pow(2, config.__retryCount) * 400;
-      await new Promise((resolve) => setTimeout(resolve, backoffDelay));
-      return apiClient(config);
-    }
-
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Health Check API
