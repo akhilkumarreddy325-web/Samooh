@@ -338,7 +338,7 @@ export default function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={pieData}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -346,7 +346,7 @@ export default function Dashboard() {
                     paddingAngle={4}
                     dataKey="value"
                   >
-                    {categoryData.map((entry, index) => (
+                    {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -363,7 +363,7 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs pt-2">
-              {categoryData.map((item) => (
+              {pieData.map((item) => (
                 <div key={item.name} className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className={`font-medium truncate ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>

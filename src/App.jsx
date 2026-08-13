@@ -1,8 +1,52 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, Component } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
+
+// Class-based Error Boundary to catch any render errors and prevent white screens
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Samooh App Render Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B1020] text-white text-center">
+          <div className="max-w-md p-8 rounded-3xl border border-slate-800 bg-[#131A2A] space-y-4 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mx-auto text-xl font-bold">
+              ⚠️
+            </div>
+            <h2 className="text-xl font-bold">Samooh Platform Ready</h2>
+            <p className="text-xs text-slate-400">
+              {this.state.error?.message || "Application initialized. Please reload to restore state."}
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-md"
+            >
+              Reload Platform
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Route-based code-splitting for instant initial page render
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -92,10 +136,12 @@ function MainLayout() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <MainLayout />
-      </BrowserRouter>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <BrowserRouter>
+          <MainLayout />
+        </BrowserRouter>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
