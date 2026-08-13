@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
@@ -12,7 +12,12 @@ import {
   MapPin,
   Calendar,
   Building,
-  QrCode
+  QrCode,
+  MessageCircle,
+  FileSpreadsheet,
+  Phone,
+  X,
+  Share2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -38,12 +43,12 @@ const DEFAULT_INVOICE = {
       id: 'prod_006',
       name: 'Freedom Sunflower Oil (15L Tin)',
       category: 'Oils & Dairy',
-      retailPrice: 1950,
-      wholesalePrice: 1620,
+      retailPrice: 1120,
+      wholesalePrice: 845,
       qty: 5,
-      lineRetail: 9750,
-      lineWholesale: 8100,
-      lineSavings: 1650
+      lineRetail: 5600,
+      lineWholesale: 4225,
+      lineSavings: 1375
     },
     {
       id: 'prod_010',
@@ -68,18 +73,21 @@ const DEFAULT_INVOICE = {
       lineSavings: 1650
     }
   ],
-  totalRetailCost: 39650,
-  totalWholesaleCost: 32210,
-  totalSavings: 7440,
-  overallSavingsPct: '18.8',
-  totalItemsCount: 22,
-  taxGst: 1611,
-  finalPayable: 33821
+  totalRetailCost: 20100,
+  totalWholesaleCost: 16025,
+  totalSavings: 4075,
+  overallSavingsPct: '20.3',
+  totalItemsCount: 15,
+  taxGst: 801,
+  finalPayable: 16826
 };
 
 export default function SavingsBill() {
   const { theme, t, activeInvoice, user } = useApp();
   const navigate = useNavigate();
+
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [waSentToast, setWaSentToast] = useState(false);
 
   const invoice = activeInvoice ? {
     ...activeInvoice,
@@ -101,8 +109,102 @@ export default function SavingsBill() {
     alert(`Downloading Official PDF Receipt for ${invoice.invoiceNo}...`);
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Invoice No", "Date", "Store Name", "Cluster Hub", "Item ID", "Product Name", "Category", "Retail Price (INR)", "Wholesale Price (INR)", "Qty", "Total Retail", "Total Wholesale", "Line Savings"];
+    const rows = (invoice.items || []).map(item => [
+      `"${invoice.invoiceNo}"`,
+      `"${invoice.date}"`,
+      `"${invoice.storeName}"`,
+      `"${invoice.clusterHub}"`,
+      `"${item.id}"`,
+      `"${item.name}"`,
+      `"${item.category || 'General'}"`,
+      item.retailPrice,
+      item.wholesalePrice,
+      item.qty,
+      item.lineRetail,
+      item.lineWholesale,
+      item.lineSavings
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Samooh_Invoice_${invoice.invoiceNo}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getWhatsAppMessageText = () => {
+    return `🟢 *Samooh AI - Kirana Group Procurement Invoice*
+*Invoice No:* ${invoice.invoiceNo}
+*Billed Store:* ${invoice.storeName}
+*Date:* ${invoice.date}
+*Cluster Hub:* ${invoice.clusterHub}
+
+*Itemized Breakdown (${invoice.totalItemsCount || invoice.items.length} Units):*
+${(invoice.items || []).map(i => `• ${i.name} (x${i.qty}) - ₹${i.lineWholesale.toLocaleString()}`).join('\n')}
+
+💰 *Single Retail Cost:* ₹${(invoice.totalRetailCost || 0).toLocaleString()}
+🏷️ *Samooh Group Price:* ₹${(invoice.totalWholesaleCost || 0).toLocaleString()}
+🎉 *NET MONEY SAVED:* ₹${(invoice.totalSavings || 0).toLocaleString()} (${invoice.overallSavingsPct}% OFF)
+💳 *Final Amount Payable:* ₹${(invoice.finalPayable || 0).toLocaleString()}
+
+Status: Dispatch Assigned (Hyderabad Hub)
+View live bill: https://samooh1.web.app/invoice`;
+  };
+
+  const handleSimulateWhatsAppSend = () => {
+    setShowWhatsAppModal(false);
+    setWaSentToast(true);
+    setTimeout(() => {
+      setWaSentToast(false);
+    }, 4500);
+  };
+
+  const handleOpenRealWhatsApp = () => {
+    const text = encodeURIComponent(getWhatsAppMessageText());
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
   return (
     <div className="p-3 sm:p-6 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
+      {/* Toast Notification Simulation Banner */}
+      {waSentToast && (
+        <div className="fixed top-4 right-4 z-50 p-4 rounded-2xl bg-emerald-600 text-white shadow-2xl border border-emerald-400 flex items-center space-x-3 animate-bounce">
+          <MessageCircle className="w-6 h-6 text-white flex-shrink-0" />
+          <div>
+            <h4 className="text-xs font-black">WhatsApp Order Alert Sent!</h4>
+            <p className="text-[11px] text-emerald-100">Simulated WhatsApp alert delivered to store owner (+91 98490 12345)</p>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Simulation Modal */}
+      {showWhatsAppModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white' : 'bg-[#131A2A]'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold flex items-center"><MessageCircle className="w-5 h-5 text-emerald-500 mr-2" /> Share via WhatsApp</h3>
+              <button onClick={() => setShowWhatsAppModal(false)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="text-xs space-y-4 mb-6">
+              <p className="opacity-70">Send the summary to the registered store owner:</p>
+              <div className={`p-4 rounded-xl ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-800'}`}>
+                <p className="font-mono text-[10px] whitespace-pre-line leading-relaxed">{getWhatsAppMessageText()}</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button onClick={handleSimulateWhatsAppSend} className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Simulate Send</button>
+              <button onClick={handleOpenRealWhatsApp} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Open Real App</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <button

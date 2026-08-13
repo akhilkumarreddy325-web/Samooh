@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PackageCheck, Calendar, MapPin, Building, ArrowRight, ShieldCheck, Tag, Search, Filter, CheckCircle2, Truck, Clock, Sparkles } from 'lucide-react';
+import { PackageCheck, Calendar, MapPin, Building, ArrowRight, ShieldCheck, Tag, Search, Filter, CheckCircle2, Truck, Clock, Sparkles, FileSpreadsheet } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function PreviousOrders() {
@@ -31,6 +31,34 @@ export default function PreviousOrders() {
     navigate('/invoice');
   };
 
+  const handleExportAllCSV = () => {
+    const headers = ["Order ID", "Invoice No", "Date", "Store Name", "Cluster Hub", "Status", "Items Count", "Total Retail Cost", "Total Wholesale Cost", "Total Savings (INR)", "Savings Pct", "Final Payable"];
+    const rows = userOrders.map(o => [
+      `"${o.id}"`,
+      `"${o.invoiceNo}"`,
+      `"${o.date}"`,
+      `"${o.storeName}"`,
+      `"${o.clusterHub}"`,
+      `"${o.status}"`,
+      o.itemsCount,
+      o.totalRetailCost,
+      o.totalWholesaleCost,
+      o.totalSavings,
+      `"${o.overallSavingsPct}%"`,
+      o.finalPayable
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Samooh_Order_History_${user?.storeName || 'Store'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
       {/* Top Header */}
@@ -49,6 +77,19 @@ export default function PreviousOrders() {
             {t('ordersDesc')}
           </p>
         </div>
+
+        <button
+          onClick={handleExportAllCSV}
+          className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center space-x-2 shadow-sm w-fit active:scale-95 ${
+            theme === 'light'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+          }`}
+          title="Export All Past Orders to CSV File for Bookkeeping"
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+          <span>Export Order History CSV</span>
+        </button>
       </div>
 
       {/* Overview Stat Cards Banner */}
