@@ -13,6 +13,17 @@ const translations = {
     impact: 'Business Impact',
     customDemand: 'Custom Demand Builder',
     savingsBill: 'Group Savings Bill',
+    previousOrders: 'Previous Orders',
+    previousOrdersNav: 'Previous Orders',
+    ordersDesc: 'Complete order history, group savings bill archive, and delivery status tracking.',
+    orderHistoryTitle: 'Kirana Wholesale Order History',
+    viewInvoice: '📄 View Savings Bill',
+    noPastOrders: 'No previous orders found for this account.',
+    totalOrders: 'Total Orders Placed',
+    lifetimeSavings: 'Lifetime Group Savings',
+    statusDelivered: 'Delivered',
+    statusInTransit: 'In Transit',
+    statusProcessing: 'Processing',
     engineLive: 'Procurement Engine Live',
     retailersActive: '30 Retailers Active',
     searchPlaceholder: 'Search products, pools, retailers...',
@@ -166,6 +177,17 @@ const translations = {
     impact: 'व्यावसायिक प्रभाव',
     customDemand: 'कस्टम मांग बिल्डर',
     savingsBill: 'समूह बचत बिल',
+    previousOrders: 'पिछले ऑर्डर्स',
+    previousOrdersNav: 'पिछले ऑर्डर्स',
+    ordersDesc: 'पूर्ण ऑर्डर इतिहास, समूह बचत बिल संग्रह और डिलीवरी स्थिति ट्रैकिंग।',
+    orderHistoryTitle: 'किराना थोक ऑर्डर इतिहास',
+    viewInvoice: '📄 बचत बिल देखें',
+    noPastOrders: 'इस खाते के लिए कोई पिछला ऑर्डर नहीं मिला।',
+    totalOrders: 'कुल दिए गए ऑर्डर',
+    lifetimeSavings: 'जीवनकाल की कुल बचत',
+    statusDelivered: 'डिलीवर हुआ',
+    statusInTransit: 'डिलीवरी जारी',
+    statusProcessing: 'प्रक्रिया में',
     engineLive: 'खरीद इंजन सक्रिय',
     retailersActive: '30 रिटेलर्स सक्रिय',
     searchPlaceholder: 'उत्पाद, थोक पूल, रिटेलर्स खोजें...',
@@ -368,6 +390,73 @@ export const DEMO_USERS = {
   }
 };
 
+export const DEFAULT_ORDERS = [
+  {
+    id: 'ord_901',
+    invoiceNo: 'INV-2026-7712',
+    date: '10 Aug 2026',
+    userId: 'usr_001',
+    storeName: 'Sri Lakshmi Kirana & General Store',
+    clusterHub: 'Hyderabad South-West Wholesale Cluster #4',
+    status: 'Delivered',
+    statusColor: 'emerald',
+    itemsCount: 18,
+    totalRetailCost: 28400,
+    totalWholesaleCost: 23100,
+    totalSavings: 5300,
+    overallSavingsPct: '18.6',
+    finalPayable: 24255,
+    items: [
+      { id: 'prod_001', name: 'Sona Masoori Rice (25kg Bag)', qty: 8, retailPrice: 1450, wholesalePrice: 1180, lineRetail: 11600, lineWholesale: 9440, lineSavings: 2160, category: 'Grains & Pulses' },
+      { id: 'prod_006', name: 'Freedom Sunflower Oil (15L Tin)', qty: 4, retailPrice: 1950, wholesalePrice: 1620, lineRetail: 7800, lineWholesale: 6480, lineSavings: 1320, category: 'Oils & Dairy' },
+      { id: 'prod_010', name: 'Guntur Red Chilli Powder (5kg Pack)', qty: 6, retailPrice: 1500, wholesalePrice: 1180, lineRetail: 9000, lineWholesale: 7080, lineSavings: 1920, category: 'Spices & Condiments' }
+    ]
+  },
+  {
+    id: 'ord_902',
+    invoiceNo: 'INV-2026-8842',
+    date: '13 Aug 2026',
+    userId: 'usr_google_01',
+    storeName: 'Google Partner Kirana Store',
+    clusterHub: 'Hyderabad Tech Corridor Cluster #1',
+    status: 'In Transit',
+    statusColor: 'blue',
+    itemsCount: 22,
+    totalRetailCost: 39650,
+    totalWholesaleCost: 32210,
+    totalSavings: 7440,
+    overallSavingsPct: '18.8',
+    finalPayable: 33821,
+    items: [
+      { id: 'prod_001', name: 'Sona Masoori Rice (25kg Bag)', qty: 10, retailPrice: 1450, wholesalePrice: 1180, lineRetail: 14500, lineWholesale: 11800, lineSavings: 2700, category: 'Grains & Pulses' },
+      { id: 'prod_006', name: 'Freedom Sunflower Oil (15L Tin)', qty: 5, retailPrice: 1950, wholesalePrice: 1620, lineRetail: 9750, lineWholesale: 8100, lineSavings: 1650, category: 'Oils & Dairy' },
+      { id: 'prod_010', name: 'Guntur Red Chilli Powder (5kg Pack)', qty: 4, retailPrice: 1750, wholesalePrice: 1390, lineRetail: 7000, lineWholesale: 5560, lineSavings: 1440, category: 'Spices & Condiments' },
+      { id: 'prod_018', name: 'Surf Excel Easy Wash Carton (1kg x 20)', qty: 3, retailPrice: 2800, wholesalePrice: 2250, lineRetail: 8400, lineWholesale: 6750, lineSavings: 1650, category: 'Personal Care' }
+    ]
+  },
+  {
+    id: 'ord_903',
+    invoiceNo: 'INV-2026-6410',
+    date: '04 Aug 2026',
+    userId: 'usr_002',
+    storeName: 'Balaji Super Market',
+    clusterHub: 'Hyderabad Central Hub #2',
+    status: 'Delivered',
+    statusColor: 'emerald',
+    itemsCount: 35,
+    totalRetailCost: 64200,
+    totalWholesaleCost: 51800,
+    totalSavings: 12400,
+    overallSavingsPct: '19.3',
+    finalPayable: 54390,
+    items: [
+      { id: 'prod_014', name: 'Red Label Tea Master Carton (1kg x 12)', qty: 5, retailPrice: 4800, wholesalePrice: 3950, lineRetail: 24000, lineWholesale: 19750, lineSavings: 4250, category: 'Beverages & Snacks' },
+      { id: 'prod_001', name: 'Sona Masoori Rice (25kg Bag)', qty: 20, retailPrice: 1450, wholesalePrice: 1180, lineRetail: 29000, lineWholesale: 23600, lineSavings: 5400, category: 'Grains & Pulses' },
+      { id: 'prod_006', name: 'Freedom Sunflower Oil (15L Tin)', qty: 10, retailPrice: 1120, wholesalePrice: 845, lineRetail: 11200, lineWholesale: 8450, lineSavings: 2750, category: 'Oils & Dairy' }
+    ]
+  }
+];
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
@@ -386,6 +475,22 @@ export function AppProvider({ children }) {
     }
     return DEMO_USERS.sri_lakshmi;
   });
+
+  const [orderHistory, setOrderHistory] = useState(() => {
+    const saved = localStorage.getItem('samooh_orders');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_ORDERS;
+      }
+    }
+    return DEFAULT_ORDERS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('samooh_orders', JSON.stringify(orderHistory));
+  }, [orderHistory]);
 
   useEffect(() => {
     localStorage.setItem('samooh_theme', theme);
@@ -409,6 +514,28 @@ export function AppProvider({ children }) {
       localStorage.removeItem('samooh_user');
     }
   }, [user]);
+
+  const addOrderToHistory = (newInvoice) => {
+    const orderObj = {
+      id: `ord_${Date.now()}`,
+      invoiceNo: newInvoice.invoiceNo || `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: newInvoice.date || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      userId: user?.id || 'usr_001',
+      storeName: newInvoice.storeName || user?.storeName || 'Sri Lakshmi Kirana',
+      clusterHub: newInvoice.clusterHub || user?.clusterHub || 'Hyderabad Cluster',
+      status: 'In Transit',
+      statusColor: 'blue',
+      itemsCount: newInvoice.totalItemsCount || (newInvoice.items ? newInvoice.items.length : 1),
+      totalRetailCost: newInvoice.totalRetailCost || 0,
+      totalWholesaleCost: newInvoice.totalWholesaleCost || 0,
+      totalSavings: newInvoice.totalSavings || 0,
+      overallSavingsPct: newInvoice.overallSavingsPct || '18.5',
+      finalPayable: newInvoice.finalPayable || 0,
+      items: newInvoice.items || []
+    };
+
+    setOrderHistory(prev => [orderObj, ...prev]);
+  };
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -478,6 +605,8 @@ export function AppProvider({ children }) {
       setActiveInvoice,
       user,
       setUser,
+      orderHistory,
+      addOrderToHistory,
       loginWithGoogle,
       login,
       logout,

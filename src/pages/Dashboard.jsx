@@ -86,9 +86,9 @@ export default function Dashboard() {
       const invoicePayload = {
         invoiceNo: `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        storeName: 'Sri Lakshmi Kirana & General Store',
-        storeAddress: 'Door No 42, Road No 12, Banjara Hills, Hyderabad (500034)',
-        clusterHub: `Hyderabad Cluster (Radius: ~${pool.average_cluster_distance_km || 1.8} km)`,
+        storeName: user?.storeName || 'Sri Lakshmi Kirana & General Store',
+        storeAddress: user?.address || 'Door No 42, Road No 12, Banjara Hills, Hyderabad (500034)',
+        clusterHub: user?.clusterHub || `Hyderabad Cluster (Radius: ~${pool.average_cluster_distance_km || 1.8} km)`,
         items: [
           {
             id: pool.product_id || 'prod_001',
@@ -112,6 +112,7 @@ export default function Dashboard() {
       };
 
       setActiveInvoice(invoicePayload);
+      addOrderToHistory(invoicePayload);
       navigate('/processing');
     }
   };

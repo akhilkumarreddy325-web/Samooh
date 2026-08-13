@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store } from 'lucide-react';
+import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu } from 'lucide-react';
 import { checkHealth, triggerDemoScenario } from '../services/api';
 import { useApp } from '../context/AppContext';
 
-export default function TopNav() {
+export default function TopNav({ onToggleMobileMenu }) {
   const { theme, toggleTheme, lang, toggleLanguage, t, user, logout } = useApp();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,27 +41,41 @@ export default function TopNav() {
   };
 
   return (
-    <header className={`h-16 border-b px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-xl transition-colors duration-300 ${
+    <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-xl transition-colors duration-300 ${
       theme === 'light'
         ? 'bg-white/80 border-slate-200/80 text-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'
         : 'bg-[#0B1020]/90 border-slate-800/80 text-slate-100'
     }`}>
-      {/* Global Search Input */}
-      <div className="relative w-72">
-        <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${
-          theme === 'light' ? 'text-slate-400' : 'text-slate-500'
-        }`} />
-        <input 
-          type="text"
-          placeholder={t('searchPlaceholder')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={`w-full border rounded-xl pl-9 pr-4 py-1.5 text-xs transition focus:outline-none ${
+      {/* Left Section: Mobile Menu Trigger & Global Search Input */}
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={onToggleMobileMenu}
+          className={`p-2 rounded-xl border md:hidden transition ${
             theme === 'light'
-              ? 'bg-slate-100/90 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white'
-              : 'bg-[#131A2A] border-slate-800 text-slate-200 placeholder-slate-500 focus:border-accentBlue'
+              ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+              : 'bg-[#131A2A] border-slate-800 text-slate-300 hover:bg-slate-800'
           }`}
-        />
+          title="Open Navigation Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="relative w-44 sm:w-64 lg:w-72">
+          <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${
+            theme === 'light' ? 'text-slate-400' : 'text-slate-500'
+          }`} />
+          <input 
+            type="text"
+            placeholder={t('searchPlaceholder')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`w-full border rounded-xl pl-9 pr-3 py-1.5 text-xs transition focus:outline-none ${
+              theme === 'light'
+                ? 'bg-slate-100/90 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white'
+                : 'bg-[#131A2A] border-slate-800 text-slate-200 placeholder-slate-500 focus:border-accentBlue'
+            }`}
+          />
+        </div>
       </div>
 
       {/* Right Header Actions */}

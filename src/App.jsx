@@ -12,11 +12,13 @@ import CustomDemandBuilder from './pages/CustomDemandBuilder';
 import SavingsBill from './pages/SavingsBill';
 import OrderProcessing from './pages/OrderProcessing';
 import Login from './pages/Login';
+import PreviousOrders from './pages/PreviousOrders';
 
 function MainLayout() {
   const { theme } = useApp();
   const location = useLocation();
   const [isLiveApi, setIsLiveApi] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Standalone Full-Screen Login View
   if (location.pathname === '/login') {
@@ -40,19 +42,24 @@ function MainLayout() {
         : 'bg-[#0B1020] text-slate-100'
     }`}>
       {/* Left Sidebar Navigation */}
-      <Sidebar />
+      <Sidebar 
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <TopNav 
           isLiveApi={isLiveApi}
           onToggleApi={() => setIsLiveApi(!isLiveApi)}
+          onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
         />
         <main className="flex-1 overflow-y-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/builder" element={<CustomDemandBuilder />} />
+            <Route path="/orders" element={<PreviousOrders />} />
             <Route path="/processing" element={<OrderProcessing />} />
             <Route path="/invoice" element={<SavingsBill />} />
             <Route path="/insights" element={<Insights />} />

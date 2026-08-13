@@ -73,7 +73,7 @@ const CATALOG_ITEMS = [
 ];
 
 export default function CustomDemandBuilder() {
-  const { theme, t, setActiveInvoice, user } = useApp();
+  const { theme, t, setActiveInvoice, user, addOrderToHistory } = useApp();
   const navigate = useNavigate();
 
   // Quantities state dictionary keyed by product ID
@@ -142,6 +142,7 @@ export default function CustomDemandBuilder() {
     };
 
     setActiveInvoice(invoicePayload);
+    addOrderToHistory(invoicePayload);
     navigate('/processing');
   };
 

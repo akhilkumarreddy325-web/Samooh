@@ -1,48 +1,60 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Sparkles, Store, LineChart, Layers, ShieldCheck, ShoppingBag, FileText } from 'lucide-react';
+import { LayoutDashboard, Sparkles, Store, LineChart, Layers, ShieldCheck, ShoppingBag, FileText, PackageCheck, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   const { theme, t } = useApp();
 
   const navItems = [
     { labelKey: 'dashboard', path: '/', icon: LayoutDashboard },
     { labelKey: 'opportunities', path: '/opportunities', icon: Sparkles, badge: 'AI' },
     { labelKey: 'customDemand', path: '/builder', icon: ShoppingBag, badge: 'NEW' },
+    { labelKey: 'previousOrdersNav', path: '/orders', icon: PackageCheck },
     { labelKey: 'savingsBill', path: '/invoice', icon: FileText },
     { labelKey: 'insights', path: '/insights', icon: Store },
     { labelKey: 'impact', path: '/impact', icon: LineChart },
   ];
 
-  return (
+  const sidebarContent = (
     <aside className={`w-64 border-r flex flex-col justify-between p-4 flex-shrink-0 min-h-screen transition-colors duration-300 ${
       theme === 'light'
-        ? 'bg-white/80 border-slate-200/80 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)]'
-        : 'bg-[#0B1020] border-slate-800/80'
+        ? 'bg-white/95 border-slate-200/80 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)]'
+        : 'bg-[#0B1020] border-slate-800/80 text-white'
     }`}>
       <div>
-        {/* Brand Logo Header */}
-        <div className="flex items-center space-x-3 px-3 py-4 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 p-0.5 shadow-md flex items-center justify-center">
-            <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
-              theme === 'light' ? 'bg-white' : 'bg-[#0B1020]'
-            }`}>
-              <Layers className="w-5 h-5 text-blue-600" />
+        {/* Brand Logo Header & Mobile Close */}
+        <div className="flex items-center justify-between px-3 py-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 p-0.5 shadow-md flex items-center justify-center">
+              <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                theme === 'light' ? 'bg-white' : 'bg-[#0B1020]'
+              }`}>
+                <Layers className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+            <div>
+              <h1 className={`text-xl font-extrabold tracking-tight flex items-center ${
+                theme === 'light' ? 'text-slate-900' : 'text-white'
+              }`}>
+                {t('brandName')} <span className="text-indigo-600 text-xs ml-1 font-semibold">{t('brandBadge')}</span>
+              </h1>
+              <p className={`text-[10px] font-medium ${
+                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+              }`}>
+                {t('brandSubtitle')}
+              </p>
             </div>
           </div>
-          <div>
-            <h1 className={`text-xl font-extrabold tracking-tight flex items-center ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}>
-              {t('brandName')} <span className="text-indigo-600 text-xs ml-1 font-semibold">{t('brandBadge')}</span>
-            </h1>
-            <p className={`text-[10px] font-medium ${
-              theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-            }`}>
-              {t('brandSubtitle')}
-            </p>
-          </div>
+
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation Links */}
@@ -58,6 +70,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={onCloseMobile}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                     isActive
@@ -104,5 +117,29 @@ export default function Sidebar() {
         </p>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <div className="hidden md:block">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Slide-Over Drawer Navigation */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop Blur Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobile}
+          />
+          {/* Drawer Sidebar */}
+          <div className="relative flex-1 max-w-xs w-full bg-[#0B1020]">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
