@@ -2,6 +2,7 @@ import React from 'react';
 import { Store, MapPin, Check, X, ArrowUpRight, Truck } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 export default function RecommendationCard({ recommendation, onAccept, onReject, onViewDetails }) {
   const { theme, t } = useApp();
@@ -77,7 +78,7 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
               {t('totalGroupSavings')}
             </span>
             <div className="text-base font-bold text-emerald-900 dark:text-emerald-300">
-              ₹{estimated_total_savings ? estimated_total_savings.toLocaleString() : 0}
+              {formatINR(estimated_total_savings || 0)}
             </div>
           </div>
           <div className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 font-semibold text-xs border border-emerald-200 dark:border-emerald-800">

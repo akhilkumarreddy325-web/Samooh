@@ -9,6 +9,7 @@ import {
   signOutUser, 
   handleRedirectResult 
 } from '../services/authService';
+import { formatINR } from '../utils/currency';
 
 const translations = {
   en: {
@@ -713,8 +714,8 @@ export function AppProvider({ children }) {
                 city: profile.city || 'Hyderabad',
                 clusterHub: profile.clusterHub || 'Hyderabad Cluster #1',
                 address: profile.address || 'Hyderabad',
-                monthlyBudget: profile.procurement_profile?.maximum_procurement_value ? `₹${profile.procurement_profile.maximum_procurement_value.toLocaleString()}` : '₹2,50,000',
-                totalSaved: '₹0',
+                monthlyBudget: formatINR(profile.procurement_profile?.maximum_procurement_value || 250000),
+                totalSaved: formatINR(0),
                 rating: 4.9,
                 avatar: fbUser.photoURL || null,
                 isGoogle: true
@@ -754,8 +755,8 @@ export function AppProvider({ children }) {
       city: formData.city || 'Hyderabad',
       clusterHub: `${formData.city || 'Hyderabad'} Kirana Cluster #1`,
       address: formData.address || `${formData.area || ''}, ${formData.city || ''}`,
-      monthlyBudget: formData.maxProcurementBudget ? `₹${Number(formData.maxProcurementBudget).toLocaleString()}` : '₹2,50,000',
-      totalSaved: '₹0',
+      monthlyBudget: formatINR(formData.maxProcurementBudget || 250000),
+      totalSaved: formatINR(0),
       rating: 4.9,
       avatar: firebaseUser?.photoURL || null,
       isGoogle: !!firebaseUser

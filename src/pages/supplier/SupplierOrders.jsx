@@ -6,6 +6,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { getSupplierOrders } from '../../services/api';
 import SupplierOrderDetailModal from './SupplierOrderDetailModal';
+import { formatINR } from '../../utils/currency';
 
 export default function SupplierOrders() {
   const { theme, currentSupplier } = useApp();
@@ -204,7 +205,7 @@ export default function SupplierOrders() {
 
                       <td className="py-3 px-4 text-right">
                         <div className="font-medium text-slate-900 dark:text-slate-100">
-                          ₹{ord.final_unit_price}/{ord.unit}
+                          {formatINR(ord.final_unit_price)}/{ord.unit}
                         </div>
                         {ord.discount_pct > 0 && (
                           <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
@@ -215,7 +216,7 @@ export default function SupplierOrders() {
 
                       <td className="py-3 px-4 text-right font-medium">
                         <div className="text-slate-900 dark:text-slate-100 font-semibold">
-                          ₹{Number(ord.final_order_value || 0).toLocaleString('en-IN')}
+                          {formatINR(ord.final_order_value || 0)}
                         </div>
                       </td>
 

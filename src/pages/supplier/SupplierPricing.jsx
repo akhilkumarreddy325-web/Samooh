@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { getSupplierProducts, updateSupplierProduct } from '../../services/api';
+import { formatINR } from '../../utils/currency';
 
 export default function SupplierPricing() {
   const { currentSupplier } = useApp();
@@ -394,13 +395,13 @@ export default function SupplierPricing() {
             <div className="p-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 space-y-2 text-xs">
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                 <span>Base Wholesale Price:</span>
-                <span className="font-medium">₹{Number(wholesalePrice || 0).toFixed(2)}/{uom}</span>
+                <span className="font-medium">{formatINR(wholesalePrice, { decimals: 2 })}/{uom}</span>
               </div>
 
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                 <span>Unlocked Quantity Tier:</span>
                 <span className="font-semibold text-slate-900 dark:text-white">
-                  ₹{Number(calculatedTierPrice || 0).toFixed(2)}/{uom}
+                  {formatINR(calculatedTierPrice, { decimals: 2 })}/{uom}
                   {appliedTier && (
                     <span className="text-[10px] text-slate-400 ml-1 font-normal">
                       ({appliedTier.min_quantity}–{appliedTier.max_quantity || '∞'} {uom})
@@ -412,19 +413,19 @@ export default function SupplierPricing() {
               {discountPct > 0 && (
                 <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-400 font-medium">
                   <span>Additional Discount ({discountPct}%):</span>
-                  <span>-₹{Number(additionalDiscountAmount || 0).toFixed(2)}/{uom}</span>
+                  <span>-{formatINR(additionalDiscountAmount, { decimals: 2 })}/{uom}</span>
                 </div>
               )}
 
               <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between font-bold text-xs">
                 <span className="text-slate-900 dark:text-white">Final Unit Price:</span>
-                <span className="text-sm text-emerald-800 dark:text-emerald-400">₹{Number(finalUnitPrice || 0).toFixed(2)}/{uom}</span>
+                <span className="text-sm text-emerald-800 dark:text-emerald-400">{formatINR(finalUnitPrice, { decimals: 2 })}/{uom}</span>
               </div>
 
               <div className="flex items-center justify-between pt-1">
                 <span className="text-slate-500">Total Group Invoice:</span>
                 <span className="text-sm font-bold text-slate-900 dark:text-white">
-                  ₹{finalOrderValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                  {formatINR(finalOrderValue, { decimals: 2 })}
                 </span>
               </div>
             </div>

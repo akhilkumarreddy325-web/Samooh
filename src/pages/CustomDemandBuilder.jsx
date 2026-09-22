@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 const CATALOG_ITEMS = [
   {
@@ -202,11 +203,11 @@ export default function CustomDemandBuilder() {
                     <div className="mt-2.5 grid grid-cols-2 gap-2 p-2 rounded-md border bg-slate-50/60 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-xs">
                       <div>
                         <span className="text-[10px] text-slate-400 block">Retail Benchmark</span>
-                        <span className="text-slate-400 line-through font-medium">₹{item.retailPrice.toLocaleString()}</span>
+                        <span className="text-slate-400 line-through font-medium">{formatINR(item.retailPrice)}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-emerald-800 dark:text-emerald-400 font-medium block">Wholesale Rate</span>
-                        <span className="text-emerald-800 dark:text-emerald-400 font-bold">₹{item.wholesalePrice.toLocaleString()}</span>
+                        <span className="text-emerald-800 dark:text-emerald-400 font-bold">{formatINR(item.wholesalePrice)}</span>
                       </div>
                     </div>
                   </div>
@@ -261,11 +262,11 @@ export default function CustomDemandBuilder() {
                   <div key={item.id} className="flex items-center justify-between text-xs">
                     <div className="truncate pr-2">
                       <span className="font-medium text-slate-800 dark:text-slate-200">{item.name}</span>
-                      <span className="block text-[10px] text-slate-400">{item.qty} × ₹{item.wholesalePrice}</span>
+                      <span className="block text-[10px] text-slate-400">{item.qty} × {formatINR(item.wholesalePrice)}</span>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <span className="font-semibold text-slate-900 dark:text-white">₹{item.lineWholesale.toLocaleString()}</span>
-                      <span className="block text-[10px] text-emerald-800 dark:text-emerald-400">Save ₹{item.lineSavings.toLocaleString()}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">{formatINR(item.lineWholesale)}</span>
+                      <span className="block text-[10px] text-emerald-800 dark:text-emerald-400">Save {formatINR(item.lineSavings)}</span>
                     </div>
                   </div>
                 ))
@@ -280,11 +281,11 @@ export default function CustomDemandBuilder() {
             <div className="py-3 space-y-2 text-xs">
               <div className="flex justify-between text-slate-500">
                 <span>{t('singleStoreRetailTotal')}</span>
-                <span className="line-through">₹{totalRetailCost.toLocaleString()}</span>
+                <span className="line-through">{formatINR(totalRetailCost)}</span>
               </div>
               <div className="flex justify-between font-medium text-slate-800 dark:text-slate-200">
                 <span>{t('samoohGroupWholesaleTotal')}</span>
-                <span className="font-bold">₹{totalWholesaleCost.toLocaleString()}</span>
+                <span className="font-bold">{formatINR(totalWholesaleCost)}</span>
               </div>
               <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <span className="font-semibold text-slate-800 dark:text-white">
@@ -292,7 +293,7 @@ export default function CustomDemandBuilder() {
                 </span>
                 <div className="text-right">
                   <span className="text-base font-bold text-emerald-800 dark:text-emerald-400 block">
-                    ₹{totalSavings.toLocaleString()}
+                    {formatINR(totalSavings)}
                   </span>
                   <span className="text-[10px] font-medium text-emerald-800 dark:text-emerald-300">
                     {overallSavingsPct}% TOTAL SAVINGS

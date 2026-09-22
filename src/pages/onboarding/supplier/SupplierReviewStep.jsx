@@ -1,5 +1,6 @@
 import React from 'react';
-import { Building2, Package, DollarSign, Truck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle } from 'lucide-react';
+import { Building2, Package, Truck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
+import { formatINR } from '../../../utils/currency';
 
 export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmitting, submitError, onBack }) {
   return (
@@ -14,12 +15,26 @@ export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmi
       </div>
 
       {submitError && (
-        <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <span className="font-semibold block">Failed to save profile:</span>
-            <span>{submitError}</span>
+        <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold block">Save Unsuccessful</span>
+              <span>{submitError}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                Your entered information is completely preserved. You can click Retry below.
+              </span>
+            </div>
           </div>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={onSubmit}
+            className="py-1.5 px-3 rounded bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs flex items-center space-x-1.5 self-end sm:self-auto transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSubmitting ? 'animate-spin' : ''}`} />
+            <span>Retry Save</span>
+          </button>
         </div>
       )}
 
@@ -97,7 +112,7 @@ export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmi
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase font-medium">Base Price</span>
-                  <span className="font-bold text-emerald-800 dark:text-emerald-400">₹{p.wholesale_price}/{p.unit}</span>
+                  <span className="font-bold text-emerald-800 dark:text-emerald-400">{formatINR(p.wholesale_price)}/{p.unit}</span>
                 </div>
               </div>
             </div>
@@ -167,7 +182,7 @@ export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmi
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Saving Supplier Profile...</span>
+              <span>Saving Wholesale Profile...</span>
             </>
           ) : (
             <>

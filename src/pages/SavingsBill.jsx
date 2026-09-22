@@ -15,6 +15,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 const DEFAULT_INVOICE = {
   invoiceNo: 'INV-2026-8842',
@@ -331,19 +332,19 @@ Amount Payable: ₹${(invoice.finalPayable || 0).toLocaleString()}`;
                       {item.qty}
                     </td>
                     <td className="py-2.5 px-3 text-right text-slate-400 line-through">
-                      ₹{item.retailPrice.toLocaleString()}
+                      {formatINR(item.retailPrice)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-medium text-emerald-800 dark:text-emerald-400">
-                      ₹{item.wholesalePrice.toLocaleString()}
+                      {formatINR(item.wholesalePrice)}
                     </td>
                     <td className="py-2.5 px-3 text-right text-slate-400 line-through">
-                      ₹{item.lineRetail.toLocaleString()}
+                      {formatINR(item.lineRetail)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-semibold text-slate-900 dark:text-white">
-                      ₹{item.lineWholesale.toLocaleString()}
+                      {formatINR(item.lineWholesale)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-semibold text-emerald-800 dark:text-emerald-400">
-                      ₹{item.lineSavings.toLocaleString()}
+                      {formatINR(item.lineSavings)}
                     </td>
                   </tr>
                 ))}
@@ -399,22 +400,22 @@ Amount Payable: ₹${(invoice.finalPayable || 0).toLocaleString()}`;
 
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>{t('subtotalRetail')}</span>
-              <span className="line-through">₹{invoice.totalRetailCost.toLocaleString()}</span>
+              <span className="line-through">{formatINR(invoice.totalRetailCost)}</span>
             </div>
 
             <div className="flex justify-between font-semibold text-emerald-800 dark:text-emerald-400">
               <span>{t('samoohGroupDiscount')}</span>
-              <span>- ₹{invoice.totalSavings.toLocaleString()}</span>
+              <span>- {formatINR(invoice.totalSavings)}</span>
             </div>
 
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>{t('subtotalWholesale')}</span>
-              <span className="font-medium text-slate-900 dark:text-white">₹{invoice.totalWholesaleCost.toLocaleString()}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{formatINR(invoice.totalWholesaleCost)}</span>
             </div>
 
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>{t('taxGst')}</span>
-              <span>+ ₹{invoice.taxGst.toLocaleString()}</span>
+              <span>+ {formatINR(invoice.taxGst)}</span>
             </div>
 
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
@@ -428,7 +429,7 @@ Amount Payable: ₹${(invoice.finalPayable || 0).toLocaleString()}`;
                 {t('finalPayableAmount')}
               </span>
               <span className="text-base text-slate-900 dark:text-white">
-                ₹{invoice.finalPayable.toLocaleString()}
+                {formatINR(invoice.finalPayable)}
               </span>
             </div>
 
@@ -438,7 +439,7 @@ Amount Payable: ₹${(invoice.finalPayable || 0).toLocaleString()}`;
                 {t('totalSavedHighlight')}
               </span>
               <span className="text-lg font-bold block mt-0.5">
-                ₹{invoice.totalSavings.toLocaleString()} ({invoice.overallSavingsPct}% OFF)
+                {formatINR(invoice.totalSavings)} ({invoice.overallSavingsPct}% OFF)
               </span>
             </div>
           </div>

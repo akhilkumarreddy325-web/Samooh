@@ -3,6 +3,7 @@ import { X, MapPin, CheckCircle2, ShieldCheck, Info } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import PooledInventorySection from './PooledInventorySection';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 export default function PoolDetailModal({ pool, onClose, onAccept }) {
   const { t } = useApp();
@@ -98,7 +99,7 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
                 <div className="text-right">
                   <div className="text-[10px] text-slate-400 font-medium uppercase">Rate</div>
                   <div className="text-sm font-bold text-emerald-800 dark:text-emerald-400">
-                    ₹{pool.supplier_evaluation.unit_price}/{pool.product_obj?.unit_of_measure || 'unit'}
+                    {formatINR(pool.supplier_evaluation.unit_price)}/{pool.product_obj?.unit_of_measure || 'unit'}
                   </div>
                 </div>
               </div>
@@ -144,7 +145,7 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
                             <td className="p-1.5 text-center">{cand.moq}</td>
                             <td className="p-1.5 text-center">{cand.available_stock}</td>
                             <td className="p-1.5 text-center">{cand.service_radius_km} km</td>
-                            <td className="p-1.5 text-right font-semibold text-slate-900 dark:text-white">₹{cand.unit_price}</td>
+                            <td className="p-1.5 text-right font-semibold text-slate-900 dark:text-white">{formatINR(cand.unit_price)}</td>
                             <td className="p-1.5 text-center">
                               <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                 cand.is_feasible ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'

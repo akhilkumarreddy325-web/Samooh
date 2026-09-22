@@ -1,5 +1,6 @@
 import React from 'react';
-import { Store, ShoppingBag, ShieldCheck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle } from 'lucide-react';
+import { Store, ShoppingBag, ShieldCheck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
+import { formatINR } from '../../../utils/currency';
 
 export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmitting, submitError, onBack }) {
   return (
@@ -14,12 +15,26 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
       </div>
 
       {submitError && (
-        <div className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <span className="font-semibold block">Failed to save profile:</span>
-            <span>{submitError}</span>
+        <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold block">Save Unsuccessful</span>
+              <span>{submitError}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                Your entered information is completely preserved. You can click Retry below.
+              </span>
+            </div>
           </div>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={onSubmit}
+            className="py-1.5 px-3 rounded bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs flex items-center space-x-1.5 self-end sm:self-auto transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSubmitting ? 'animate-spin' : ''}`} />
+            <span>Retry Save</span>
+          </button>
         </div>
       )}
 
@@ -48,27 +63,27 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
             <span className="font-semibold text-slate-900 dark:text-white">{data.shopName || 'Kirana Store'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">Owner / Contact</span>
+            <span className="text-[11px] text-slate-500 block">Owner Name</span>
             <span className="font-semibold text-slate-900 dark:text-white">{data.ownerName || 'Store Owner'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">Business Type</span>
+            <span className="text-[11px] text-slate-500 block">Store Format</span>
             <span className="font-semibold text-slate-900 dark:text-white">{data.businessType || 'Kirana Store'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">Location</span>
-            <span className="font-semibold text-slate-900 dark:text-white">{data.area}, {data.city}</span>
+            <span className="text-[11px] text-slate-500 block">City & Area</span>
+            <span className="font-semibold text-slate-900 dark:text-white">{data.area ? `${data.area}, ` : ''}{data.city}</span>
           </div>
         </div>
       </div>
 
-      {/* Review Section 2: Products Sold & Catalog */}
+      {/* Review Section 2: Products Sold */}
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700/60">
           <div className="flex items-center space-x-2">
             <ShoppingBag className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Products Sold ({data.productsSold?.length || 0})
+              Retail Product Lines ({data.productsSold?.length || 0} categories)
             </h4>
           </div>
           <button
@@ -114,7 +129,7 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
             <div key={idx} className="flex items-center justify-between py-1 text-xs border-b border-slate-100 dark:border-slate-700/40 last:border-0">
               <span className="font-medium text-slate-900 dark:text-slate-100">{item.name}</span>
               <span className="text-slate-500">
-                {item.typical_quantity} {item.unit} • {item.purchase_frequency} • ~₹{(item.approx_budget || 0).toLocaleString()}
+                {item.typical_quantity} {item.unit} • {item.purchase_frequency} • ~{formatINR(item.approx_budget || 0)}
               </span>
             </div>
           ))}
@@ -144,7 +159,7 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
           <div>
             <span className="text-[11px] text-slate-500 block">Max Procurement Budget</span>
             <span className="font-semibold text-emerald-800 dark:text-emerald-400">
-              ₹{(data.maxProcurementBudget || 25000).toLocaleString()}
+              {formatINR(data.maxProcurementBudget || 25000)}
             </span>
           </div>
           <div>

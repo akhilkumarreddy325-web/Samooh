@@ -15,28 +15,57 @@ import {
 import { auth, db, googleProvider } from './firebase';
 
 /**
- * Maps raw Firebase Auth errors into clean, professional user-facing messages.
+ * Executes a Promise with a strict timeout guard to prevent infinite loading.
+ * @param {Promise} promise 
+ * @param {number} ms 
+ * @param {string} opName 
+ * @returns {Promise}
+ */
+export function withTimeout(promise, ms = 6000, opName = 'Network operation') {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${opName} took longer than expected (${ms / 1000}s). Please check your internet connection and retry.`));
+    }, ms);
+
+    promise
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+/**
+ * Maps raw Firebase Auth and Firestore errors into clean, professional user-facing messages.
  */
 export function mapAuthError(error) {
   if (!error) return 'An unknown error occurred during sign-in.';
   const code = error.code || '';
   switch (code) {
     case 'auth/popup-closed-by-user':
-      return 'Google sign-in was closed before completing. Please try again.';
+      return 'Google sign-in was closed before completing. Please click Continue with Google to try again.';
     case 'auth/cancelled-popup-request':
       return 'The sign-in popup was cancelled. Please try again.';
     case 'auth/popup-blocked':
       return 'The sign-in popup was blocked by your browser. Please allow popups or use redirect.';
     case 'auth/network-request-failed':
-      return 'Unable to reach authentication service. Please check your network connection.';
+      return 'Unable to reach authentication service. Please check your network connection and retry.';
     case 'auth/unauthorized-domain':
       return 'This web domain is not yet authorized in Firebase Console (Authentication > Settings > Authorized Domains).';
     case 'auth/account-exists-with-different-credential':
       return 'An account already exists with this email under a different sign-in provider.';
     case 'auth/operation-not-allowed':
       return 'Google Sign-In provider is not enabled in the Firebase Console.';
+    case 'permission-denied':
+      return 'We could not save your profile because access was denied. Please try signing in again.';
+    case 'unavailable':
+      return 'Database service is temporarily unavailable. Your information is preserved. Please click Retry.';
     default:
-      return error.message || 'Authentication failed. Please check your details and try again.';
+      return error.message || 'Authentication or profile sync could not be completed. Please try again.';
   }
 }
 
@@ -46,7 +75,6 @@ export function mapAuthError(error) {
 export async function signInWithGoogle() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
-  // On mobile or when requested, try popup first with fallback to redirect
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return {
@@ -83,13 +111,13 @@ export async function handleRedirectResult() {
 }
 
 /**
- * Retrieves the user profile document from Firestore (`users/{uid}`).
+ * Retrieves the user profile document from Firestore (`users/{uid}`) with timeout protection.
  */
 export async function getUserProfile(uid) {
   if (!uid) return null;
   try {
     const ref = doc(db, 'users', uid);
-    const snap = await getDoc(ref);
+    const snap = await withTimeout(getDoc(ref), 5000, 'Profile lookup');
     if (snap.exists()) {
       return snap.data();
     }
@@ -115,6 +143,7 @@ export async function initializeUserProfile(user, role = null) {
     photoURL: user.photoURL || '',
     role: role || existing?.role || null,
     onboardingCompleted: existing?.onboardingCompleted || false,
+    onboardingVersion: 1,
     updatedAt: new Date().toISOString()
   };
 
@@ -123,7 +152,7 @@ export async function initializeUserProfile(user, role = null) {
   }
 
   try {
-    await setDoc(ref, profileData, { merge: true });
+    await withTimeout(setDoc(ref, profileData, { merge: true }), 5000, 'User profile init');
   } catch (err) {
     console.warn('[Samooh Auth] Firestore user profile sync error:', err.message);
   }
@@ -133,13 +162,14 @@ export async function initializeUserProfile(user, role = null) {
 
 /**
  * Saves Retailer Onboarding data into `retailers/{uid}` and marks `users/{uid}` completed.
+ * Guarantees atomic write and throws clear error if persistence fails.
  */
 export async function saveRetailerOnboarding(uid, data) {
   if (!uid) throw new Error('User ID is required to complete retailer setup.');
 
   const nowIso = new Date().toISOString();
 
-  // 1. Structured Retailer Document
+  // 1. Structured Retailer Profile Document
   const retailerDoc = {
     id: uid,
     retailer_id: uid,
@@ -159,7 +189,7 @@ export async function saveRetailerOnboarding(uid, data) {
     // Step 2: Products Sold in Store
     products_sold: Array.isArray(data.productsSold) ? data.productsSold : [],
 
-    // Step 3 & 4: Initial Demand Profile & Affordability Constraints
+    // Step 3 & 4: Initial Demand Profile & Retailer Affordability (NOT supplier MOQ)
     procurement_profile: {
       products_needed: Array.isArray(data.productsNeeded) ? data.productsNeeded.map(p => ({
         product_name: p.name || p.product_name,
@@ -177,6 +207,7 @@ export async function saveRetailerOnboarding(uid, data) {
     },
 
     onboarding_completed: true,
+    onboarding_version: 1,
     created_at: nowIso,
     updated_at: nowIso
   };
@@ -185,21 +216,22 @@ export async function saveRetailerOnboarding(uid, data) {
   const userDocUpdate = {
     role: 'retailer',
     onboardingCompleted: true,
+    onboardingVersion: 1,
     storeName: retailerDoc.storeName,
     ownerName: retailerDoc.ownerName,
     city: retailerDoc.city,
     updatedAt: nowIso
   };
 
-  // Safe Batch Write to Firestore
+  // Safe Batch Write with Timeout Guard
   try {
     const batch = writeBatch(db);
     batch.set(doc(db, 'retailers', uid), retailerDoc, { merge: true });
     batch.set(doc(db, 'users', uid), userDocUpdate, { merge: true });
-    await batch.commit();
+    await withTimeout(batch.commit(), 6000, 'Saving retailer profile');
   } catch (err) {
-    console.warn('[Samooh Auth] Firestore retailer persistence error:', err.message);
-    // Continue so user is not completely stuck if offline
+    console.error('[Samooh Auth] Firestore retailer persistence error:', err);
+    throw new Error(mapAuthError(err));
   }
 
   return { retailer: retailerDoc, user: userDocUpdate };
@@ -208,6 +240,7 @@ export async function saveRetailerOnboarding(uid, data) {
 /**
  * Saves Supplier Onboarding data into `suppliers/{uid}`, initializes catalog products,
  * and marks `users/{uid}` completed.
+ * Guarantees atomic write and throws clear error if persistence fails.
  */
 export async function saveSupplierOnboarding(uid, data) {
   if (!uid) throw new Error('User ID is required to complete supplier setup.');
@@ -234,6 +267,7 @@ export async function saveSupplierOnboarding(uid, data) {
     status: 'ACTIVE',
     rating: 4.8,
     onboarding_completed: true,
+    onboarding_version: 1,
     created_at: nowIso,
     updated_at: nowIso
   };
@@ -242,13 +276,14 @@ export async function saveSupplierOnboarding(uid, data) {
   const userDocUpdate = {
     role: 'supplier',
     onboardingCompleted: true,
+    onboardingVersion: 1,
     name: supplierDoc.name,
     contactPerson: supplierDoc.contactPerson,
     city: supplierDoc.city,
     updatedAt: nowIso
   };
 
-  // 3. Prepare Supplier Wholesale Products & Tiers
+  // 3. Prepare Supplier Wholesale Products & Tiers (Supplier controls MOQ & pricing)
   const productDocs = (data.configuredProducts || []).map((p, idx) => {
     const prodId = p.id || `prod_${uid.slice(0, 5)}_${Date.now()}_${idx}`;
     return {
@@ -272,7 +307,7 @@ export async function saveSupplierOnboarding(uid, data) {
     };
   });
 
-  // Safe Batch Write to Firestore
+  // Safe Batch Write with Timeout Guard
   try {
     const batch = writeBatch(db);
     batch.set(doc(db, 'suppliers', uid), supplierDoc, { merge: true });
@@ -282,9 +317,10 @@ export async function saveSupplierOnboarding(uid, data) {
       batch.set(doc(db, 'products', prod.id), prod, { merge: true });
     }
 
-    await batch.commit();
+    await withTimeout(batch.commit(), 6000, 'Saving supplier profile');
   } catch (err) {
-    console.warn('[Samooh Auth] Firestore supplier persistence error:', err.message);
+    console.error('[Samooh Auth] Firestore supplier persistence error:', err);
+    throw new Error(mapAuthError(err));
   }
 
   return { supplier: supplierDoc, products: productDocs, user: userDocUpdate };

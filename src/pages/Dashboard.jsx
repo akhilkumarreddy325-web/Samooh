@@ -26,6 +26,8 @@ import KPICard from '../components/KPICard';
 import RecommendationCard from '../components/RecommendationCard';
 import PoolDetailModal from '../components/PoolDetailModal';
 import { getDashboard, getRecommendations, seedData } from '../services/api';
+import { MOCK_DASHBOARD, MOCK_RECOMMENDATIONS } from '../api/mockData';
+import { formatINR } from '../utils/currency';
 import { useApp } from '../context/AppContext';
 
 export default function Dashboard() {
@@ -220,7 +222,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           title={t('estimatedSavings')}
-          value={`₹${data?.metrics?.total_community_savings_inr ? data.metrics.total_community_savings_inr.toLocaleString() : '84,520'}`}
+          value={formatINR(data?.metrics?.total_community_savings_inr || 84520)}
           subtext={t('netSavingsSub')}
           icon={IndianRupee}
           color="emerald"
@@ -289,7 +291,7 @@ export default function Dashboard() {
                     borderRadius: '6px',
                     fontSize: '12px'
                   }}
-                  formatter={(val) => [`₹${val.toLocaleString()}`, 'Group Savings']}
+                  formatter={(val) => [formatINR(val), 'Group Savings']}
                 />
                 <Area type="monotone" dataKey="savings" stroke="#166534" strokeWidth={2} fillOpacity={1} fill="url(#savingsGrad)" />
               </AreaChart>
@@ -389,30 +391,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-const MOCK_DASHBOARD = {
-  metrics: {
-    total_community_savings_inr: 84520,
-    total_retailers: 30,
-    total_active_pools: 12,
-    pools_achieved_threshold: 9,
-    average_savings_percentage: 18.5
-  },
-  monthly_savings_trend: [
-    { month: 'Jan', savings: 12500 },
-    { month: 'Feb', savings: 25400 },
-    { month: 'Mar', savings: 42000 },
-    { month: 'Apr', savings: 63000 },
-    { month: 'May', savings: 76000 },
-    { month: 'Jun', savings: 84520 }
-  ],
-  category_breakdown: {
-    "Grains & Pulses": 45,
-    "Edible Oils": 25,
-    "Spices": 15,
-    "Beverages": 10,
-    "Household": 5
-  }
-};
-
-const MOCK_RECOMMENDATIONS = [];

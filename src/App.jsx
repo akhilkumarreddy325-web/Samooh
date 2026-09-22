@@ -101,9 +101,22 @@ function MainLayout() {
 
   // Standalone Full-Screen Login & Onboarding Views
   if (location.pathname === '/login' || location.pathname === '/onboarding') {
-    // If user already completed onboarding and tries to visit /onboarding, redirect to dashboard
-    if (location.pathname === '/onboarding' && onboardingCompleted) {
-      return <Navigate to={userRole === 'supplier' ? '/supplier' : '/'} replace />;
+    if (location.pathname === '/login') {
+      if (firebaseUser && onboardingCompleted) {
+        return <Navigate to={userRole === 'supplier' ? '/supplier' : '/'} replace />;
+      }
+      if (firebaseUser && !onboardingCompleted) {
+        return <Navigate to="/onboarding" replace />;
+      }
+    }
+
+    if (location.pathname === '/onboarding') {
+      if (!firebaseUser) {
+        return <Navigate to="/login" replace />;
+      }
+      if (onboardingCompleted) {
+        return <Navigate to={userRole === 'supplier' ? '/supplier' : '/'} replace />;
+      }
     }
 
     return (
@@ -122,8 +135,13 @@ function MainLayout() {
     );
   }
 
-  // If user is authenticated with Firebase but has NOT completed onboarding, redirect to /onboarding
-  if (firebaseUser && !onboardingCompleted) {
+  // Protected Application Routes - Requires Google Auth
+  if (!firebaseUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Requires Completed Onboarding Profile
+  if (!onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 

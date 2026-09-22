@@ -13,7 +13,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 // Create Axios client instance with ultra-short timeout for instant fallback
 const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 600,
+  timeout: 3000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { IndianRupee, ShieldCheck, Truck, Leaf, AlertCircle, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import KPICard from '../components/KPICard';
-import { getImpactMetrics, seedData } from '../services/api';
+import { getImpactMetrics } from '../services/api';
+import { MOCK_IMPACT } from '../api/mockData';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 export default function Impact() {
   const { theme, t } = useApp();
@@ -94,7 +96,7 @@ export default function Impact() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           title={t('aggregateSavings')}
-          value={`₹${totalSavings.toLocaleString()}`}
+          value={formatINR(totalSavings)}
           change="+24.5%"
           isPositive={true}
           icon={IndianRupee}
@@ -112,7 +114,7 @@ export default function Impact() {
         />
         <KPICard
           title={t('logisticsSavings')}
-          value="₹14,200"
+          value={formatINR(14200)}
           change="+18.0%"
           isPositive={true}
           icon={Truck}
@@ -218,16 +220,16 @@ export default function Impact() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {comparisonTable.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-700/30">
-                  <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">{row.product}</td>
-                  <td className="py-2.5 px-3 text-right line-through text-slate-400">₹{row.individual_price.toLocaleString()}</td>
-                  <td className="py-2.5 px-3 text-right text-emerald-800 dark:text-emerald-400 font-semibold">₹{row.pooled_price.toLocaleString()}</td>
-                  <td className="py-2.5 px-3 text-center">
-                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800 text-[11px]">
-                      {row.savings_pct}% OFF
+                <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 text-xs">
+                  <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200">{row.item}</td>
+                  <td className="py-2.5 px-3 text-right line-through text-slate-400">{formatINR(row.individual_price)}</td>
+                  <td className="py-2.5 px-3 text-right text-emerald-800 dark:text-emerald-400 font-semibold">{formatINR(row.pooled_price)}</td>
+                  <td className="py-2.5 px-3 text-right font-semibold text-emerald-800 dark:text-emerald-400">
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[10px]">
+                      {row.discount_pct}%
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-right font-medium text-slate-700 dark:text-slate-300">₹{row.annual_savings.toLocaleString()} / yr</td>
+                  <td className="py-2.5 px-3 text-right font-medium text-slate-700 dark:text-slate-300">{formatINR(row.annual_savings)} / yr</td>
                 </tr>
               ))}
             </tbody>

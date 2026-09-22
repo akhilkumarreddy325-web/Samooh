@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PackageCheck, Calendar, Building, ArrowRight, Tag, Search, CheckCircle2, Truck, Clock, FileSpreadsheet } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatINR } from '../utils/currency';
 
 export default function PreviousOrders() {
   const { theme, t, user, orderHistory, setActiveInvoice } = useApp();
@@ -108,7 +109,7 @@ export default function PreviousOrders() {
             <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           </div>
           <p className="text-xl font-bold mt-1 text-emerald-800 dark:text-emerald-400">
-            ₹{totalUserSavings.toLocaleString()}
+            {formatINR(totalUserSavings)}
           </p>
           <span className="text-[11px] text-slate-400 block mt-0.5">
             Unlocked via Wholesale Arbitrage
@@ -215,17 +216,17 @@ export default function PreviousOrders() {
 
                     <div>
                       <span className="block text-[10px] text-slate-400">Retail Ref</span>
-                      <span className="line-through text-slate-400">₹{(order.totalRetailCost || 0).toLocaleString()}</span>
+                      <span className="line-through text-slate-400">{formatINR(order.totalRetailCost || 0)}</span>
                     </div>
 
                     <div>
                       <span className="block text-[10px] text-slate-400">Wholesale Value</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">₹{(order.totalWholesaleCost || 0).toLocaleString()}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">{formatINR(order.totalWholesaleCost || 0)}</span>
                     </div>
 
                     <div className="p-1.5 rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-center">
                       <span className="block text-[9px] font-semibold text-emerald-800 dark:text-emerald-400 uppercase">Saved</span>
-                      <span className="font-bold text-emerald-800 dark:text-emerald-300 text-xs">₹{(order.totalSavings || 0).toLocaleString()}</span>
+                      <span className="font-bold text-emerald-800 dark:text-emerald-300 text-xs">{formatINR(order.totalSavings || 0)}</span>
                     </div>
                   </div>
                 </div>

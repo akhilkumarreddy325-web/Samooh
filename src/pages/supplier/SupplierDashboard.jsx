@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  PackageCheck, Clock, CheckCircle2, DollarSign, 
-  AlertTriangle, Truck, Tag, TrendingUp, ArrowRight,
-  RefreshCw, Check, X, ShieldAlert, Eye
+  PackageCheck, 
+  Clock, 
+  CheckCircle2, 
+  Truck, 
+  IndianRupee, 
+  TrendingUp, 
+  Tag, 
+  AlertTriangle,
+  RefreshCw,
+  ExternalLink,
+  Check,
+  X,
+  ShieldAlert,
+  ArrowRight,
+  Eye
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { getSupplierDashboard, updateSupplierOrderStatus } from '../../services/api';
+import { formatINR } from '../../utils/currency';
 
 export default function SupplierDashboard() {
   const { theme, currentSupplier } = useApp();
@@ -64,7 +77,7 @@ export default function SupplierDashboard() {
     { label: 'Pending Review', value: data?.pending_orders || 0, icon: Clock, sub: 'Requires supplier confirmation' },
     { label: 'Accepted Orders', value: data?.accepted_orders || 0, icon: CheckCircle2, sub: 'Committed to fulfill' },
     { label: 'Completed Orders', value: data?.completed_orders || 0, icon: Truck, sub: 'Delivered to hubs' },
-    { label: 'Gross Sales Value', value: `₹${(data?.total_sales_value || 0).toLocaleString('en-IN')}`, icon: DollarSign, sub: 'Total order volume' },
+    { label: 'Gross Sales Value', value: formatINR(data?.total_sales_value || 0), icon: IndianRupee, sub: 'Total order volume' },
     { label: 'Quantity Supplied', value: `${(data?.total_quantity_supplied || 0).toLocaleString('en-IN')} units`, icon: TrendingUp, sub: 'Fulfilled physical volume' },
     { label: 'Active Catalog', value: `${data?.active_products || 0} / ${data?.total_products || 0}`, icon: Tag, sub: 'Products open for pooling' },
     { label: 'Stock Alerts', value: data?.inventory_alerts_count || 0, icon: AlertTriangle, alert: data?.inventory_alerts_count > 0, sub: 'Shortages or low stock' },
@@ -250,10 +263,10 @@ export default function SupplierDashboard() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₹{Number(ord.final_order_value || 0).toLocaleString('en-IN')}
+                          {formatINR(ord.final_order_value || 0)}
                         </div>
                         <div className="text-[11px] text-slate-400">
-                          @ ₹{ord.final_unit_price}/{ord.unit}
+                          @ {formatINR(ord.final_unit_price)}/{ord.unit}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-center">
