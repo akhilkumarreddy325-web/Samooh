@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Authentication & Identity helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSupplier(supplierId) {
+      return isAuthenticated() && (
+        request.auth.uid == supplierId || 
+        (request.auth.token.supplier_id != null && request.auth.token.supplier_id == supplierId)
+      );
+    }
+
+    function isRetailer(retailerId) {
+      return isAuthenticated() && (
+        request.auth.uid == retailerId || 
+        (request.auth.token.retailer_id != null && request.auth.token.retailer_id == retailerId)
+      );
+    }
+
+    // 1. Suppliers Collection:
+    // Public profile details can be read by authenticated users for procurement catalog discovery.
+    // Document creation, updates, and profile edits strictly restricted to the owning supplier.
+    match /suppliers/{supplierId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isSupplier(supplierId);
+    }
+
+    // 2. Supplier Orders Collection:
+    // Suppliers can access and update ONLY their own orders.
+    // Suppliers CANNOT access or modify another supplier's orders.
+    // Retailers in retailer_ids can read order progress, but cannot modify supplier orders.
+    match /supplierOrders/{orderId} {
+      allow read: if isAuthenticated() && (
+        resource.data.supplier_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && resource.data.supplier_id == request.auth.token.supplier_id) ||
+        (resource.data.retailer_ids != null && request.auth.uid in resource.data.retailer_ids)
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.supplier_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && resource.data.supplier_id == request.auth.token.supplier_id)
+      );
+      allow delete: if false; // Orders are audit-logged immutable records
+    }
+
+    // 3. Products Collection:
+    // Read: All authenticated retailers and suppliers.
+    // Edit (prices, MOQ, inventory, pricing tiers): ONLY the owning supplier.
+    // Retailers cannot modify supplier product data.
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (
+        request.resource.data.supplier_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && request.resource.data.supplier_id == request.auth.token.supplier_id)
+      );
+      allow update, delete: if isAuthenticated() && (
+        resource.data.supplier_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && resource.data.supplier_id == request.auth.token.supplier_id)
+      );
+    }
+
+    // 4. Retailers Collection:
+    // Retailers can access and modify only their own store records.
+    match /retailers/{retailerId} {
+      allow read: if isAuthenticated();
+      allow write: if isRetailer(retailerId);
+    }
+
+    // 5. Retailer Sales & Demand History:
+    match /sales/{saleId} {
+      allow read, write: if isAuthenticated() && (
+        resource == null || resource.data.retailer_id == request.auth.uid
+      );
+    }
+
+    // 6. Demand Forecasts:
+    match /forecasts/{forecastId} {
+      allow read, write: if isAuthenticated() && (
+        resource == null || resource.data.retailer_id == request.auth.uid
+      );
+    }
+
+    // 7. Procurement Pools & Group Orders:
+    // Formed collaboratively by group procurement engine and retailers.
+    match /procurementPools/{poolId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 8. AI Opportunities & Recommendations:
+    match /recommendations/{recId} {
+      allow read: if isAuthenticated() && (
+        resource.data.retailer_id == request.auth.uid ||
+        resource.data.supplier_id == request.auth.uid
+      );
+      allow write: if isAuthenticated();
+    }
+
+    // 9. Transport & Dispatch Recommendations:
+    match /transportRecommendations/{transportId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+  }
+}
