@@ -3,13 +3,13 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Sparkles, Store, LineChart, Layers, 
   ShieldCheck, ShoppingBag, FileText, PackageCheck, X, 
-  Truck, Building2, Tag, ArrowLeftRight, ChevronDown, Check
+  Truck, Building2, Tag, ChevronDown, Check
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   const { 
-    theme, t, userRole, switchRole, currentSupplier, 
+    theme, t, userRole, currentSupplier, 
     switchSupplier, demoSuppliers 
   } = useApp();
   const navigate = useNavigate();
@@ -37,17 +37,6 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   ];
 
   const currentNavItems = userRole === 'supplier' ? supplierNavItems : retailerNavItems;
-
-  const handleToggleRole = () => {
-    if (userRole === 'supplier') {
-      switchRole('retailer');
-      navigate('/');
-    } else {
-      switchRole('supplier');
-      navigate('/supplier');
-    }
-    if (onCloseMobile) onCloseMobile();
-  };
 
   const sidebarContent = (
     <aside className={`w-64 border-r flex flex-col justify-between p-4 flex-shrink-0 min-h-screen transition-colors duration-300 ${
@@ -103,33 +92,6 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
               <X className="w-5 h-5" />
             </button>
           )}
-        </div>
-
-        {/* 1-Click Role Switcher Toolbar */}
-        <div className="mb-4 px-1">
-          <button
-            onClick={handleToggleRole}
-            className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-between shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
-              userRole === 'supplier'
-                ? theme === 'light'
-                  ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100'
-                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
-                : theme === 'light'
-                  ? 'bg-blue-50 border-blue-200 text-blue-900 hover:bg-blue-100'
-                  : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20'
-            }`}
-            title="Toggle between Retailer and Supplier portals"
-          >
-            <div className="flex items-center space-x-2 truncate">
-              <ArrowLeftRight className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="truncate">
-                {userRole === 'supplier' ? t('switchToRetailer') : t('switchToSupplier')}
-              </span>
-            </div>
-            <span className="text-[10px] uppercase font-black tracking-wider px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10">
-              {userRole === 'supplier' ? 'RETAIL' : 'SUPPLY'}
-            </span>
-          </button>
         </div>
 
         {/* Supplier Persona Switcher (when in supplier mode) */}
