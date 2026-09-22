@@ -83,6 +83,11 @@ class FirestoreRuleSimulator:
             return (supplier_id == uid) or bool(sup_token_id and supplier_id == sup_token_id)
         return False
 
+    def check_user_profile_access(self, auth_user: dict, user_id: str, action: str = "read") -> bool:
+        if not auth_user or "uid" not in auth_user:
+            return False
+        return auth_user["uid"] == user_id
+
     def check_retailer_profile_access(self, auth_user: dict, retailer_id: str, action: str = "write") -> bool:
         if not auth_user or "uid" not in auth_user:
             return False
@@ -109,6 +114,7 @@ def run_tests():
 
     # 1. Structural Verification
     assert "service cloud.firestore" in content, "Missing firestore declaration"
+    assert "match /users/{userId}" in content, "Missing users rule"
     assert "match /supplierOrders/{orderId}" in content, "Missing supplierOrders rule"
     assert "match /products/{productId}" in content, "Missing products rule"
     assert "match /suppliers/{supplierId}" in content, "Missing suppliers rule"
@@ -208,6 +214,22 @@ def run_tests():
     non_participating_retailer = {"uid": "ret_999", "token": {"retailer_id": "ret_999"}}
     assert sim.check_supplier_order_access(non_participating_retailer, order_a, "read") is False, "Non-participating retailer blocked"
     print("PASS: Requirement 5D - Non-participating retailer blocked from order.")
+
+    # 5. Test User Profile Isolation (Requirement 0 / Onboarding Security)
+    user_a = {"uid": "usr_google_123"}
+    user_b = {"uid": "usr_google_456"}
+
+    # User A reading own profile -> ALLOW
+    assert sim.check_user_profile_access(user_a, "usr_google_123", "read") is True, "User A should access own profile"
+    print("PASS: User A can read/write own user profile.")
+
+    # User B reading User A profile -> DENY
+    assert sim.check_user_profile_access(user_b, "usr_google_123", "read") is False, "User B blocked from User A profile"
+    print("PASS: User B blocked from reading User A profile.")
+
+    # Unauthenticated reading user profile -> DENY
+    assert sim.check_user_profile_access(unauthenticated, "usr_google_123", "read") is False, "Unauthenticated user blocked"
+    print("PASS: Unauthenticated user blocked from reading user profile.")
 
     print("==================================================================")
     print("ALL FIRESTORE SECURITY RULE TEST SCENARIOS PASSED WITH ZERO ERRORS!")

@@ -21,6 +21,12 @@ service cloud.firestore {
       );
     }
 
+    // 0. User Profiles (Samooh Account & Identity):
+    // Users can read and write only their own profile document.
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
     // 1. Suppliers Collection:
     // Full profile (containing sensitive credentials like passwords, internal contact info, and business data)
     // is strictly restricted to the owning supplier.

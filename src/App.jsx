@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, Component } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
@@ -58,6 +58,7 @@ const SavingsBill = lazy(() => import('./pages/SavingsBill'));
 const OrderProcessing = lazy(() => import('./pages/OrderProcessing'));
 const Login = lazy(() => import('./pages/Login'));
 const PreviousOrders = lazy(() => import('./pages/PreviousOrders'));
+const Onboarding = lazy(() => import('./pages/onboarding/Onboarding'));
 
 // Supplier Portal Pages
 const SupplierDashboard = lazy(() => import('./pages/supplier/SupplierDashboard'));
@@ -74,7 +75,7 @@ function PageLoader() {
       <div className="flex flex-col items-center space-y-3">
         <div className="w-8 h-8 border-3 border-emerald-700 border-t-transparent rounded-full animate-spin"></div>
         <span className={`text-xs font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-          Loading...
+          Loading Samooh...
         </span>
       </div>
     </div>
@@ -82,13 +83,29 @@ function PageLoader() {
 }
 
 function MainLayout() {
-  const { theme } = useApp();
+  const { theme, isAuthLoading, firebaseUser, onboardingCompleted, userRole } = useApp();
   const location = useLocation();
   const [isLiveApi, setIsLiveApi] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Standalone Full-Screen Login View
-  if (location.pathname === '/login') {
+  // Initial Firebase Session Resolution
+  if (isAuthLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center font-sans ${
+        theme === 'light' ? 'bg-[#F7F6F2] text-slate-900' : 'bg-[#0F172A] text-slate-100'
+      }`}>
+        <PageLoader />
+      </div>
+    );
+  }
+
+  // Standalone Full-Screen Login & Onboarding Views
+  if (location.pathname === '/login' || location.pathname === '/onboarding') {
+    // If user already completed onboarding and tries to visit /onboarding, redirect to dashboard
+    if (location.pathname === '/onboarding' && onboardingCompleted) {
+      return <Navigate to={userRole === 'supplier' ? '/supplier' : '/'} replace />;
+    }
+
     return (
       <div className={`min-h-screen font-sans transition-colors duration-200 ${
         theme === 'light'
@@ -98,10 +115,16 @@ function MainLayout() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/onboarding" element={<Onboarding />} />
           </Routes>
         </Suspense>
       </div>
     );
+  }
+
+  // If user is authenticated with Firebase but has NOT completed onboarding, redirect to /onboarding
+  if (firebaseUser && !onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (

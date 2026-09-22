@@ -1,4 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { 
+  getUserProfile, 
+  initializeUserProfile, 
+  saveRetailerOnboarding, 
+  saveSupplierOnboarding, 
+  signOutUser, 
+  handleRedirectResult 
+} from '../services/authService';
 
 const translations = {
   en: {
@@ -563,6 +573,14 @@ export function AppProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem('samooh_lang') || 'en');
   const [activeInvoice, setActiveInvoice] = useState(null);
   
+  // Real Firebase Auth & User Profile State
+  const [firebaseUser, setFirebaseUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(() => {
+    return localStorage.getItem('samooh_onboarding_completed') === 'true';
+  });
+
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('samooh_user');
     if (saved) {
@@ -648,6 +666,139 @@ export function AppProvider({ children }) {
     return translations[lang]?.[key] || translations['en']?.[key] || key;
   };
 
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    // 1. Check for returning redirect flow (mobile / popup-blocked fallback)
+    handleRedirectResult().then((res) => {
+      if (res.success && res.user) {
+        console.info('[Samooh Auth] Redirect sign-in completed for:', res.user.email);
+      }
+    }).catch(err => console.warn('[Samooh Auth] Redirect check error:', err));
+
+    // 2. Observe real-time Firebase Auth user state
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setIsAuthLoading(true);
+      if (fbUser) {
+        setFirebaseUser(fbUser);
+        try {
+          const profile = await getUserProfile(fbUser.uid);
+          if (profile && profile.onboardingCompleted) {
+            setUserProfile(profile);
+            setOnboardingCompleted(true);
+            localStorage.setItem('samooh_onboarding_completed', 'true');
+
+            const role = profile.role || 'retailer';
+            setUserRole(role);
+            localStorage.setItem('samooh_role', role);
+
+            if (role === 'supplier') {
+              const supObj = {
+                id: fbUser.uid,
+                name: profile.name || profile.businessName || fbUser.displayName || 'Wholesale Supplier',
+                contactPerson: profile.contactPerson || fbUser.displayName || 'Supplier Partner',
+                email: fbUser.email,
+                phone: profile.phone || '+91 98480 12345',
+                city: profile.city || 'Hyderabad',
+                location: profile.location || 'Hyderabad',
+                serviceRadiusKm: profile.serviceRadiusKm || 50,
+                status: 'ACTIVE'
+              };
+              setCurrentSupplier(supObj);
+            } else {
+              const retObj = {
+                id: fbUser.uid,
+                storeName: profile.storeName || profile.shopName || `${fbUser.displayName || 'Store'} Kirana`,
+                ownerName: profile.ownerName || fbUser.displayName || 'Store Owner',
+                email: fbUser.email,
+                city: profile.city || 'Hyderabad',
+                clusterHub: profile.clusterHub || 'Hyderabad Cluster #1',
+                address: profile.address || 'Hyderabad',
+                monthlyBudget: profile.procurement_profile?.maximum_procurement_value ? `₹${profile.procurement_profile.maximum_procurement_value.toLocaleString()}` : '₹2,50,000',
+                totalSaved: '₹0',
+                rating: 4.9,
+                avatar: fbUser.photoURL || null,
+                isGoogle: true
+              };
+              setUser(retObj);
+            }
+          } else {
+            // New user or incomplete onboarding profile
+            setUserProfile(profile || null);
+            setOnboardingCompleted(false);
+            localStorage.removeItem('samooh_onboarding_completed');
+          }
+        } catch (err) {
+          console.warn('[Samooh Auth] Profile hydration error:', err);
+        }
+      } else {
+        setFirebaseUser(null);
+        setUserProfile(null);
+        // Do not force clearing demo users if not logged into Firebase, but onboarding is false for non-profiles
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const completeRetailerOnboarding = async (formData) => {
+    const uid = firebaseUser?.uid || user?.id || `usr_ret_${Date.now()}`;
+    const result = await saveRetailerOnboarding(uid, formData);
+    
+    // Update local state
+    const updatedUser = {
+      id: uid,
+      storeName: formData.shopName || formData.storeName,
+      ownerName: formData.ownerName,
+      email: firebaseUser?.email || user?.email || 'owner@kirana.in',
+      city: formData.city || 'Hyderabad',
+      clusterHub: `${formData.city || 'Hyderabad'} Kirana Cluster #1`,
+      address: formData.address || `${formData.area || ''}, ${formData.city || ''}`,
+      monthlyBudget: formData.maxProcurementBudget ? `₹${Number(formData.maxProcurementBudget).toLocaleString()}` : '₹2,50,000',
+      totalSaved: '₹0',
+      rating: 4.9,
+      avatar: firebaseUser?.photoURL || null,
+      isGoogle: !!firebaseUser
+    };
+    
+    setUser(updatedUser);
+    setUserRole('retailer');
+    setOnboardingCompleted(true);
+    localStorage.setItem('samooh_user', JSON.stringify(updatedUser));
+    localStorage.setItem('samooh_role', 'retailer');
+    localStorage.setItem('samooh_onboarding_completed', 'true');
+    return result;
+  };
+
+  const completeSupplierOnboarding = async (formData) => {
+    const uid = firebaseUser?.uid || currentSupplier?.id || `sup_${Date.now()}`;
+    const result = await saveSupplierOnboarding(uid, formData);
+    
+    // Update local supplier state
+    const updatedSupplier = {
+      id: uid,
+      name: formData.businessName,
+      contactPerson: formData.contactPerson,
+      email: firebaseUser?.email || currentSupplier?.email || 'supplier@wholesale.in',
+      phone: formData.contactPhone || '+91 98480 12345',
+      address: formData.warehouseAddress || `${formData.area || ''}, ${formData.city || ''}`,
+      location: formData.area || 'Hyderabad',
+      categories: formData.productsSupplied || ['Grains & Staples'],
+      serviceRadiusKm: Number(formData.serviceRadiusKm || 50),
+      leadTimeDays: Number(formData.leadTimeDays || 2),
+      rating: 4.8,
+      status: 'ACTIVE'
+    };
+
+    setCurrentSupplier(updatedSupplier);
+    setUserRole('supplier');
+    setOnboardingCompleted(true);
+    localStorage.setItem('samooh_supplier', JSON.stringify(updatedSupplier));
+    localStorage.setItem('samooh_role', 'supplier');
+    localStorage.setItem('samooh_onboarding_completed', 'true');
+    return result;
+  };
+
   const loginWithGoogle = (providedEmail = null) => {
     const rawEmail = (providedEmail || 'akhilkumarreddy325@gmail.com').trim().toLowerCase();
     const email = rawEmail.includes('@') ? rawEmail : `${rawEmail}@gmail.com`;
@@ -706,7 +857,12 @@ export function AppProvider({ children }) {
     return { success: true, user: dynamicUser };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOutUser();
+    setFirebaseUser(null);
+    setUserProfile(null);
+    setOnboardingCompleted(false);
+    localStorage.removeItem('samooh_onboarding_completed');
     setUser(DEMO_USERS.sri_lakshmi);
   };
 
@@ -825,6 +981,14 @@ export function AppProvider({ children }) {
       login,
       logout,
       switchUser,
+      // Firebase Auth & Onboarding state
+      firebaseUser,
+      userProfile,
+      isAuthLoading,
+      onboardingCompleted,
+      setOnboardingCompleted,
+      completeRetailerOnboarding,
+      completeSupplierOnboarding,
       // Supplier Portal exports
       userRole,
       setUserRole,

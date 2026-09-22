@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import { Store, User, MapPin, Building, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+
+const BUSINESS_TYPES = [
+  'Kirana Store',
+  'Grocery Store',
+  'Convenience Store',
+  'Mini Mart',
+  'General Store',
+  'Superette',
+  'Other'
+];
+
+export default function RetailerBusinessStep({ data, onUpdate, onNext, onBack }) {
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errs = {};
+    if (!data.shopName?.trim()) errs.shopName = 'Store name is required';
+    if (!data.ownerName?.trim()) errs.ownerName = 'Owner / contact name is required';
+    if (!data.city?.trim()) errs.city = 'City is required';
+    if (!data.area?.trim()) errs.area = 'Area / locality is required';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleNext = (e) => {
+    e.preventDefault();
+    if (validate()) {
+      onNext();
+    }
+  };
+
+  return (
+    <form onSubmit={handleNext} className="space-y-5">
+      <div>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          Step 1: Business Information
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Enter your Kirana store details to establish your localized procurement identity.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Shop Name */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Shop / Business Name <span className="text-rose-600">*</span>
+          </label>
+          <div className="relative">
+            <Store className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="e.g. Sri Lakshmi Kirana & General Store"
+              value={data.shopName || ''}
+              onChange={(e) => onUpdate({ shopName: e.target.value })}
+              className={`w-full border rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
+                errors.shopName ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+              }`}
+            />
+          </div>
+          {errors.shopName && <span className="text-[11px] text-rose-600 mt-1 block">{errors.shopName}</span>}
+        </div>
+
+        {/* Owner / Contact Name */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Owner / Contact Name <span className="text-rose-600">*</span>
+          </label>
+          <div className="relative">
+            <User className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="e.g. Srinivas Rao"
+              value={data.ownerName || ''}
+              onChange={(e) => onUpdate({ ownerName: e.target.value })}
+              className={`w-full border rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
+                errors.ownerName ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+              }`}
+            />
+          </div>
+          {errors.ownerName && <span className="text-[11px] text-rose-600 mt-1 block">{errors.ownerName}</span>}
+        </div>
+
+        {/* Business Type */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Business Type
+          </label>
+          <div className="relative">
+            <Building className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <select
+              value={data.businessType || 'Kirana Store'}
+              onChange={(e) => onUpdate({ businessType: e.target.value })}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+            >
+              {BUSINESS_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Contact Phone */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Contact Phone (Optional)
+          </label>
+          <div className="relative">
+            <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="tel"
+              placeholder="+91 98480 12345"
+              value={data.contactPhone || ''}
+              onChange={(e) => onUpdate({ contactPhone: e.target.value })}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+            />
+          </div>
+        </div>
+
+        {/* City */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            City <span className="text-rose-600">*</span>
+          </label>
+          <div className="relative">
+            <MapPin className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="e.g. Hyderabad"
+              value={data.city || 'Hyderabad'}
+              onChange={(e) => onUpdate({ city: e.target.value })}
+              className={`w-full border rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
+                errors.city ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+              }`}
+            />
+          </div>
+          {errors.city && <span className="text-[11px] text-rose-600 mt-1 block">{errors.city}</span>}
+        </div>
+
+        {/* Area / Locality */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Area / Locality <span className="text-rose-600">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Banjara Hills Road No 12"
+            value={data.area || ''}
+            onChange={(e) => onUpdate({ area: e.target.value })}
+            className={`w-full border rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
+              errors.area ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
+            }`}
+          />
+          {errors.area && <span className="text-[11px] text-rose-600 mt-1 block">{errors.area}</span>}
+        </div>
+      </div>
+
+      {/* Shop Address */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          Full Physical Address (Optional)
+        </label>
+        <input
+          type="text"
+          placeholder="Door No, Street Name, Landmark"
+          value={data.address || ''}
+          onChange={(e) => onUpdate({ address: e.target.value })}
+          className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+        />
+      </div>
+
+      {/* Optional Business Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div>
+          <label className="block text-[11px] font-medium text-slate-500 mb-1">
+            Years in Business
+          </label>
+          <input
+            type="number"
+            min="0"
+            placeholder="e.g. 5"
+            value={data.yearsInBusiness || ''}
+            onChange={(e) => onUpdate({ yearsInBusiness: e.target.value })}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-500 mb-1">
+            Approx. Shop Size (sq ft)
+          </label>
+          <input
+            type="number"
+            min="0"
+            placeholder="e.g. 350"
+            value={data.shopSize || ''}
+            onChange={(e) => onUpdate({ shopSize: e.target.value })}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-500 mb-1">
+            Staff / Employees
+          </label>
+          <input
+            type="number"
+            min="0"
+            placeholder="e.g. 2"
+            value={data.employeeCount || ''}
+            onChange={(e) => onUpdate({ employeeCount: e.target.value })}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+          />
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+        <button
+          type="button"
+          onClick={onBack}
+          className="py-2 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center space-x-1.5"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back</span>
+        </button>
+
+        <button
+          type="submit"
+          className="py-2 px-6 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-xs shadow-sm transition flex items-center space-x-1.5"
+        >
+          <span>Continue to Products Sold</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </form>
+  );
+}
