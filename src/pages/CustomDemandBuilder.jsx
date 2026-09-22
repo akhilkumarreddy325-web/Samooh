@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Plus, Minus, CheckCircle, Sparkles, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const CATALOG_ITEMS = [
@@ -76,7 +76,6 @@ export default function CustomDemandBuilder() {
   const { theme, t, setActiveInvoice, user, addOrderToHistory } = useApp();
   const navigate = useNavigate();
 
-  // Quantities state dictionary keyed by product ID
   const [quantities, setQuantities] = useState({
     prod_001: 10,
     prod_006: 5,
@@ -92,7 +91,6 @@ export default function CustomDemandBuilder() {
     });
   };
 
-  // Calculate live financial arbitrage totals
   let totalRetailCost = 0;
   let totalWholesaleCost = 0;
   let totalItemsCount = 0;
@@ -121,7 +119,7 @@ export default function CustomDemandBuilder() {
 
   const handleGenerateInvoice = () => {
     if (selectedLineItems.length === 0) {
-      alert('Please select at least 1 item to build a group order.');
+      alert('Please select at least 1 item to build an order.');
       return;
     }
 
@@ -147,40 +145,28 @@ export default function CustomDemandBuilder() {
   };
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className={`text-2xl font-extrabold tracking-tight flex items-center ${
-            theme === 'light' ? 'text-slate-900' : 'text-white'
-          }`}>
-            <ShoppingBag className="w-6 h-6 text-blue-600 dark:text-accentBlue mr-2.5" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center">
+            <ShoppingBag className="w-5 h-5 text-emerald-800 dark:text-emerald-400 mr-2" />
             {t('builderTitle')}
-            <span className={`ml-3 text-xs font-semibold px-2.5 py-1 rounded-full border flex items-center space-x-1 ${
-              theme === 'light'
-                ? 'bg-purple-50 text-purple-700 border-purple-200'
-                : 'bg-accentPurple/10 text-accentPurple border-accentPurple/30'
-            }`}>
-              <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-              <span>Live Arbitrage Calculator</span>
-            </span>
           </h1>
-          <p className={`text-xs mt-1 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {t('builderDesc')}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Columns: Product Catalog Grid */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${
-            theme === 'light' ? 'text-slate-800' : 'text-white'
-          }`}>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
             {t('selectQuantity')} ({CATALOG_ITEMS.length} Wholesale Items)
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {CATALOG_ITEMS.map((item) => {
               const qty = quantities[item.id] || 0;
               const unitDiscountPct = Math.round(((item.retailPrice - item.wholesalePrice) / item.retailPrice) * 100);
@@ -188,74 +174,62 @@ export default function CustomDemandBuilder() {
               return (
                 <div 
                   key={item.id}
-                  className={`glass-card rounded-2xl p-4 border transition-all duration-200 flex flex-col justify-between ${
+                  className={`rounded-lg p-4 border transition-all duration-200 flex flex-col justify-between ${
                     qty > 0
-                      ? theme === 'light'
-                        ? 'bg-white border-blue-400 shadow-md ring-1 ring-blue-400/30'
-                        : 'bg-[#131A2A] border-accentBlue shadow-glow-blue'
-                      : theme === 'light'
-                        ? 'bg-white/80 border-slate-200/80 shadow-sm'
-                        : 'bg-[#131A2A]/60 border-slate-800'
+                      ? 'bg-white dark:bg-slate-800 border-emerald-700 shadow-sm'
+                      : 'bg-white dark:bg-slate-800 border-slate-200/90 dark:border-slate-700/80 shadow-sm'
                   }`}
                 >
                   <div>
                     {/* Header badges */}
                     <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                        theme === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'
-                      }`}>
+                      <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                         {item.category}
                       </span>
-                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        {unitDiscountPct}% OFF Bulk
+                      <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                        {unitDiscountPct}% Bulk Margin
                       </span>
                     </div>
 
-                    <h4 className={`text-sm font-bold mt-2.5 ${
-                      theme === 'light' ? 'text-slate-900' : 'text-white'
-                    }`}>{item.name}</h4>
-                    <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <h4 className="text-sm font-bold mt-2 text-slate-900 dark:text-white">
+                      {item.name}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
                       Supplier: {item.supplier}
                     </p>
 
                     {/* Price Comparison */}
-                    <div className="mt-3 grid grid-cols-2 gap-2 p-2.5 rounded-xl border bg-slate-50/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-xs">
+                    <div className="mt-2.5 grid grid-cols-2 gap-2 p-2 rounded-md border bg-slate-50/60 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-xs">
                       <div>
-                        <span className={`text-[10px] ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'} block`}>Retail Price</span>
-                        <span className="text-slate-400 line-through font-semibold">₹{item.retailPrice.toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-400 block">Retail Benchmark</span>
+                        <span className="text-slate-400 line-through font-medium">₹{item.retailPrice.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Samooh Group</span>
-                        <span className="text-emerald-600 dark:text-accentGreen font-bold">₹{item.wholesalePrice.toLocaleString()}</span>
+                        <span className="text-[10px] text-emerald-800 dark:text-emerald-400 font-medium block">Wholesale Rate</span>
+                        <span className="text-emerald-800 dark:text-emerald-400 font-bold">₹{item.wholesalePrice.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Quantity Stepper Control */}
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-                    <span className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {t('unitMeasure')}: <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>{item.unit}</strong>
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">
+                      {t('unitMeasure')}: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{item.unit}</strong>
                     </span>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className={`w-7 h-7 rounded-lg border flex items-center justify-center transition ${
-                          theme === 'light'
-                            ? 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200'
-                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                        }`}
+                        className="w-7 h-7 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 flex items-center justify-center transition"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className={`w-8 text-center text-sm font-extrabold ${
-                        qty > 0 ? (theme === 'light' ? 'text-blue-600' : 'text-accentBlue') : (theme === 'light' ? 'text-slate-400' : 'text-slate-500')
-                      }`}>
+                      <span className="w-7 text-center text-xs font-bold text-slate-900 dark:text-white">
                         {qty}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition shadow-sm"
+                        className="w-7 h-7 rounded bg-emerald-800 text-white flex items-center justify-center hover:bg-emerald-900 transition shadow-sm"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -267,119 +241,83 @@ export default function CustomDemandBuilder() {
           </div>
         </div>
 
-        {/* Right 1 Column: Live Financial Summary Box */}
+        {/* Right 1 Column: Financial Summary Box */}
         <div className="space-y-6">
-          <div className={`glass-card rounded-2xl p-6 border sticky top-20 transition-all duration-300 ${
-            theme === 'light'
-              ? 'bg-white/90 border-slate-200/90 shadow-lg'
-              : 'bg-[#131A2A] border-slate-800'
-          }`}>
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center ${
-                theme === 'light' ? 'text-slate-800' : 'text-white'
-              }`}>
-                <Tag className="w-4 h-4 text-emerald-500 mr-2" />
-                Order Savings Summary
+          <div className="rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 p-5 shadow-sm sticky top-20">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-white flex items-center">
+                <Tag className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400 mr-1.5" />
+                Order Summary
               </h3>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-accentBlue border border-blue-500/20">
-                {totalItemsCount} Units Selected
+              <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                {totalItemsCount} Units
               </span>
             </div>
 
             {/* Selected Items Mini List */}
-            <div className="py-4 space-y-2.5 max-h-52 overflow-y-auto border-b border-slate-200 dark:border-slate-800">
+            <div className="py-3 space-y-2 max-h-52 overflow-y-auto border-b border-slate-200 dark:border-slate-700">
               {selectedLineItems.length > 0 ? (
                 selectedLineItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between text-xs">
                     <div className="truncate pr-2">
-                      <span className={`font-semibold ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>{item.name}</span>
-                      <span className={`block text-[10px] ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>{item.qty} × ₹{item.wholesalePrice}</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">{item.name}</span>
+                      <span className="block text-[10px] text-slate-400">{item.qty} × ₹{item.wholesalePrice}</span>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{item.lineWholesale.toLocaleString()}</span>
-                      <span className="block text-[10px] text-emerald-500">Saved ₹{item.lineSavings.toLocaleString()}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">₹{item.lineWholesale.toLocaleString()}</span>
+                      <span className="block text-[10px] text-emerald-800 dark:text-emerald-400">Save ₹{item.lineSavings.toLocaleString()}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className={`text-xs text-center py-4 ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>
-                  No items selected yet. Use the `+` buttons to add custom demand.
+                <p className="text-xs text-center py-4 text-slate-400">
+                  No items selected yet. Adjust quantities to add items.
                 </p>
               )}
             </div>
 
             {/* Totals Calculation */}
-            <div className="py-4 space-y-2.5 text-xs">
+            <div className="py-3 space-y-2 text-xs">
               <div className="flex justify-between text-slate-500">
                 <span>{t('singleStoreRetailTotal')}</span>
                 <span className="line-through">₹{totalRetailCost.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between font-bold text-emerald-600 dark:text-accentGreen">
+              <div className="flex justify-between font-medium text-slate-800 dark:text-slate-200">
                 <span>{t('samoohGroupWholesaleTotal')}</span>
-                <span className="text-sm">₹{totalWholesaleCost.toLocaleString()}</span>
+                <span className="font-bold">₹{totalWholesaleCost.toLocaleString()}</span>
               </div>
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                <span className={`font-bold ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <span className="font-semibold text-slate-800 dark:text-white">
                   {t('yourInstantSavings')}
                 </span>
                 <div className="text-right">
-                  <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 block">
+                  <span className="text-base font-bold text-emerald-800 dark:text-emerald-400 block">
                     ₹{totalSavings.toLocaleString()}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                    {overallSavingsPct}% TOTAL DISCOUNT
+                  <span className="text-[10px] font-medium text-emerald-800 dark:text-emerald-300">
+                    {overallSavingsPct}% TOTAL SAVINGS
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* AI Guarantee Snippet */}
-            <div className={`p-3 rounded-xl border text-[11px] mb-4 flex items-start space-x-2 ${
-              theme === 'light' ? 'bg-purple-50/80 border-purple-200 text-purple-800' : 'bg-accentPurple/10 border-accentPurple/20 text-slate-300'
-            }`}>
-              <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-accentPurple flex-shrink-0 mt-0.5" />
-              <span>{t('bulkTierUnlocked')} Instantly locks maximum supplier discount across 4 cluster Kiranas.</span>
+            {/* Bulk Tier Snippet */}
+            <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] mb-3 flex items-start space-x-2 text-slate-600 dark:text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+              <span>{t('bulkTierUnlocked')} Wholesale price tiers unlocked via cluster pooling.</span>
             </div>
 
             {/* Action Submit Button */}
             <button
               onClick={handleGenerateInvoice}
               disabled={selectedLineItems.length === 0}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50"
+              className="w-full py-2 px-4 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-xs shadow-sm transition flex items-center justify-center space-x-1.5 disabled:opacity-50"
             >
               <span>{t('createGroupOrderBtn')}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Sticky Mobile Floating Checkout Dock (Zepto/Swiggy Native Style) */}
-      <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 p-3.5 border-t backdrop-blur-xl shadow-[0_-10px_25px_rgba(0,0,0,0.15)] flex items-center justify-between transition-all ${
-        theme === 'light'
-          ? 'bg-white/95 border-slate-200 text-slate-900'
-          : 'bg-[#0B1020]/95 border-slate-800 text-white'
-      }`}>
-        <div>
-          <div className="flex items-center space-x-1.5">
-            <span className="text-xs font-bold">{totalItemsCount} Units</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-              Save ₹{totalSavings.toLocaleString()}
-            </span>
-          </div>
-          <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
-            ₹{totalWholesaleCost.toLocaleString()}
-          </div>
-        </div>
-
-        <button
-          onClick={handleGenerateInvoice}
-          disabled={selectedLineItems.length === 0}
-          className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-xs shadow-md flex items-center space-x-1.5 active:scale-95 disabled:opacity-50"
-        >
-          <span>Create Order</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );

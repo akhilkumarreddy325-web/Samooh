@@ -12,7 +12,6 @@ import {
   ChevronDown, 
   ChevronUp, 
   Info, 
-  ShieldCheck, 
   SlidersHorizontal,
   RefreshCw
 } from 'lucide-react';
@@ -23,7 +22,7 @@ export default function PooledInventorySection({
   interactive = true, 
   compact = false 
 }) {
-  const { theme, t } = useApp();
+  const { theme } = useApp();
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
   const [simulatedDemands, setSimulatedDemands] = useState(null);
@@ -69,11 +68,10 @@ export default function PooledInventorySection({
     alternative_options: []
   };
 
-  // Handle local dynamic recalculation for the what-if jury simulator
+  // Handle local dynamic recalculation for simulator
   const activeDemands = simulatedDemands !== null ? simulatedDemands : basePooled.retailer_demands;
   const activeDistance = simulatedDistance !== null ? simulatedDistance : (pool.average_cluster_distance_km || 2.5);
 
-  // Recompute reactive values if simulator is active
   let currentPooled = basePooled;
   let currentTransport = baseTransport;
 
@@ -101,7 +99,6 @@ export default function PooledInventorySection({
       retailer_demands: cleanD
     };
 
-    // Deterministic vehicle selection for simulated load
     let recVeh = 'Tata Ace / Bolero Maxi Truck (SCV)';
     let vehCap = 1000.0;
     let vehType = 'SCV';
@@ -158,32 +155,26 @@ export default function PooledInventorySection({
     };
   }
 
-  // Helper for status badge styling
   const getStatusBadge = (status) => {
     switch (status) {
       case 'SUITABLE':
         return {
-          bg: theme === 'light' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+          bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
           text: 'Suitable'
         };
       case 'NEAR_CAPACITY':
         return {
-          bg: theme === 'light' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-          text: 'Near Capacity (Optimal)'
+          bg: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600',
+          text: 'Optimal Capacity'
         };
       case 'MULTI_VEHICLE_REQUIRED':
         return {
-          bg: theme === 'light' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+          bg: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
           text: 'Multi-Vehicle Required'
-        };
-      case 'UNDERUTILIZED':
-        return {
-          bg: theme === 'light' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-800 text-slate-300 border-slate-700',
-          text: 'Underutilized'
         };
       default:
         return {
-          bg: theme === 'light' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+          bg: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
           text: status
         };
     }
@@ -192,25 +183,17 @@ export default function PooledInventorySection({
   const statusStyle = getStatusBadge(currentTransport.transport_status);
 
   return (
-    <div className="space-y-5">
-      {/* ------------------------------------------------------------- */}
+    <div className="space-y-4">
       {/* SECTION 1: POOLED INVENTORY */}
-      {/* ------------------------------------------------------------- */}
-      <div className={`p-5 rounded-2xl border transition-all ${
-        theme === 'light' 
-          ? 'bg-slate-50/90 border-slate-200 shadow-sm' 
-          : 'bg-[#0E1526]/80 border-slate-800'
-      }`}>
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-accentPurple flex items-center justify-center">
-              <Package className="w-4 h-4" />
-            </div>
+      <div className="p-4 rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+          <div className="flex items-center space-x-2">
+            <Package className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-600 dark:text-accentPurple">
-                Pooled Inventory Engine
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                Pooled Demand
               </span>
-              <h3 className={`text-sm font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 {currentPooled.product_name}
               </h3>
             </div>
@@ -218,95 +201,76 @@ export default function PooledInventorySection({
 
           {/* MOQ Status Badge */}
           {currentPooled.moq_satisfied ? (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs">
-              <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-500" />
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+              <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-700" />
               MOQ Satisfied
             </span>
           ) : (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-xs">
-              <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-500" />
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+              <AlertTriangle className="w-3 h-3 mr-1 text-amber-700" />
               MOQ Shortfall: {currentPooled.moq_deficit} {currentPooled.unit}
             </span>
           )}
         </div>
 
         {/* Inventory KPI Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className={`text-[11px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              Retailers In Group
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block">
+              Stores In Group
             </span>
-            <div className={`text-base font-extrabold mt-0.5 flex items-center ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}>
-              <Store className="w-3.5 h-3.5 mr-1 text-purple-500" />
-              {currentPooled.retailer_count} Stores
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 flex items-center">
+              <Store className="w-3.5 h-3.5 mr-1 text-slate-400" />
+              {currentPooled.retailer_count} Kiranas
             </div>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className={`text-[11px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              Total Pooled Quantity
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block">
+              Total Quantity
             </span>
-            <div className="text-base font-extrabold text-blue-600 dark:text-accentBlue mt-0.5">
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               {currentPooled.total_quantity} <span className="text-xs font-normal text-slate-400">{currentPooled.unit}</span>
             </div>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className={`text-[11px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block">
               Unit Weight
             </span>
-            <div className={`text-base font-extrabold mt-0.5 ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               {currentPooled.unit_weight_kg} <span className="text-xs font-normal text-slate-400">kg/{currentPooled.unit}</span>
             </div>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-emerald-50/60 border-emerald-200' : 'bg-emerald-950/20 border-emerald-500/20'
-          }`}>
-            <span className="text-[11px] block text-emerald-600 dark:text-emerald-400 font-semibold">
-              Supplier Wholesale MOQ
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block">
+              Wholesale MOQ
             </span>
-            <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
-              {currentPooled.supplier_moq} <span className="text-xs font-normal">{currentPooled.unit}</span>
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+              {currentPooled.supplier_moq} <span className="text-xs font-normal text-slate-400">{currentPooled.unit}</span>
             </div>
           </div>
         </div>
 
-        {/* Itemized Stores Demand Breakdown (if demands present) */}
+        {/* Itemized Stores Demand Breakdown */}
         {Object.keys(currentPooled.retailer_demands || {}).length > 0 && (
-          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <span className={`text-[10px] uppercase font-bold tracking-wider block mb-2 ${
-              theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-            }`}>
-              Itemized Store Demand & Weight Allocation
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2">
+              Itemized Store Demand & Allocation
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(currentPooled.retailer_demands).map(([retId, demand], idx) => {
                 const storeName = pool.retailer_names && pool.retailer_names[idx] ? pool.retailer_names[idx] : `Retailer ${retId}`;
                 const weightKg = Math.round(demand * (currentPooled.unit_weight_kg || 1) * 10) / 10;
                 return (
-                  <div key={retId} className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-                    theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/40 border-slate-800/80'
-                  }`}>
-                    <div className="flex items-center space-x-2">
-                      <span className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-600 dark:text-accentBlue flex items-center justify-center text-[10px] font-bold">
-                        {idx + 1}
-                      </span>
-                      <span className={`font-semibold line-clamp-1 ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
-                        {storeName}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-blue-600 dark:text-accentBlue">{demand} {currentPooled.unit}</span>
-                      <span className="text-[10px] text-slate-400 block">({weightKg} kg)</span>
+                  <div key={retId} className="p-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate pr-2">
+                      {storeName}
+                    </span>
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-semibold text-slate-900 dark:text-white">{demand} {currentPooled.unit}</span>
+                      <span className="text-[10px] text-slate-400 ml-1">({weightKg} kg)</span>
                     </div>
                   </div>
                 );
@@ -316,143 +280,110 @@ export default function PooledInventorySection({
         )}
       </div>
 
-      {/* ------------------------------------------------------------- */}
       {/* SECTION 2: TRANSPORT RECOMMENDATION */}
-      {/* ------------------------------------------------------------- */}
-      <div className={`p-5 rounded-2xl border transition-all ${
-        theme === 'light' 
-          ? 'bg-blue-50/40 border-blue-200/80 shadow-sm' 
-          : 'bg-[#0B1222]/90 border-blue-900/40'
-      }`}>
+      <div className="p-4 rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm">
         {/* Header */}
-        <div className="flex items-start justify-between pb-3 border-b border-blue-200/60 dark:border-blue-900/40">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-              <Truck className="w-4 h-4" />
-            </div>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+          <div className="flex items-center space-x-2">
+            <Truck className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-600 dark:text-accentBlue">
-                Logistics & Fleet Optimization Engine
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                Transport Planning
               </span>
-              <h3 className={`text-base font-extrabold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 {currentTransport.recommended_vehicle}
               </h3>
             </div>
           </div>
 
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusStyle.bg}`}>
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${statusStyle.bg}`}>
+            <CheckCircle2 className="w-3 h-3 mr-1" />
             {statusStyle.text}
           </span>
         </div>
 
         {/* Cargo Load & Vehicle Capacity Meter */}
-        <div className="mt-4 p-4 rounded-xl border bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 space-y-2.5">
+        <div className="mt-3 p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center font-semibold text-slate-500">
-              <Scale className="w-3.5 h-3.5 mr-1 text-blue-500" />
-              Total Pooled Load vs Vehicle Capacity
+            <span className="flex items-center font-medium text-slate-600 dark:text-slate-400">
+              <Scale className="w-3.5 h-3.5 mr-1 text-slate-400" />
+              Pooled Load vs Vehicle Capacity
             </span>
-            <span className={`font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-              <strong className="text-blue-600 dark:text-accentBlue font-black text-sm">
-                {currentTransport.total_load_kg.toLocaleString()} kg
-              </strong> / {currentTransport.vehicle_capacity_kg.toLocaleString()} kg ({currentTransport.capacity_utilization_pct}%)
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {currentTransport.total_load_kg.toLocaleString()} kg / {currentTransport.vehicle_capacity_kg.toLocaleString()} kg ({currentTransport.capacity_utilization_pct}%)
             </span>
           </div>
 
-          {/* Color-Coded Utilization Bar */}
-          <div className="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+          {/* Utilization Bar */}
+          <div className="w-full h-2 rounded bg-slate-200 dark:bg-slate-700 overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-500 ${
-                currentTransport.capacity_utilization_pct > 95
-                  ? 'bg-rose-500'
-                  : currentTransport.capacity_utilization_pct > 75
-                  ? 'bg-blue-600'
-                  : currentTransport.capacity_utilization_pct > 35
-                  ? 'bg-emerald-500'
-                  : 'bg-amber-500'
-              }`}
+              className="h-full rounded bg-emerald-800 transition-all duration-300"
               style={{ width: `${Math.min(100, currentTransport.capacity_utilization_pct)}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
-            <span>Vehicles Required: <strong className="text-slate-700 dark:text-slate-200 font-bold">{currentTransport.vehicles_required} unit(s)</strong></span>
-            <span>Capacity Utilization: <strong className="text-slate-700 dark:text-slate-200 font-bold">{currentTransport.capacity_utilization_pct}%</strong></span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>Vehicles: <strong className="font-semibold text-slate-700 dark:text-slate-300">{currentTransport.vehicles_required} unit(s)</strong></span>
+            <span>Capacity Used: <strong className="font-semibold text-slate-700 dark:text-slate-300">{currentTransport.capacity_utilization_pct}%</strong></span>
           </div>
         </div>
 
         {/* Transport Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className="text-[11px] text-slate-400 block flex items-center">
-              <MapPin className="w-3 h-3 mr-1 text-blue-500" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block flex items-center">
+              <MapPin className="w-3 h-3 mr-1 text-slate-400" />
               Delivery Distance
             </span>
-            <div className={`text-sm font-extrabold mt-0.5 ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               {currentTransport.estimated_distance_km} km
             </div>
-            <span className="text-[10px] text-slate-400">Cluster Radius</span>
+            <span className="text-[10px] text-slate-400">Hub Radius</span>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className="text-[11px] text-slate-400 block flex items-center">
-              <Clock className="w-3 h-3 mr-1 text-purple-500" />
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block flex items-center">
+              <Clock className="w-3 h-3 mr-1 text-slate-400" />
               Transit Time
             </span>
-            <div className={`text-sm font-extrabold mt-0.5 ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               ~{currentTransport.estimated_transit_time_mins} mins
             </div>
-            <span className="text-[10px] text-slate-400">{currentTransport.delivery_stops_count} drop-off stops</span>
+            <span className="text-[10px] text-slate-400">{currentTransport.delivery_stops_count} drop points</span>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}>
-            <span className="text-[11px] text-slate-400 block flex items-center">
-              <DollarSign className="w-3 h-3 mr-1 text-emerald-500" />
+          <div className="p-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <span className="text-[11px] text-slate-500 block flex items-center">
+              <DollarSign className="w-3 h-3 mr-1 text-slate-400" />
               Total Pooled Cost
             </span>
-            <div className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">
+            <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
               ₹{currentTransport.estimated_total_cost_inr.toLocaleString()}
             </div>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+            <span className="text-[10px] text-slate-500">
               ₹{currentTransport.cost_per_retailer_inr}/store
             </span>
           </div>
 
-          <div className={`p-3 rounded-xl border ${
-            theme === 'light' ? 'bg-emerald-50/70 border-emerald-200' : 'bg-emerald-500/10 border-emerald-500/30'
-          }`}>
-            <span className="text-[11px] text-emerald-700 dark:text-emerald-400 block font-semibold">
+          <div className="p-2.5 rounded-md border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-900/40">
+            <span className="text-[11px] text-emerald-800 dark:text-emerald-400 block font-medium">
               Logistics Savings
             </span>
-            <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
+            <div className="text-sm font-bold text-emerald-900 dark:text-emerald-300 mt-0.5">
               ₹{currentTransport.transport_savings_inr.toLocaleString()}
             </div>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-300">
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400">
               vs individual trips
             </span>
           </div>
         </div>
 
         {/* Explainable Decision Narrative Box */}
-        <div className={`mt-4 p-3.5 rounded-xl border flex items-start space-x-2.5 ${
-          theme === 'light' ? 'bg-white/80 border-slate-200' : 'bg-slate-900/50 border-slate-800'
-        }`}>
-          <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-          <div className="text-xs leading-relaxed">
-            <span className="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">
-              Deterministic Evaluation Rationale:
-            </span>
-            <p className={theme === 'light' ? 'text-slate-600' : 'text-slate-400'}>
-              {currentTransport.reason}
-            </p>
-          </div>
+        <div className="mt-3 p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 flex items-start space-x-2">
+          <Info className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            {currentTransport.reason}
+          </p>
         </div>
 
         {/* Collapsible Alternative Fleet Comparison */}
@@ -460,36 +391,36 @@ export default function PooledInventorySection({
           <div className="mt-3">
             <button
               onClick={() => setShowAlternatives(!showAlternatives)}
-              className="text-xs font-semibold text-blue-600 dark:text-accentBlue flex items-center space-x-1 hover:underline cursor-pointer"
+              className="text-xs font-medium text-emerald-800 dark:text-emerald-400 flex items-center space-x-1 hover:underline cursor-pointer"
             >
               <span>{showAlternatives ? 'Hide' : 'View'} Fleet Constraint Comparison ({currentTransport.alternative_options.length} options evaluated)</span>
               {showAlternatives ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
 
             {showAlternatives && (
-              <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="mt-2 overflow-x-auto rounded-md border border-slate-200 dark:border-slate-700">
                 <table className="w-full text-left text-xs">
-                  <thead className={theme === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-slate-900 text-slate-400'}>
+                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-[11px] font-semibold text-slate-500 uppercase">
                     <tr>
                       <th className="p-2.5">Vehicle Model</th>
                       <th className="p-2.5">Capacity</th>
                       <th className="p-2.5">Utilization</th>
                       <th className="p-2.5">Trip Cost</th>
-                      <th className="p-2.5">Feasibility Status</th>
+                      <th className="p-2.5">Feasibility</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                     {currentTransport.alternative_options.map((alt) => (
-                      <tr key={alt.vehicle_id} className={alt.is_feasible ? 'bg-emerald-500/5' : 'opacity-60'}>
-                        <td className="p-2.5 font-semibold text-slate-800 dark:text-slate-200">{alt.vehicle_name}</td>
+                      <tr key={alt.vehicle_id} className={alt.is_feasible ? 'bg-emerald-50/30' : 'opacity-60'}>
+                        <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">{alt.vehicle_name}</td>
                         <td className="p-2.5">{alt.capacity_kg} kg</td>
-                        <td className="p-2.5 font-bold">{alt.capacity_utilization_pct}%</td>
+                        <td className="p-2.5 font-semibold">{alt.capacity_utilization_pct}%</td>
                         <td className="p-2.5">₹{alt.estimated_cost_inr}</td>
                         <td className="p-2.5">
                           {alt.is_feasible ? (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓ Feasible</span>
+                            <span className="text-emerald-800 dark:text-emerald-400 font-medium">Feasible</span>
                           ) : (
-                            <span className="text-rose-500 font-medium">{alt.rejection_reason || 'Infeasible'}</span>
+                            <span className="text-rose-700 font-medium">{alt.rejection_reason || 'Infeasible'}</span>
                           )}
                         </td>
                       </tr>
@@ -501,24 +432,16 @@ export default function PooledInventorySection({
           </div>
         )}
 
-        {/* ----------------------------------------------------------- */}
-        {/* INTERACTIVE WHAT-IF SCENARIO SIMULATOR (SIH JURY DEMO TOOL) */}
-        {/* ----------------------------------------------------------- */}
+        {/* WHAT-IF SCENARIO SIMULATOR */}
         {interactive && (
-          <div className="mt-4 pt-3 border-t border-blue-200/50 dark:border-blue-900/30">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setShowSimulator(!showSimulator)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer ${
-                  showSimulator
-                    ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                    : theme === 'light'
-                    ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
-                    : 'bg-purple-500/10 text-accentPurple border-purple-500/30 hover:bg-purple-500/20'
-                }`}
+                className="px-3 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center space-x-1.5 cursor-pointer"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>{showSimulator ? 'Close Live Jury Simulator' : '⚡ Test Dynamic Group Changes (Jury Test Mode)'}</span>
+                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                <span>{showSimulator ? 'Close Live Simulator' : 'Simulate Group Dynamic Changes'}</span>
               </button>
 
               {simulatedDemands !== null && (
@@ -527,7 +450,7 @@ export default function PooledInventorySection({
                     setSimulatedDemands(null);
                     setSimulatedDistance(null);
                   }}
-                  className="text-xs text-rose-500 hover:underline flex items-center space-x-1 cursor-pointer"
+                  className="text-xs text-rose-700 hover:underline flex items-center space-x-1 cursor-pointer"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
                   Reset to Original Pool
@@ -536,16 +459,13 @@ export default function PooledInventorySection({
             </div>
 
             {showSimulator && (
-              <div className={`mt-3 p-4 rounded-xl border space-y-3 ${
-                theme === 'light' ? 'bg-white border-purple-200 shadow-sm' : 'bg-[#111827] border-purple-900/40'
-              }`}>
+              <div className="mt-3 p-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-purple-700 dark:text-accentPurple flex items-center">
-                    <ShieldCheck className="w-4 h-4 mr-1.5" />
+                  <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Real-Time Group Dynamic Recalculation
                   </h4>
-                  <span className="text-[10px] text-slate-400">
-                    Adjust store quantities or simulate store departure to watch transport adapt instantly
+                  <span className="text-[11px] text-slate-500">
+                    Adjust store quantities or simulate store departure
                   </span>
                 </div>
 
@@ -555,7 +475,7 @@ export default function PooledInventorySection({
                     const storeName = pool.retailer_names && pool.retailer_names[idx] ? pool.retailer_names[idx] : `Retailer ${retId}`;
                     return (
                       <div key={retId} className="flex items-center justify-between text-xs gap-3">
-                        <span className="w-44 truncate font-medium text-slate-700 dark:text-slate-300">
+                        <span className="w-40 truncate font-medium text-slate-700 dark:text-slate-300">
                           {storeName}
                         </span>
                         <input
@@ -568,9 +488,9 @@ export default function PooledInventorySection({
                             const newD = { ...activeDemands, [retId]: parseFloat(e.target.value) };
                             setSimulatedDemands(newD);
                           }}
-                          className="flex-1 accent-purple-600"
+                          className="flex-1 accent-emerald-800 h-1.5"
                         />
-                        <span className="w-16 text-right font-mono font-bold text-blue-600 dark:text-accentBlue">
+                        <span className="w-16 text-right font-medium text-slate-900 dark:text-white">
                           {demand} {currentPooled.unit}
                         </span>
                         <button
@@ -579,8 +499,7 @@ export default function PooledInventorySection({
                             delete newD[retId];
                             setSimulatedDemands(newD);
                           }}
-                          className="text-[10px] text-rose-500 hover:text-rose-700 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900 cursor-pointer"
-                          title="Simulate retailer leaving pool"
+                          className="text-[11px] text-rose-700 hover:underline cursor-pointer"
                         >
                           Remove
                         </button>
@@ -590,8 +509,8 @@ export default function PooledInventorySection({
                 </div>
 
                 {/* Distance slider */}
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs gap-3">
-                  <span className="w-44 font-medium text-slate-700 dark:text-slate-300">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs gap-3">
+                  <span className="w-40 font-medium text-slate-700 dark:text-slate-300">
                     Simulate Delivery Distance:
                   </span>
                   <input
@@ -601,9 +520,9 @@ export default function PooledInventorySection({
                     step="1"
                     value={activeDistance}
                     onChange={(e) => setSimulatedDistance(parseFloat(e.target.value))}
-                    className="flex-1 accent-blue-600"
+                    className="flex-1 accent-emerald-800 h-1.5"
                   />
-                  <span className="w-16 text-right font-mono font-bold text-purple-600 dark:text-accentPurple">
+                  <span className="w-16 text-right font-semibold text-slate-900 dark:text-white">
                     {activeDistance} km
                   </span>
                 </div>

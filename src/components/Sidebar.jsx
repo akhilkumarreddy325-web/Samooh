@@ -36,44 +36,40 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   const currentNavItems = isSupplier ? supplierNavItems : retailerNavItems;
 
   const sidebarContent = (
-    <aside className={`w-64 border-r flex flex-col justify-between p-4 flex-shrink-0 min-h-screen transition-colors duration-300 ${
+    <aside className={`w-60 border-r flex flex-col justify-between p-3.5 flex-shrink-0 min-h-screen transition-colors ${
       theme === 'light'
-        ? 'bg-white/95 border-slate-200/80 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)]'
-        : 'bg-[#0B1020] border-slate-800/80 text-white'
+        ? 'bg-white border-slate-200 text-slate-900'
+        : 'bg-[#1E293B] border-slate-700/80 text-white'
     }`}>
       <div>
         {/* Brand Logo Header & Mobile Close */}
-        <div className="flex items-center justify-between px-3 py-3 mb-4">
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-xl p-0.5 shadow-md flex items-center justify-center ${
-              isSupplier
-                ? 'bg-gradient-to-tr from-amber-500 via-orange-600 to-rose-500'
-                : 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500'
+        <div className="flex items-center justify-between px-2 py-2 mb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold ${
+              isSupplier ? 'bg-emerald-800' : 'bg-slate-900'
             }`}>
-              <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
-                theme === 'light' ? 'bg-white' : 'bg-[#0B1020]'
-              }`}>
-                {isSupplier ? (
-                  <Truck className="w-5 h-5 text-amber-500" />
-                ) : (
-                  <Layers className="w-5 h-5 text-blue-600" />
-                )}
-              </div>
+              {isSupplier ? (
+                <Truck className="w-4 h-4 text-white" />
+              ) : (
+                <Layers className="w-4 h-4 text-white" />
+              )}
             </div>
             <div>
-              <h1 className={`text-xl font-extrabold tracking-tight flex items-center ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}>
-                {t('brandName')}{' '}
-                <span className={`text-[10px] ml-1.5 px-1.5 py-0.5 rounded font-black tracking-wide ${
-                  isSupplier
-                    ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                    : 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20'
+              <div className="flex items-center space-x-1.5">
+                <span className={`text-sm font-bold tracking-tight ${
+                  theme === 'light' ? 'text-slate-900' : 'text-white'
                 }`}>
-                  {isSupplier ? 'SUPPLIER' : t('brandBadge')}
+                  {t('brandName')}
                 </span>
-              </h1>
-              <p className={`text-[10px] font-medium truncate max-w-[140px] ${
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${
+                  theme === 'light'
+                    ? 'bg-slate-100 text-slate-600 border-slate-200'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}>
+                  {isSupplier ? 'SUPPLIER' : 'RETAIL'}
+                </span>
+              </div>
+              <p className={`text-[11px] truncate max-w-[130px] ${
                 theme === 'light' ? 'text-slate-500' : 'text-slate-400'
               }`}>
                 {isSupplier ? (currentSupplier?.name || 'Wholesale Portal') : t('brandSubtitle')}
@@ -84,19 +80,19 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
-              className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              className="md:hidden p-1 rounded text-slate-400 hover:text-slate-600"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         {/* Navigation Links */}
-        <nav className="space-y-1.5">
-          <div className={`px-3 text-[10px] font-bold uppercase tracking-wider mb-2 ${
+        <nav className="space-y-1 mt-4">
+          <div className={`px-2.5 text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${
             theme === 'light' ? 'text-slate-400' : 'text-slate-500'
           }`}>
-            {isSupplier ? t('supplierPortal') : t('mainPlatform')}
+            {isSupplier ? 'Wholesale Operations' : 'Procurement'}
           </div>
           {currentNavItems.map((item) => {
             const Icon = item.icon;
@@ -107,32 +103,26 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
                 end={item.path === '/' || item.path === '/supplier'}
                 onClick={onCloseMobile}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  `flex items-center justify-between px-2.5 py-2 rounded-md text-xs font-medium transition ${
                     isActive
-                      ? isSupplier
-                        ? theme === 'light'
-                          ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20 shadow-sm font-bold'
-                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-sm font-bold'
-                        : theme === 'light'
-                          ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20 shadow-sm font-bold'
-                          : 'bg-accentBlue/10 text-accentBlue border border-accentBlue/20 shadow-glow-blue font-bold'
+                      ? theme === 'light'
+                        ? 'bg-slate-100 text-slate-900 font-semibold'
+                        : 'bg-slate-800 text-white font-semibold'
                       : theme === 'light'
-                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                   }`
                 }
               >
-                <div className="flex items-center space-x-3">
-                  <Icon className="w-4 h-4" />
+                <div className="flex items-center space-x-2.5">
+                  <Icon className="w-4 h-4 text-slate-500" />
                   <span>{t(item.labelKey)}</span>
                 </div>
                 {item.badge && (
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                    isSupplier
-                      ? 'bg-amber-500/15 text-amber-600 border-amber-500/25'
-                      : theme === 'light'
-                        ? 'bg-purple-500/10 text-purple-600 border-purple-500/20'
-                        : 'bg-accentPurple/20 text-accentPurple border border-accentPurple/30'
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                    theme === 'light'
+                      ? 'bg-slate-50 text-slate-600 border-slate-200'
+                      : 'bg-slate-800 text-slate-400 border-slate-700'
                   }`}>
                     {item.badge}
                   </span>
@@ -144,21 +134,21 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
       </div>
 
       {/* System Status Footer Card */}
-      <div className={`p-3.5 rounded-xl border text-xs glass-panel ${
-        theme === 'light' ? 'bg-white/90 border-slate-200' : 'bg-[#131A2A] border-slate-800'
+      <div className={`p-3 rounded-md border text-xs ${
+        theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-800/60 border-slate-700 text-slate-300'
       }`}>
-        <div className="flex items-center space-x-2 font-semibold mb-1">
-          <ShieldCheck className={`w-4 h-4 ${isSupplier ? 'text-amber-500' : 'text-emerald-500'}`} />
-          <span className={isSupplier ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}>
-            {isSupplier ? 'Wholesale Supply Grid' : t('engineLive')}
+        <div className="flex items-center space-x-2 font-medium mb-1">
+          <ShieldCheck className={`w-3.5 h-3.5 ${isSupplier ? 'text-emerald-700' : 'text-slate-700'}`} />
+          <span className="text-xs font-semibold">
+            {isSupplier ? 'Wholesale Grid' : 'Network Active'}
           </span>
         </div>
         <p className={`text-[11px] leading-tight ${
           theme === 'light' ? 'text-slate-500' : 'text-slate-400'
         }`}>
           {isSupplier 
-            ? `Radius ${currentSupplier?.service_radius_km || currentSupplier?.serviceRadiusKm || 50} km • Active Catalog`
-            : `${t('retailersActive')} • Verified Network`}
+            ? `Radius ${currentSupplier?.service_radius_km || currentSupplier?.serviceRadiusKm || 50} km`
+            : '30 Retailers in Group'}
         </p>
       </div>
     </aside>

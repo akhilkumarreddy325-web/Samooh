@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Store, MapPin, Star, Search, AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
+import { MapPin, Star, Search, AlertCircle, RefreshCw, BarChart2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getRetailers, getForecasts, generateForecasts, seedData } from '../services/api';
 import { useApp } from '../context/AppContext';
@@ -45,7 +45,7 @@ export default function Insights() {
       await generateForecasts(30);
       await loadInsightsData();
     } catch (err) {
-      setError('Forecast generation failed: ' + err.message);
+      setError('Forecast calculation failed: ' + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -82,16 +82,14 @@ export default function Insights() {
   ];
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Title Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className={`text-2xl font-extrabold tracking-tight flex items-center ${
-            theme === 'light' ? 'text-slate-900' : 'text-white'
-          }`}>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center">
             {t('retailerInsightsForecasts')}
           </h1>
-          <p className={`text-xs mt-1 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {t('insightsDesc')}
           </p>
         </div>
@@ -99,105 +97,87 @@ export default function Insights() {
         <button 
           onClick={handleGenerateForecasts}
           disabled={isGenerating}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center space-x-2 w-fit"
+          className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium shadow-sm transition flex items-center space-x-1.5 w-fit"
         >
-          <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
           <span>{isGenerating ? t('runningMl') : t('runForecasts')}</span>
         </button>
       </div>
 
       {loading ? (
-        <div className={`p-12 text-center text-xs font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-          Loading live retailer profiles & ML forecasts...
+        <div className="p-12 text-center text-xs font-medium text-slate-500">
+          Loading retailer profiles and demand forecasts...
         </div>
       ) : error ? (
-        <div className={`p-8 max-w-xl mx-auto text-center space-y-4 glass-card rounded-2xl border ${
-          theme === 'light' ? 'bg-white border-rose-200 shadow-md' : 'border-rose-500/30'
-        }`}>
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-          <h3 className={`text-base font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Backend Forecast Error</h3>
-          <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>{error}</p>
-          <button onClick={handleSeed} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow-md">
+        <div className="p-6 max-w-xl mx-auto text-center space-y-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Forecast Connection Notice</h3>
+          <p className="text-xs text-slate-500">{error}</p>
+          <button onClick={handleSeed} className="px-3.5 py-1.5 rounded-md bg-emerald-800 text-white text-xs font-medium shadow-sm">
             {t('seedAndGenerate')}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Directory Column */}
-          <div className={`glass-card rounded-2xl p-5 border space-y-4 flex flex-col justify-between ${
-            theme === 'light' ? 'bg-white/80 border-slate-200/80 shadow-[0_10px_25px_rgba(0,0,0,0.03)]' : 'border-slate-800'
-          }`}>
+          <div className="rounded-lg p-4 border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm space-y-4 flex flex-col justify-between">
             <div>
-              <h3 className={`text-sm font-bold uppercase tracking-wider mb-3 ${
-                theme === 'light' ? 'text-slate-800' : 'text-white'
-              }`}>{t('retailerDirectory')} ({filteredRetailers.length})</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-slate-800 dark:text-white">
+                {t('retailerDirectory')} ({filteredRetailers.length})
+              </h3>
               
               {/* Search & Filter */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-3">
                 <div className="relative">
-                  <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${
-                    theme === 'light' ? 'text-slate-400' : 'text-slate-500'
-                  }`} />
-                  <input 
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
                     type="text"
-                    placeholder={t('searchPlaceholder')}
+                    placeholder="Search store name or area..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full border rounded-xl pl-9 pr-3 py-1.5 text-xs transition focus:outline-none ${
-                      theme === 'light'
-                        ? 'bg-slate-100/90 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-                        : 'bg-[#0B1020] border-slate-800 text-slate-200 focus:border-accentBlue'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
 
-                <div className="flex space-x-1 overflow-x-auto py-1">
-                  {['ALL', 'Kirana', 'Superette', 'General Store'].map((st) => (
+                <div className="flex items-center space-x-1 overflow-x-auto pb-1">
+                  {['ALL', 'Kirana', 'Supermarket', 'Wholesale'].map((type) => (
                     <button
-                      key={st}
-                      onClick={() => setFilterType(st)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
-                        filterType === st 
-                          ? 'bg-blue-600 text-white shadow-sm font-bold' 
-                          : theme === 'light'
-                            ? 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
-                            : 'bg-[#0B1020] text-slate-400 border border-slate-800'
+                      key={type}
+                      onClick={() => setFilterType(type)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium transition whitespace-nowrap ${
+                        filterType === type
+                          ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                          : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      {st}
+                      {type}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* List */}
+              {/* Retailer Cards List */}
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                 {filteredRetailers.map((ret) => (
                   <div
                     key={ret.id}
                     onClick={() => setSelectedRetailer(ret)}
-                    className={`p-3 rounded-xl border cursor-pointer transition ${
-                      selectedRetailer && selectedRetailer.id === ret.id
-                        ? theme === 'light'
-                          ? 'bg-blue-50/90 border-blue-400 text-slate-900 shadow-sm font-bold'
-                          : 'bg-accentBlue/10 border-accentBlue text-white shadow-glow-blue'
-                        : theme === 'light'
-                          ? 'bg-slate-50/60 border-slate-200 text-slate-700 hover:bg-slate-100'
-                          : 'bg-slate-900/40 border-slate-800 text-slate-300 hover:bg-slate-800/60'
+                    className={`p-3 rounded-md border text-xs cursor-pointer transition ${
+                      selectedRetailer?.id === ret.id
+                        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold truncate">{ret.name}</h4>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                        theme === 'light' ? 'bg-slate-200 text-slate-600' : 'bg-slate-800 text-slate-400'
-                      }`}>
+                      <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[170px]">
+                        {ret.name}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                         {ret.store_type}
                       </span>
                     </div>
-                    <div className={`text-[11px] mt-1 flex items-center ${
-                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-                    }`}>
-                      <MapPin className="w-3 h-3 mr-1 text-blue-500" />
+                    <div className="text-[11px] text-slate-500 mt-1 flex items-center">
+                      <MapPin className="w-3 h-3 mr-1 text-slate-400" />
                       {ret.address || ret.city}
                     </div>
                   </div>
@@ -208,41 +188,31 @@ export default function Insights() {
 
           {/* Right Column: Selected Retailer Forecast Details */}
           {selectedRetailer ? (
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-5">
               {/* Retailer Profile Card */}
-              <div className={`glass-card rounded-2xl p-6 border ${
-                theme === 'light'
-                  ? 'bg-gradient-to-r from-slate-50 via-white to-blue-50/50 border-slate-200/80 shadow-sm'
-                  : 'bg-gradient-to-r from-[#131A2A] to-slate-900 border-slate-800'
-              }`}>
+              <div className="rounded-lg p-5 border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                        theme === 'light'
-                          ? 'bg-purple-50 text-purple-700 border-purple-200'
-                          : 'bg-accentPurple/20 text-accentPurple border-accentPurple/30'
-                      }`}>
+                      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
                         {selectedRetailer.store_type}
                       </span>
-                      <span className="flex items-center text-xs font-bold text-amber-500">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 mr-1" /> {selectedRetailer.rating || 4.8} Rating
+                      <span className="flex items-center text-xs font-semibold text-amber-600">
+                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500 mr-1" /> {selectedRetailer.rating || 4.8}
                       </span>
                     </div>
-                    <h2 className={`text-xl font-bold mt-2 ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                    <h2 className="text-lg font-bold mt-1 text-slate-900 dark:text-white">
                       {selectedRetailer.name}
                     </h2>
-                    <p className={`text-xs mt-1 flex items-center ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                      <MapPin className="w-3.5 h-3.5 mr-1 text-blue-500" />
+                    <p className="text-xs mt-0.5 flex items-center text-slate-500">
+                      <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400" />
                       {selectedRetailer.address}, {selectedRetailer.city} ({selectedRetailer.pincode})
                     </p>
                   </div>
 
-                  <div className={`p-4 rounded-xl border text-right ${
-                    theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                  }`}>
-                    <span className={`text-[11px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('monthlyBudget')}</span>
-                    <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <div className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-right">
+                    <span className="text-[11px] text-slate-500 block">{t('monthlyBudget')}</span>
+                    <span className="text-base font-bold text-slate-900 dark:text-white">
                       ₹{(selectedRetailer.monthly_budget || 75000).toLocaleString()}
                     </span>
                   </div>
@@ -250,76 +220,68 @@ export default function Insights() {
               </div>
 
               {/* Demand Trend Chart */}
-              <div className={`glass-card rounded-2xl p-6 border ${
-                theme === 'light' ? 'bg-white/80 border-slate-200/80 shadow-[0_10px_25px_rgba(0,0,0,0.03)]' : 'border-slate-800'
-              }`}>
-                <div className="flex items-center justify-between mb-4">
+              <div className="rounded-lg p-5 border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-700">
                   <div>
-                    <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-white">
                       {t('forecastedDemandTrend')}
                     </h3>
-                    <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className="text-xs text-slate-500">
                       {t('forecastDesc')}
                     </p>
                   </div>
-                  <span className="text-xs font-semibold text-blue-600 dark:text-accentBlue bg-blue-500/10 px-2.5 py-1 rounded-lg">
-                    ML Model R²: 0.92
+                  <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-700 dark:text-slate-300 px-2 py-0.5 rounded">
+                    R²: 0.92
                   </span>
                 </div>
 
-                <div className="h-60">
+                <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={mockDemandTrend}>
                       <defs>
                         <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563EB" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0}/>
+                          <stop offset="5%" stopColor="#166534" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#166534" stopOpacity={0.0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'light' ? '#E2E8F0' : '#1E293B'} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'light' ? '#F1F5F9' : '#1E293B'} />
                       <XAxis dataKey="period" stroke="#64748B" fontSize={11} />
                       <YAxis stroke="#64748B" fontSize={11} />
                       <Tooltip contentStyle={{ 
-                        backgroundColor: theme === 'light' ? '#FFFFFF' : '#131A2A', 
-                        borderColor: theme === 'light' ? '#CBD5E1' : '#334155', 
-                        borderRadius: '10px' 
+                        backgroundColor: theme === 'light' ? '#FFFFFF' : '#1E293B', 
+                        borderColor: '#CBD5E1', 
+                        borderRadius: '6px' 
                       }} />
-                      <Area type="monotone" dataKey="demand" stroke="#2563EB" strokeWidth={3} fillOpacity={1} fill="url(#colorDemand)" />
+                      <Area type="monotone" dataKey="demand" stroke="#166534" strokeWidth={2} fillOpacity={1} fill="url(#colorDemand)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Real ML Forecast Outputs from Backend */}
-              <div className={`glass-card rounded-2xl p-6 border ${
-                theme === 'light' ? 'bg-white/80 border-slate-200/80 shadow-[0_10px_25px_rgba(0,0,0,0.03)]' : 'border-slate-800'
-              }`}>
-                <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 flex items-center ${
-                  theme === 'light' ? 'text-slate-800' : 'text-white'
-                }`}>
-                  <Sparkles className="w-4 h-4 text-purple-500 mr-2" />
+              {/* Forecast Outputs from Backend */}
+              <div className="rounded-lg p-5 border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm">
+                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center text-slate-800 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-700">
+                  <BarChart2 className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400 mr-1.5" />
                   {t('liveForecastOutputs')} ({retailerForecasts.length})
                 </h3>
                 {retailerForecasts.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {retailerForecasts.map((fc) => (
-                      <div key={fc.id} className={`p-3.5 rounded-xl border flex items-center justify-between ${
-                        theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/50 border-slate-800'
-                      }`}>
+                      <div key={fc.id} className="p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between text-xs">
                         <div>
-                          <h4 className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{fc.product_name}</h4>
-                          <span className="text-[10px] text-blue-600 dark:text-accentBlue font-medium">Model: {fc.model_used}</span>
+                          <h4 className="font-semibold text-slate-900 dark:text-white">{fc.product_name}</h4>
+                          <span className="text-[11px] text-slate-500">Model: {fc.model_used}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{fc.predicted_demand} units</span>
-                          <span className={`block text-[10px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Confidence: {fc.confidence_score * 100}%</span>
+                          <span className="font-bold text-slate-900 dark:text-white">{fc.predicted_demand} units</span>
+                          <span className="block text-[10px] text-slate-500">Confidence: {fc.confidence_score * 100}%</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                    No specific forecasts found. Click "{t('runForecasts')}" to trigger the ML pipeline.
+                  <p className="text-xs text-slate-500">
+                    No specific forecasts found. Click "{t('runForecasts')}" to evaluate demand patterns.
                   </p>
                 )}
               </div>

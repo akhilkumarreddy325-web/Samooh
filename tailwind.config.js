@@ -8,22 +8,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0B1020',
-        card: '#131A2A',
-        cardHover: '#1C263B',
+        background: '#F7F6F2',
+        surface: '#FFFFFF',
+        surfaceMuted: '#F8FAFC',
+        brand: {
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          500: '#16A34A',
+          600: '#166534',
+          700: '#15803D',
+          800: '#166534',
+          900: '#14532D',
+          DEFAULT: '#166534',
+        },
+        card: '#FFFFFF',
+        cardHover: '#F8FAFC',
         accentBlue: '#2563EB',
-        accentPurple: '#8B5CF6',
-        accentGreen: '#10B981',
-        darkBorder: '#1E293B',
+        accentPurple: '#6366F1',
+        accentGreen: '#16A34A',
+        darkBorder: '#334155',
         darkMuted: '#64748B',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
-        'glow-blue': '0 0 20px -5px rgba(37, 99, 235, 0.3)',
-        'glow-purple': '0 0 20px -5px rgba(139, 92, 246, 0.3)',
-        'glow-green': '0 0 20px -5px rgba(16, 185, 129, 0.3)',
+        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
       }
     },
   },

@@ -72,9 +72,9 @@ function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center space-y-3">
-        <div className="w-9 h-9 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <span className={`text-xs font-bold ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-          Loading Samooh...
+        <div className="w-8 h-8 border-3 border-emerald-700 border-t-transparent rounded-full animate-spin"></div>
+        <span className={`text-xs font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          Loading...
         </span>
       </div>
     </div>
@@ -90,10 +90,10 @@ function MainLayout() {
   // Standalone Full-Screen Login View
   if (location.pathname === '/login') {
     return (
-      <div className={`min-h-screen font-sans transition-colors duration-300 ${
+      <div className={`min-h-screen font-sans transition-colors duration-200 ${
         theme === 'light'
-          ? 'bg-slate-100/90 text-slate-900'
-          : 'bg-[#0B1020] text-slate-100'
+          ? 'bg-[#F7F6F2] text-slate-900'
+          : 'bg-[#0F172A] text-slate-100'
       }`}>
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -105,10 +105,10 @@ function MainLayout() {
   }
 
   return (
-    <div className={`flex min-h-screen font-sans transition-colors duration-300 ${
+    <div className={`flex min-h-screen font-sans transition-colors duration-200 ${
       theme === 'light'
-        ? 'bg-slate-100/90 text-slate-900'
-        : 'bg-[#0B1020] text-slate-100'
+        ? 'bg-[#F7F6F2] text-slate-900'
+        : 'bg-[#0F172A] text-slate-100'
     }`}>
       {/* Left Sidebar Navigation */}
       <Sidebar 

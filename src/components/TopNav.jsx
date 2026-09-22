@@ -44,16 +44,16 @@ export default function TopNav({ onToggleMobileMenu }) {
   };
 
   return (
-    <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-xl transition-colors duration-300 ${
+    <header className={`h-14 border-b px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 transition-colors ${
       theme === 'light'
-        ? 'bg-white/90 border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] text-slate-800'
-        : 'bg-[#0B1020]/90 border-slate-800/80 text-white'
+        ? 'bg-white border-slate-200 text-slate-900'
+        : 'bg-[#1E293B] border-slate-700/80 text-white'
     }`}>
       {/* Left Search Bar & Mobile Hamburger Toggle */}
       <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
         <button
           onClick={onToggleMobileMenu}
-          className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          className="md:hidden p-1.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
           aria-label="Toggle navigation drawer"
         >
           <Menu className="w-5 h-5" />
@@ -68,202 +68,173 @@ export default function TopNav({ onToggleMobileMenu }) {
             placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full border rounded-xl pl-8 pr-2.5 py-1.5 text-[11px] sm:text-xs transition focus:outline-none ${
+            className={`w-full border rounded-md pl-8 pr-2.5 py-1.5 text-xs transition focus:outline-none ${
               theme === 'light'
-                ? 'bg-slate-100/90 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white'
-                : 'bg-[#131A2A] border-slate-800 text-slate-200 placeholder-slate-500 focus:border-accentBlue'
+                ? 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-slate-400 focus:bg-white'
+                : 'bg-slate-800 border-slate-700 text-slate-200 placeholder-slate-500 focus:border-slate-600'
             }`}
           />
         </div>
       </div>
 
       {/* Right Header Actions */}
-      <div className="flex items-center space-x-2 sm:space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-2.5">
         {/* Language Switcher Toggle (ENG <-> HINDI) */}
         <button
           onClick={toggleLanguage}
-          className={`px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition flex items-center space-x-1 shadow-sm hover:scale-105 active:scale-95 ${
+          className={`px-2.5 py-1.5 rounded-md border text-xs font-medium transition flex items-center space-x-1.5 ${
             lang === 'hi'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400 shadow-amber-500/20'
+              ? 'bg-slate-900 text-white border-slate-900'
               : theme === 'light'
-                ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-                : 'bg-[#131A2A] border-slate-800 text-slate-300 hover:bg-slate-800'
+                ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
           }`}
-          title="Switch Language (English / Hindi हिंदी)"
+          title="Switch Language"
         >
           <Languages className="w-3.5 h-3.5" />
           <span>{lang === 'en' ? 'ENG | हिंदी' : 'हिंदी | ENG'}</span>
         </button>
 
-        {/* Theme Switcher Toggle (LIGHT GLASS <-> DARK GLASS) */}
+        {/* Theme Switcher Toggle */}
         <button
           onClick={toggleTheme}
-          className={`p-1.5 sm:p-2 rounded-xl border text-xs font-semibold transition flex items-center justify-center hover:scale-105 active:scale-95 ${
+          className={`p-1.5 rounded-md border text-xs transition flex items-center justify-center ${
             theme === 'light'
-              ? 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm'
-              : 'bg-[#131A2A] border-slate-800 text-indigo-400 hover:bg-slate-800'
+              ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
           }`}
           title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
         >
-          {theme === 'light' ? <Sun className="w-4 h-4 text-amber-500 fill-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400 fill-indigo-400/20" />}
+          {theme === 'light' ? <Sun className="w-4 h-4 text-slate-600" /> : <Moon className="w-4 h-4 text-slate-300" />}
         </button>
 
-        {/* 1-Click Launch Hackathon Demo Button (Completely removed from Supplier Portal) */}
-        {!isSupplier && (
-          <button
-            onClick={handleLaunchDemo}
-            disabled={isLaunchingDemo}
-            className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition items-center space-x-1.5 active:scale-95"
-            title="Launch Parle-G 800g Scenario"
-          >
-            <Rocket className={`w-3.5 h-3.5 ${isLaunchingDemo ? 'animate-bounce' : ''}`} />
-            <span>{isLaunchingDemo ? t('loadingDemo') : t('launchDemo')}</span>
-          </button>
-        )}
-
-        {/* Backend Indicator (Completely removed from Supplier Portal) */}
-        {!isSupplier && (
-          <div 
-            className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold ${
-              isOnline 
-                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-            }`}
-            title={isOnline ? "Connected to live FastAPI backend" : "Local Data Store"}
-          >
-            {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-            <span className="hidden lg:inline">{isOnline ? t('fastapiConnected') : 'Active Store'}</span>
-          </div>
-        )}
-
         {/* Notifications Icon */}
-        <div className={`relative p-2 rounded-xl border cursor-pointer transition ${
+        <div className={`relative p-1.5 rounded-md border cursor-pointer transition ${
           theme === 'light'
-            ? 'bg-slate-100/80 border-slate-200 text-slate-500 hover:text-slate-800'
-            : 'bg-[#131A2A] border-slate-800 text-slate-400 hover:text-white'
+            ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+            : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
         }`}>
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-indigo-500" />
+          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-600" />
         </div>
 
         {/* Interactive Profile Badge & Dropdown */}
-        <div className={`relative border-l pl-3 ${
-          theme === 'light' ? 'border-slate-200' : 'border-slate-800'
+        <div className={`relative border-l pl-2.5 ml-1 ${
+          theme === 'light' ? 'border-slate-200' : 'border-slate-700'
         }`}>
           <button
             onClick={() => setShowProfileModal(!showProfileModal)}
-            className="flex items-center space-x-2.5 hover:opacity-90 transition cursor-pointer text-left focus:outline-none"
-            title={userRole === 'supplier' ? "View Supplier Profile & Facility Details" : "View Store Profile & Account Options"}
+            className="flex items-center space-x-2 hover:opacity-90 transition cursor-pointer text-left focus:outline-none"
+            title="Account Options"
           >
-            {userRole === 'supplier' ? (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
-                <Truck className="w-4 h-4" />
+            {isSupplier ? (
+              <div className="w-7 h-7 rounded-md bg-emerald-800 flex items-center justify-center font-semibold text-xs text-white">
+                <Truck className="w-3.5 h-3.5" />
               </div>
             ) : user?.avatar ? (
-              <img src={user.avatar} alt="User Avatar" className="w-8 h-8 rounded-xl border border-blue-500 shadow-sm" />
+              <img src={user.avatar} alt="User Avatar" className="w-7 h-7 rounded-md border border-slate-300" />
             ) : (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
+              <div className="w-7 h-7 rounded-md bg-slate-800 flex items-center justify-center font-semibold text-xs text-white">
                 {user?.storeName ? user.storeName.charAt(0) : 'S'}
               </div>
             )}
             <div className="hidden lg:block">
-              <h4 className={`text-xs font-bold leading-tight ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
-                {userRole === 'supplier' ? (currentSupplier?.name || 'Wholesale Supplier') : (user?.storeName || t('retailAdmin'))}
+              <h4 className={`text-xs font-semibold leading-tight ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
+                {isSupplier ? (currentSupplier?.name || 'Wholesale Supplier') : (user?.storeName || t('retailAdmin'))}
               </h4>
               <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                {userRole === 'supplier' ? (currentSupplier?.contact_person || 'Verified Supplier Partner') : (user?.ownerName || 'Kirana Partner')}
+                {isSupplier ? (currentSupplier?.contact_person || 'Supplier Partner') : (user?.ownerName || 'Kirana Partner')}
               </span>
             </div>
           </button>
 
-          {/* Sleek Profile Dropdown Card */}
+          {/* Clean Profile Dropdown Card */}
           {showProfileModal && (
-            <div className={`absolute right-0 top-12 w-80 rounded-2xl border p-5 shadow-2xl z-50 transition-all ${
+            <div className={`absolute right-0 top-11 w-80 rounded-lg border p-4 shadow-lg z-50 transition-all ${
               theme === 'light'
-                ? 'bg-white border-slate-200 text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.1)]'
-                : 'bg-[#131A2A] border-slate-700 text-white'
+                ? 'bg-white border-slate-200 text-slate-900'
+                : 'bg-[#1E293B] border-slate-700 text-white'
             }`}>
               {/* Profile Card Header */}
               <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                {userRole === 'supplier' ? (
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center font-black text-white text-lg shadow-md">
-                    <Truck className="w-6 h-6" />
+                {isSupplier ? (
+                  <div className="w-9 h-9 rounded-md bg-emerald-800 flex items-center justify-center font-bold text-white text-sm">
+                    <Truck className="w-4 h-4" />
                   </div>
                 ) : user?.avatar ? (
-                  <img src={user.avatar} alt="Avatar" className="w-12 h-12 rounded-2xl border border-blue-500 shadow-md" />
+                  <img src={user.avatar} alt="Avatar" className="w-9 h-9 rounded-md border border-slate-200" />
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-md">
+                  <div className="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white text-sm">
                     {user?.storeName ? user.storeName.charAt(0) : 'S'}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h4 className={`text-sm font-bold truncate ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-                    {userRole === 'supplier' ? currentSupplier?.name : user?.storeName}
+                  <h4 className={`text-xs font-semibold truncate ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                    {isSupplier ? currentSupplier?.name : user?.storeName}
                   </h4>
-                  <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} flex items-center`}>
-                    <User className="w-3 h-3 mr-1 text-blue-500" />
-                    {userRole === 'supplier' ? currentSupplier?.contact_person : user?.ownerName}
+                  <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} flex items-center mt-0.5`}>
+                    <User className="w-3 h-3 mr-1 text-slate-400" />
+                    {isSupplier ? currentSupplier?.contact_person : user?.ownerName}
                   </p>
                 </div>
               </div>
 
               {/* Profile Details List */}
-              <div className="py-3 space-y-2.5 text-xs">
+              <div className="py-2.5 space-y-2 text-xs">
                 <div className="flex items-start space-x-2">
-                  <Mail className="w-3.5 h-3.5 text-purple-500 flex-shrink-0 mt-0.5" />
+                  <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
                   <span className={`truncate ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>
-                    {userRole === 'supplier' ? currentSupplier?.email : user?.email}
+                    {isSupplier ? currentSupplier?.email : user?.email}
                   </span>
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <Building className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
-                  <span className={`font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-slate-200'}`}>
-                    {userRole === 'supplier' ? `Rating: ${currentSupplier?.rating || 4.9} ★ (${currentSupplier?.status || 'ACTIVE'})` : user?.clusterHub}
+                  <Building className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                  <span className={`${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>
+                    {isSupplier ? `Rating: ${currentSupplier?.rating || 4.9} ★ (${currentSupplier?.status || 'ACTIVE'})` : user?.clusterHub}
                   </span>
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
                   <span className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {userRole === 'supplier' ? currentSupplier?.address : user?.address}
+                    {isSupplier ? currentSupplier?.address : user?.address}
                   </span>
                 </div>
 
-                {/* Metrics Pills */}
-                {userRole === 'supplier' ? (
+                {/* Metrics */}
+                {isSupplier ? (
                   <div className="pt-2 grid grid-cols-2 gap-2 text-center">
-                    <div className="p-2 rounded-xl border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
-                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>Service Radius</span>
-                      <span className="font-bold text-amber-500 text-xs">{currentSupplier?.service_radius_km || 50} km</span>
+                    <div className="p-2 rounded-md border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Service Radius</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs">{currentSupplier?.service_radius_km || 50} km</span>
                     </div>
-                    <div className="p-2 rounded-xl border bg-emerald-500/10 border-emerald-500/20">
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Lead Time</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{currentSupplier?.lead_time_days || 1} Day(s)</span>
+                    <div className="p-2 rounded-md border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Lead Time</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs">{currentSupplier?.lead_time_days || 1} Day(s)</span>
                     </div>
                   </div>
                 ) : (
                   <div className="pt-2 grid grid-cols-2 gap-2 text-center">
-                    <div className="p-2 rounded-xl border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
-                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>Monthly Budget</span>
-                      <span className="font-bold text-blue-600 dark:text-accentBlue text-xs">{user?.monthlyBudget || '₹2,50,000'}</span>
+                    <div className="p-2 rounded-md border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Monthly Budget</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs">{user?.monthlyBudget || '₹2,50,000'}</span>
                     </div>
-                    <div className="p-2 rounded-xl border bg-emerald-500/10 border-emerald-500/20">
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Total Saved</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{user?.totalSaved || '₹42,850'}</span>
+                    <div className="p-2 rounded-md border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40">
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block">Total Saved</span>
+                      <span className="font-semibold text-emerald-700 dark:text-emerald-400 text-xs">{user?.totalSaved || '₹42,850'}</span>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons: Log Out */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="pt-2.5 border-t border-slate-200 dark:border-slate-800">
                 <button
                   onClick={handleLogout}
-                  className="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold transition flex items-center justify-center space-x-2 border border-rose-500/20 active:scale-95"
+                  className="w-full py-1.5 px-3 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition flex items-center justify-center space-x-1.5"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                   <span>Log Out</span>
                 </button>
               </div>

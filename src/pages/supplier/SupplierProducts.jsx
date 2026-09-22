@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Tag, Plus, Edit3, Trash2, CheckCircle2, AlertTriangle, 
-  Search, RefreshCw, X, ShieldAlert, Sparkles, Layers
+  Tag, Plus, Edit3, CheckCircle2, AlertTriangle, 
+  Search, RefreshCw, X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { getSupplierProducts, addSupplierProduct, updateSupplierProduct } from '../../services/api';
 
 export default function SupplierProducts() {
-  const { theme, currentSupplier } = useApp();
+  const { currentSupplier } = useApp();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,11 +68,11 @@ export default function SupplierProducts() {
     try {
       if (editingProduct) {
         await updateSupplierProduct(supId, editingProduct.id, payload);
-        setNotification(`Product "${payload.name}" updated successfully!`);
+        setNotification(`Product "${payload.name}" updated successfully`);
         setEditingProduct(null);
       } else {
         await addSupplierProduct(supId, payload);
-        setNotification(`Product "${payload.name}" added to wholesale catalog!`);
+        setNotification(`Product "${payload.name}" added to catalog`);
         setIsAddModalOpen(false);
       }
       setTimeout(() => setNotification(null), 3000);
@@ -94,51 +94,47 @@ export default function SupplierProducts() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 border border-amber-500/20">
+            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               Wholesale Catalog
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500 font-normal">
               {products.length} Products Configured
             </span>
           </div>
-          <h1 className={`text-2xl font-black tracking-tight mt-1 ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
             Product & Inventory Management
           </h1>
-          <p className={`text-xs mt-0.5 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-            Define commercial terms, configure minimum wholesale order thresholds (MOQ), and monitor warehouse stock levels.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Configure wholesale commercial terms, minimum wholesale order thresholds (MOQ), and monitor warehouse stock levels.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2">
           <button
             onClick={loadProducts}
-            className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 shadow-sm ${
-              theme === 'light' 
-                ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50' 
-                : 'bg-[#131A2A] border-slate-800 text-slate-300 hover:bg-slate-800'
-            }`}
+            className="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700/60 transition flex items-center space-x-1.5 shadow-sm"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold transition shadow-md flex items-center space-x-1.5"
+            className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add New Product</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Product</span>
           </button>
         </div>
       </div>
 
       {/* Notification Banner */}
       {notification && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center space-x-2 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-700" />
           <span>{notification}</span>
         </div>
       )}
@@ -152,25 +148,19 @@ export default function SupplierProducts() {
             placeholder="Search catalog products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full border rounded-xl pl-9 pr-3 py-2 text-xs transition focus:outline-none ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 text-slate-800 focus:border-amber-500'
-                : 'bg-[#131A2A] border-slate-800 text-slate-200 focus:border-amber-500'
-            }`}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
           />
         </div>
 
-        <div className="flex items-center space-x-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+        <div className="flex items-center space-x-1 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ${
                 selectedCategory === cat
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : theme === 'light'
-                    ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    : 'bg-[#131A2A] text-slate-400 hover:bg-slate-800'
+                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
               }`}
             >
               {cat}
@@ -179,163 +169,144 @@ export default function SupplierProducts() {
         </div>
       </div>
 
-      {/* Products Grid */}
-      {filtered.length === 0 ? (
-        <div className={`p-12 text-center rounded-2xl border text-slate-400 text-xs ${
-          theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#131A2A] border-slate-800'
-        }`}>
-          No products found matching your search criteria.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((prod) => {
-            const avail = prod.available_quantity || 0;
-            const moq = prod.min_wholesale_quantity || 0;
-            const isLowStock = avail < (moq * 1.5);
-            const isCritical = avail < moq;
+      {/* Products Table (Clean B2B Data Layout) */}
+      <div className="rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 text-xs">
+            No products found matching your search criteria.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th className="py-2.5 px-4">Product Details</th>
+                  <th className="py-2.5 px-4">Category</th>
+                  <th className="py-2.5 px-4 text-right">Wholesale Price</th>
+                  <th className="py-2.5 px-4 text-right">Retail Ref</th>
+                  <th className="py-2.5 px-4 text-right">Configured MOQ</th>
+                  <th className="py-2.5 px-4 text-right">Stock Level</th>
+                  <th className="py-2.5 px-4 text-center">Status</th>
+                  <th className="py-2.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 font-medium">
+                {filtered.map((prod) => {
+                  const avail = prod.available_quantity || 0;
+                  const moq = prod.min_wholesale_quantity || 0;
+                  const isCritical = avail < moq;
+                  const isLowStock = avail < (moq * 1.5);
 
-            return (
-              <div
-                key={prod.id}
-                className={`p-5 rounded-2xl border transition-all duration-200 hover:shadow-lg flex flex-col justify-between ${
-                  !prod.is_available
-                    ? 'opacity-60 bg-slate-100/50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-800'
-                    : theme === 'light'
-                      ? 'bg-white border-slate-200 shadow-sm'
-                      : 'bg-[#131A2A] border-slate-800'
-                }`}
-              >
-                <div className="space-y-3">
-                  {/* Top Badges */}
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                      {prod.category}
-                    </span>
-                    <button
-                      onClick={() => handleToggleAvailability(prod)}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${
-                        prod.is_available
-                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/20'
-                          : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-emerald-500/10 hover:text-emerald-600'
-                      }`}
-                      title="Click to toggle availability"
-                    >
-                      {prod.is_available ? '● Active' : '○ Disabled'}
-                    </button>
-                  </div>
-
-                  {/* Title */}
-                  <div>
-                    <h3 className={`text-sm font-black tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-                      {prod.name}
-                    </h3>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      Unit: {prod.unit_of_measure} ({prod.unit_weight_kg || 1} kg/unit) • Radius {prod.service_radius_km || 50} km
-                    </div>
-                  </div>
-
-                  {/* Pricing Comparison */}
-                  <div className={`p-3 rounded-xl border text-xs grid grid-cols-2 gap-2 ${
-                    theme === 'light' ? 'bg-slate-50/80 border-slate-100' : 'bg-slate-900/40 border-slate-800'
-                  }`}>
-                    <div>
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Wholesale Price</div>
-                      <div className="text-sm font-black text-amber-500">₹{prod.wholesale_price}/{prod.unit_of_measure}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Configured MOQ</div>
-                      <div className="text-sm font-black text-slate-700 dark:text-slate-300">{moq} {prod.unit_of_measure}</div>
-                    </div>
-                  </div>
-
-                  {/* Warehouse Inventory Stock Level Meter */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Warehouse Inventory:</span>
-                      <span className={`font-black ${
-                        isCritical ? 'text-rose-500' : isLowStock ? 'text-amber-500' : 'text-emerald-500'
-                      }`}>
-                        {avail} {prod.unit_of_measure}
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-300 ${
-                          isCritical ? 'bg-rose-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`}
-                        style={{ width: `${Math.min(100, (avail / Math.max(1, moq * 3)) * 100)}%` }}
-                      />
-                    </div>
-                    {isCritical && (
-                      <div className="text-[10px] text-rose-500 font-bold flex items-center space-x-1">
-                        <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                        <span>Inventory is below MOQ threshold ({moq})!</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Card Action Footer */}
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <div className="text-[10px] text-slate-400">
-                    Lead time: {prod.lead_time_days || 2} days
-                  </div>
-                  <button
-                    onClick={() => setEditingProduct(prod)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center space-x-1"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit Terms</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                  return (
+                    <tr key={prod.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition">
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">{prod.name}</div>
+                        <div className="text-[11px] text-slate-400">
+                          Unit: {prod.unit_of_measure} ({prod.unit_weight_kg || 1} kg) • Lead: {prod.lead_time_days || 2}d
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                          {prod.category}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          ₹{Number(prod.wholesale_price).toLocaleString('en-IN')}/{prod.unit_of_measure}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-400">
+                        ₹{Number(prod.retail_price || 0).toLocaleString('en-IN')}
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                        {moq} {prod.unit_of_measure}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">
+                          {avail} {prod.unit_of_measure}
+                        </div>
+                        {isCritical ? (
+                          <span className="text-[10px] text-rose-700 dark:text-rose-400 font-medium inline-flex items-center space-x-0.5">
+                            <AlertTriangle className="w-2.5 h-2.5" />
+                            <span>Below MOQ</span>
+                          </span>
+                        ) : isLowStock ? (
+                          <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                            Low Stock
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                            Optimal
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => handleToggleAvailability(prod)}
+                          className={`px-2 py-0.5 rounded text-[11px] font-medium border transition ${
+                            prod.is_available
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                              : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600'
+                          }`}
+                          title="Click to toggle availability"
+                        >
+                          {prod.is_available ? 'Active' : 'Disabled'}
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          onClick={() => setEditingProduct(prod)}
+                          className="px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition inline-flex items-center space-x-1"
+                        >
+                          <Edit3 className="w-3 h-3 text-slate-500" />
+                          <span>Edit</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Add / Edit Product Modal */}
       {(isAddModalOpen || editingProduct) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
-          <div className={`w-full max-w-xl rounded-3xl border p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto ${
-            theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#131A2A] border-slate-800 text-white'
-          }`}>
-            <div className="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-800">
-              <h3 className="text-base font-black flex items-center space-x-2">
-                <Tag className="w-4 h-4 text-amber-500" />
-                <span>{editingProduct ? 'Edit Commercial Terms' : 'Add New Wholesale Product'}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-700">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <Tag className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
+                <span>{editingProduct ? 'Edit Commercial Terms' : 'Add Wholesale Product'}</span>
               </h3>
               <button
                 onClick={() => { setIsAddModalOpen(false); setEditingProduct(null); }}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Product Name</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Product Name</label>
                   <input
                     name="name"
                     required
                     defaultValue={editingProduct?.name || ''}
                     placeholder="e.g. Sona Masoori Rice (25kg)"
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Category</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Category</label>
                   <select
                     name="category"
                     defaultValue={editingProduct?.category || 'Grains'}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   >
                     <option value="Grains">Grains & Pulses</option>
                     <option value="Oils">Oils & Dairy</option>
@@ -348,121 +319,103 @@ export default function SupplierProducts() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Unit of Measure</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Unit of Measure</label>
                   <input
                     name="unit_of_measure"
                     required
                     defaultValue={editingProduct?.unit_of_measure || 'bag'}
                     placeholder="bag, tin, carton"
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Unit Weight (kg)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Unit Weight (kg)</label>
                   <input
                     name="unit_weight_kg"
                     type="number"
                     step="0.1"
                     defaultValue={editingProduct?.unit_weight_kg || 25.0}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Single Retail Price (₹)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Retail Price (₹)</label>
                   <input
                     name="retail_price"
                     type="number"
                     step="0.5"
                     defaultValue={editingProduct?.retail_price || 1450}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-amber-500 mb-1">Wholesale Base Price (₹)</label>
+                  <label className="block text-[11px] font-medium text-emerald-800 dark:text-emerald-400 mb-1">Wholesale Base (₹)</label>
                   <input
                     name="wholesale_price"
                     type="number"
                     step="0.5"
                     required
                     defaultValue={editingProduct?.wholesale_price || 1180}
-                    className={`w-full border rounded-xl px-3 py-2 font-bold ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 font-semibold bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-amber-500 mb-1">Supplier MOQ</label>
+                  <label className="block text-[11px] font-medium text-emerald-800 dark:text-emerald-400 mb-1">Supplier MOQ</label>
                   <input
                     name="min_wholesale_quantity"
                     type="number"
                     step="1"
                     required
                     defaultValue={editingProduct?.min_wholesale_quantity || 40}
-                    className={`w-full border rounded-xl px-3 py-2 font-bold ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 font-semibold bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Available Inventory</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Available Stock</label>
                   <input
                     name="available_quantity"
                     type="number"
                     step="1"
                     required
                     defaultValue={editingProduct?.available_quantity || 500}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Max Order Qty (Optional)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Max Order Qty</label>
                   <input
                     name="max_order_quantity"
                     type="number"
                     step="1"
                     defaultValue={editingProduct?.max_order_quantity || ''}
                     placeholder="e.g. 1500"
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Service Radius (km)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Radius (km)</label>
                   <input
                     name="service_radius_km"
                     type="number"
                     step="1"
                     defaultValue={editingProduct?.service_radius_km || 50}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Lead Time (days)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Lead Time (days)</label>
                   <input
                     name="lead_time_days"
                     type="number"
                     step="1"
                     defaultValue={editingProduct?.lead_time_days || 2}
-                    className={`w-full border rounded-xl px-3 py-2 ${
-                      theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-[#0B1020] border-slate-800'
-                    }`}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
                   />
                 </div>
               </div>
@@ -473,28 +426,26 @@ export default function SupplierProducts() {
                   id="is_available"
                   name="is_available"
                   defaultChecked={editingProduct ? editingProduct.is_available : true}
-                  className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
+                  className="rounded border-slate-300 text-emerald-800 focus:ring-emerald-800 w-4 h-4"
                 />
-                <label htmlFor="is_available" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label htmlFor="is_available" className="text-xs font-medium text-slate-700 dark:text-slate-300">
                   Product is currently active & open for Kirana group pooling
                 </label>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => { setIsAddModalOpen(false); setEditingProduct(null); }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                    theme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-slate-800 border-slate-700 text-slate-300'
-                  }`}
+                  className="px-3.5 py-1.5 rounded-md text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold transition shadow-md"
+                  className="px-4 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm"
                 >
-                  {editingProduct ? 'Save Commercial Terms' : 'Add to Catalog'}
+                  {editingProduct ? 'Save Changes' : 'Add to Catalog'}
                 </button>
               </div>
             </form>

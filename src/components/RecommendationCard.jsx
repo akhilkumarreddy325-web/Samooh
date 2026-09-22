@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, MapPin, Check, X, ArrowUpRight, Sparkles, Truck, Scale } from 'lucide-react';
+import { Store, MapPin, Check, X, ArrowUpRight, Truck } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useApp } from '../context/AppContext';
 
@@ -21,61 +21,49 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
   const progressPct = Math.min(100, Math.round((current_pool_quantity / threshold_quantity) * 100));
 
   return (
-    <div className={`glass-card rounded-2xl p-5 border flex flex-col justify-between transition-all duration-300 ${
-      theme === 'light'
-        ? 'bg-white/85 border-slate-200/80 shadow-[0_10px_25px_rgba(0,0,0,0.03)] hover:border-blue-300'
-        : 'border-slate-800'
-    }`}>
+    <div className="rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 p-4 shadow-sm flex flex-col justify-between">
       <div>
         {/* Top Badges */}
         <div className="flex items-center justify-between">
-          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-            theme === 'light'
-              ? 'bg-blue-50 text-blue-700 border-blue-200'
-              : 'bg-accentBlue/10 text-accentBlue border-accentBlue/20'
-          }`}>
+          <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
             {category || "Procurement Pool"}
           </span>
           <StatusBadge status={threshold_status} />
         </div>
 
         {/* Product Title */}
-        <h3 className={`text-lg font-bold mt-3 line-clamp-1 ${
-          theme === 'light' ? 'text-slate-900' : 'text-white'
-        }`}>{product_name}</h3>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mt-2.5 line-clamp-1">
+          {product_name}
+        </h3>
 
         {/* Retailers & Distance */}
-        <div className={`mt-3 flex items-center justify-between text-xs border-b pb-3 ${
-          theme === 'light' ? 'text-slate-500 border-slate-100' : 'text-slate-400 border-slate-800/60'
-        }`}>
+        <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 border-b border-slate-100 dark:border-slate-700/80 pb-2.5">
           <span className="flex items-center">
-            <Store className="w-3.5 h-3.5 mr-1 text-purple-500" />
+            <Store className="w-3.5 h-3.5 mr-1 text-slate-400" />
             {retailer_names ? retailer_names.length : 0} {t('storesParticipating')}
           </span>
           <span className="flex items-center">
-            <MapPin className="w-3.5 h-3.5 mr-1 text-blue-500" />
+            <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400" />
             ~{average_cluster_distance_km} km {t('avgRadius')}
           </span>
         </div>
 
         {/* Threshold Progress Bar */}
-        <div className="mt-4">
-          <div className="flex justify-between items-center text-xs mb-1.5">
-            <span className={theme === 'light' ? 'text-slate-600 font-medium' : 'text-slate-400 font-medium'}>
+        <div className="mt-3">
+          <div className="flex justify-between items-center text-xs mb-1">
+            <span className="text-slate-500 font-medium">
               {t('thresholdProgress')}
             </span>
-            <span className={`font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+            <span className="font-semibold text-slate-900 dark:text-white">
               {current_pool_quantity} / {threshold_quantity} Units ({progressPct}%)
             </span>
           </div>
-          <div className={`w-full h-2.5 rounded-full overflow-hidden border ${
-            theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-slate-900 border-slate-800'
-          }`}>
+          <div className="w-full h-2 rounded bg-slate-100 dark:bg-slate-700 overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-500 ${
+              className={`h-full rounded transition-all duration-300 ${
                 threshold_status === 'ACHIEVED' 
-                  ? 'bg-emerald-500' 
-                  : 'bg-blue-600'
+                  ? 'bg-emerald-800' 
+                  : 'bg-slate-600'
               }`}
               style={{ width: `${progressPct}%` }}
             />
@@ -83,85 +71,68 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
         </div>
 
         {/* Savings Box */}
-        <div className={`mt-4 p-3 rounded-xl border flex items-center justify-between ${
-          theme === 'light'
-            ? 'bg-emerald-50/80 border-emerald-200'
-            : 'bg-emerald-500/10 border-emerald-500/20'
-        }`}>
+        <div className="mt-3 p-3 rounded-md border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900/50 flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="text-[10px] uppercase font-semibold text-emerald-800 dark:text-emerald-400 block">
               {t('totalGroupSavings')}
             </span>
-            <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">
+            <div className="text-base font-bold text-emerald-900 dark:text-emerald-300">
               ₹{estimated_total_savings ? estimated_total_savings.toLocaleString() : 0}
             </div>
           </div>
-          <div className="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
-            {estimated_savings_percentage}% OFF
+          <div className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 font-semibold text-xs border border-emerald-200 dark:border-emerald-800">
+            {estimated_savings_percentage}% Margin
           </div>
         </div>
 
         {/* Transport Fleet Recommendation Pill */}
-        <div className={`mt-3 p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-          theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-        }`}>
-          <div className="flex items-center space-x-2 truncate">
-            <Truck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-            <span className={`truncate font-semibold text-[11px] ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
+        <div className="mt-2.5 p-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 flex items-center justify-between text-xs">
+          <div className="flex items-center space-x-1.5 truncate">
+            <Truck className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+            <span className="truncate font-medium text-slate-800 dark:text-slate-200 text-[11px]">
               {recommendation.transport?.recommended_vehicle || 'Tata Ace (SCV)'}
             </span>
           </div>
           <div className="flex items-center space-x-1.5 flex-shrink-0">
-            <span className="text-[11px] font-mono text-slate-500">
+            <span className="text-[11px] text-slate-500">
               {recommendation.transport?.total_load_kg ? `${Math.round(recommendation.transport.total_load_kg)} kg` : `${Math.round(current_pool_quantity * 25)} kg`}
             </span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-accentBlue">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               {recommendation.transport?.capacity_utilization_pct || Math.round((current_pool_quantity * 25 / 1000) * 100)}% Load
             </span>
           </div>
         </div>
 
-        {/* AI Explanation Snippet */}
-        <p className={`mt-3 text-xs line-clamp-2 leading-relaxed ${
-          theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-        }`}>
-          <Sparkles className="w-3 h-3 inline mr-1 text-purple-500" />
+        {/* Procurement Explanation Snippet */}
+        <p className="mt-2.5 text-xs line-clamp-2 leading-relaxed text-slate-500 dark:text-slate-400">
           {explanation}
         </p>
       </div>
 
       {/* Action Buttons */}
-      <div className={`mt-5 pt-3 border-t flex items-center space-x-2 ${
-        theme === 'light' ? 'border-slate-100' : 'border-slate-800/80'
-      }`}>
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center space-x-2">
         <button 
           onClick={() => onReject(recommendation.id)}
-          className={`p-2.5 rounded-xl border transition ${
-            theme === 'light'
-              ? 'border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50'
-              : 'border-slate-700 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10'
-          }`}
-          title="Reject Pool"
+          className="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+          title="Dismiss Opportunity"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
+
         <button 
-          onClick={() => onViewDetails(recommendation)}
-          className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-semibold transition flex items-center justify-center space-x-1 ${
-            theme === 'light'
-              ? 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'
-              : 'border-slate-700 text-slate-200 hover:border-slate-500 hover:bg-slate-800'
-          }`}
+          onClick={() => onViewDetails && onViewDetails(recommendation)}
+          className="flex-1 py-1.5 px-2 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition flex items-center justify-center space-x-1"
         >
-          <span>{t('viewDetails')}</span>
+          <span>Audit Logistics</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
         </button>
+
         <button 
           onClick={() => onAccept(recommendation)}
-          className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm active:scale-95"
+          className="flex-1 py-1.5 px-2 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-xs shadow-sm transition flex items-center justify-center space-x-1"
         >
-          <Check className="w-4 h-4" />
-          <span>{t('acceptPoolBtn')}</span>
+          <Check className="w-3.5 h-3.5" />
+          <span>Join Pool</span>
         </button>
       </div>
     </div>

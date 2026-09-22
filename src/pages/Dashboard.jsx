@@ -5,7 +5,6 @@ import {
   Users, 
   Layers, 
   Percent, 
-  Sparkles, 
   AlertCircle,
   RefreshCw,
   Database
@@ -37,7 +36,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPool, setSelectedPool] = useState(null);
-  const [acceptedPools, setAcceptedPools] = useState(new Set());
   const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
@@ -136,15 +134,15 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
-        <div className={`h-8 rounded-xl w-1/3 ${theme === 'light' ? 'bg-slate-200' : 'bg-slate-800'}`}></div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="h-7 rounded-md w-1/4 bg-slate-200 dark:bg-slate-700"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className={`h-28 rounded-2xl border ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#131A2A] border-slate-800'}`}></div>
+            <div key={i} className="h-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"></div>
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className={`lg:col-span-2 h-72 rounded-2xl border ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#131A2A] border-slate-800'}`}></div>
-          <div className={`h-72 rounded-2xl border ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#131A2A] border-slate-800'}`}></div>
+          <div className="lg:col-span-2 h-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"></div>
+          <div className="h-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"></div>
         </div>
       </div>
     );
@@ -152,32 +150,28 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className={`p-8 max-w-xl mx-auto text-center space-y-4 my-12 glass-card rounded-2xl border ${
-        theme === 'light' ? 'bg-white border-rose-200 shadow-md' : 'border-rose-500/30'
-      }`}>
-        <div className="w-14 h-14 rounded-full bg-rose-500/10 text-rose-500 mx-auto flex items-center justify-center">
-          <AlertCircle className="w-7 h-7" />
+      <div className="p-8 max-w-xl mx-auto text-center space-y-4 my-12 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 mx-auto flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{t('backendUnreachable')}</h3>
-        <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">{t('backendUnreachable')}</h3>
+        <p className="text-xs text-slate-500">
           Could not fetch real data from backend.
         </p>
-        <div className="flex items-center justify-center space-x-3 pt-2">
+        <div className="flex items-center justify-center space-x-2 pt-2">
           <button 
             onClick={loadDashboardData}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 ${
-              theme === 'light' ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-slate-800 text-white hover:bg-slate-700'
-            }`}
+            className="px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 flex items-center space-x-1.5"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             <span>{t('retryConnection')}</span>
           </button>
           <button 
             onClick={handleSeedData}
             disabled={isSeeding}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition flex items-center space-x-1.5 shadow-md"
+            className="px-3.5 py-1.5 rounded-md bg-emerald-800 text-white text-xs font-medium hover:bg-emerald-900 transition flex items-center space-x-1.5 shadow-sm"
           >
-            <Database className="w-4 h-4" />
+            <Database className="w-3.5 h-3.5" />
             <span>{isSeeding ? t('seeding') : t('seedBackendStart')}</span>
           </button>
         </div>
@@ -185,20 +179,9 @@ export default function Dashboard() {
     );
   }
 
-  const metrics = data?.metrics || {};
   const categoryBreakdown = data?.category_breakdown || {};
-  
-  const totalSavings = metrics.total_community_savings_inr || 84520;
-  const monthlySavingsTrend = [
-    { month: 'Jan', savings: Math.round(totalSavings * 0.15) },
-    { month: 'Feb', savings: Math.round(totalSavings * 0.30) },
-    { month: 'Mar', savings: Math.round(totalSavings * 0.50) },
-    { month: 'Apr', savings: Math.round(totalSavings * 0.75) },
-    { month: 'May', savings: Math.round(totalSavings * 0.90) },
-    { month: 'Jun', savings: totalSavings }
-  ];
-
-  const pieColors = ['#2563EB', '#8B5CF6', '#10B981', '#F59E0B', '#EC4899'];
+  const totalSavings = data?.metrics?.total_community_savings_inr || 84520;
+  const pieColors = ['#166534', '#334155', '#475569', '#64748B', '#94A3B8'];
   const pieData = Object.keys(categoryBreakdown).map((cat, idx) => ({
     name: cat,
     value: categoryBreakdown[cat],
@@ -208,30 +191,24 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className={`text-xl sm:text-2xl font-extrabold tracking-tight flex items-center ${
-            theme === 'light' ? 'text-slate-900' : 'text-white'
-          }`}>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center">
             {t('groupProcurementDashboard')}
-            <span className="ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {t('demoStoreActive')}
+            <span className="ml-2 text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+              Active Store: {user?.storeName || 'Sri Lakshmi Kirana'}
             </span>
           </h1>
-          <p className={`text-xs mt-1 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {t('dashboardDesc')}
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <button
             onClick={handleSeedData}
             disabled={isSeeding}
-            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center space-x-1.5 shadow-sm active:scale-95 ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                : 'bg-[#131A2A] border-slate-800 text-slate-300 hover:text-white'
-            }`}
+            className="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700/60 transition flex items-center space-x-1.5 shadow-sm"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSeeding ? 'animate-spin' : ''}`} />
             <span>{isSeeding ? t('seeding') : t('resetSeedData')}</span>
@@ -255,7 +232,7 @@ export default function Dashboard() {
           subtext={t('retailersSub')}
           icon={Users}
           color="blue"
-          badge="Hyderabad Cluster"
+          badge="Hyderabad Hub"
         />
         <KPICard
           title={t('procurementPools')}
@@ -263,7 +240,7 @@ export default function Dashboard() {
           subtext={t('poolsSub')}
           icon={Layers}
           color="purple"
-          badge={`${data?.metrics?.pools_achieved_threshold || 9} Unlocked`}
+          badge={`${data?.metrics?.pools_achieved_threshold || 9} Active`}
         />
         <KPICard
           title={t('avgSavingsPct')}
@@ -271,26 +248,24 @@ export default function Dashboard() {
           subtext={t('avgSavingsSub')}
           icon={Percent}
           color="amber"
-          badge="Max 24%"
+          badge="Up to 24%"
         />
       </div>
 
       {/* Charts Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Monthly Savings Trend Chart */}
-        <div className={`lg:col-span-2 glass-card rounded-2xl p-5 border shadow-sm transition-all duration-300 ${
-          theme === 'light' ? 'bg-white/85 border-slate-200/80' : 'border-slate-800'
-        }`}>
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-700">
             <div>
-              <h3 className={`text-sm font-bold tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 {t('monthlySavingsGrowth')}
               </h3>
-              <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className="text-[11px] text-slate-500">
                 {t('cumulativeSavingsDesc')}
               </p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="text-xs font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
               ₹84,520 {t('totalSaved')}
             </span>
           </div>
@@ -300,39 +275,39 @@ export default function Dashboard() {
               <AreaChart data={data?.monthly_savings_trend || MOCK_DASHBOARD.monthly_savings_trend}>
                 <defs>
                   <linearGradient id="savingsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#166534" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#166534" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'light' ? '#E2E8F0' : '#1E293B'} />
-                <XAxis dataKey="month" stroke={theme === 'light' ? '#64748B' : '#94A3B8'} fontSize={11} />
-                <YAxis stroke={theme === 'light' ? '#64748B' : '#94A3B8'} fontSize={11} tickFormatter={(v) => `₹${v/1000}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'light' ? '#F1F5F9' : '#1E293B'} />
+                <XAxis dataKey="month" stroke="#64748B" fontSize={11} />
+                <YAxis stroke="#64748B" fontSize={11} tickFormatter={(v) => `₹${v/1000}k`} />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: theme === 'light' ? '#FFFFFF' : '#131A2A', 
-                    borderColor: theme === 'light' ? '#E2E8F0' : '#334155',
-                    borderRadius: '12px',
+                    backgroundColor: theme === 'light' ? '#FFFFFF' : '#1E293B', 
+                    borderColor: '#CBD5E1',
+                    borderRadius: '6px',
                     fontSize: '12px'
                   }}
                   formatter={(val) => [`₹${val.toLocaleString()}`, 'Group Savings']}
                 />
-                <Area type="monotone" dataKey="savings" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#savingsGrad)" />
+                <Area type="monotone" dataKey="savings" stroke="#166534" strokeWidth={2} fillOpacity={1} fill="url(#savingsGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Category Breakdown Donut Chart */}
-        <div className={`glass-card rounded-2xl p-5 border shadow-sm flex flex-col justify-between transition-all duration-300 ${
-          theme === 'light' ? 'bg-white/85 border-slate-200/80' : 'border-slate-800'
-        }`}>
+        <div className="rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className={`text-sm font-bold tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-              {t('categoryBreakdown')}
-            </h3>
-            <p className={`text-[11px] mb-4 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              {t('categoryDesc')}
-            </p>
+            <div className="pb-2 border-b border-slate-100 dark:border-slate-700 mb-3">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                {t('categoryBreakdown')}
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                {t('categoryDesc')}
+              </p>
+            </div>
 
             <div className="h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -341,9 +316,9 @@ export default function Dashboard() {
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={4}
+                    innerRadius={45}
+                    outerRadius={70}
+                    paddingAngle={3}
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
@@ -352,9 +327,9 @@ export default function Dashboard() {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: theme === 'light' ? '#FFFFFF' : '#131A2A', 
-                      borderColor: theme === 'light' ? '#E2E8F0' : '#334155',
-                      borderRadius: '12px',
+                      backgroundColor: theme === 'light' ? '#FFFFFF' : '#1E293B', 
+                      borderColor: '#CBD5E1',
+                      borderRadius: '6px',
                       fontSize: '12px'
                     }}
                   />
@@ -364,9 +339,9 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-2 gap-2 text-xs pt-2">
               {pieData.map((item) => (
-                <div key={item.name} className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className={`font-medium truncate ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+                <div key={item.name} className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: item.color }} />
+                  <span className="font-medium truncate text-slate-700 dark:text-slate-300">
                     {item.name} ({item.value})
                   </span>
                 </div>
@@ -378,9 +353,11 @@ export default function Dashboard() {
 
       {/* Top Urgent Recommendations */}
       <div>
-        <h2 className={`text-lg font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'} mb-4`}>{t('highPriorityOpps')}</h2>
+        <h2 className="text-base font-bold text-slate-900 dark:text-white mb-3">
+          {t('highPriorityOpps')}
+        </h2>
         {recommendations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {recommendations.slice(0, 3).map((rec) => (
               <RecommendationCard
                 key={rec.id || rec.pool_id || Math.random()}
@@ -392,8 +369,8 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-            <p className="text-slate-400">{t('noPools')}</p>
+          <div className="p-12 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <p className="text-slate-500 text-xs">{t('noPools')}</p>
           </div>
         )}
       </div>
@@ -412,3 +389,30 @@ export default function Dashboard() {
     </div>
   );
 }
+
+const MOCK_DASHBOARD = {
+  metrics: {
+    total_community_savings_inr: 84520,
+    total_retailers: 30,
+    total_active_pools: 12,
+    pools_achieved_threshold: 9,
+    average_savings_percentage: 18.5
+  },
+  monthly_savings_trend: [
+    { month: 'Jan', savings: 12500 },
+    { month: 'Feb', savings: 25400 },
+    { month: 'Mar', savings: 42000 },
+    { month: 'Apr', savings: 63000 },
+    { month: 'May', savings: 76000 },
+    { month: 'Jun', savings: 84520 }
+  ],
+  category_breakdown: {
+    "Grains & Pulses": 45,
+    "Edible Oils": 25,
+    "Spices": 15,
+    "Beverages": 10,
+    "Household": 5
+  }
+};
+
+const MOCK_RECOMMENDATIONS = [];
