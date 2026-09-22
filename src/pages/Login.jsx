@@ -310,10 +310,10 @@ export default function Login() {
                 </button>
               </form>
 
-              {/* Quick Supplier Personas */}
+              {/* Quick Supplier Accounts */}
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider block text-slate-400">
-                  ⚡ 1-Click Supplier Persona Quick Select:
+                  ⚡ Registered Wholesale Hubs:
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(DEMO_SUPPLIERS).map(([key, sup]) => (
@@ -434,7 +434,7 @@ export default function Login() {
                 type="submit"
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 active:scale-95"
               >
-                <span>🚀 Register as Wholesale Supplier</span>
+                <span>Register as Wholesale Supplier</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -531,12 +531,12 @@ export default function Login() {
                 </button>
               </form>
 
-              {/* 1-Click Judge Quick Switcher Badges */}
+              {/* Quick Store Selector */}
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider block ${
                   theme === 'light' ? 'text-slate-500' : 'text-slate-400'
                 }`}>
-                  ⚡ Hackathon Demo 1-Click Persona Switcher:
+                  ⚡ Registered Store Accounts:
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(DEMO_USERS).map((key) => {

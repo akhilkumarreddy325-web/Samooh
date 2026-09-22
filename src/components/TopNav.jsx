@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu, Truck } from 'lucide-react';
 import { checkHealth, triggerDemoScenario } from '../services/api';
 import { useApp } from '../context/AppContext';
@@ -7,10 +7,13 @@ import { useApp } from '../context/AppContext';
 export default function TopNav({ onToggleMobileMenu }) {
   const { theme, toggleTheme, lang, toggleLanguage, t, user, logout, userRole, currentSupplier } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [isLaunchingDemo, setIsLaunchingDemo] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const isSupplier = userRole === 'supplier' || location.pathname.startsWith('/supplier');
 
   useEffect(() => {
     async function monitorHealth() {
@@ -28,7 +31,7 @@ export default function TopNav({ onToggleMobileMenu }) {
       await triggerDemoScenario();
       window.location.reload();
     } catch (err) {
-      alert('Failed to launch demo scenario: ' + err.message);
+      alert('Failed to launch scenario: ' + err.message);
     } finally {
       setIsLaunchingDemo(false);
     }
@@ -43,19 +46,15 @@ export default function TopNav({ onToggleMobileMenu }) {
   return (
     <header className={`h-16 border-b px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-xl transition-colors duration-300 ${
       theme === 'light'
-        ? 'bg-white/80 border-slate-200/80 text-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'
-        : 'bg-[#0B1020]/90 border-slate-800/80 text-slate-100'
+        ? 'bg-white/90 border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] text-slate-800'
+        : 'bg-[#0B1020]/90 border-slate-800/80 text-white'
     }`}>
-      {/* Left Section: Mobile Menu Trigger & Global Search Input */}
-      <div className="flex items-center space-x-3">
+      {/* Left Search Bar & Mobile Hamburger Toggle */}
+      <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
         <button
           onClick={onToggleMobileMenu}
-          className={`p-2 rounded-xl border md:hidden transition ${
-            theme === 'light'
-              ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-              : 'bg-[#131A2A] border-slate-800 text-slate-300 hover:bg-slate-800'
-          }`}
-          title="Open Navigation Menu"
+          className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          aria-label="Toggle navigation drawer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -109,31 +108,33 @@ export default function TopNav({ onToggleMobileMenu }) {
           {theme === 'light' ? <Sun className="w-4 h-4 text-amber-500 fill-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400 fill-indigo-400/20" />}
         </button>
 
-        {/* 1-Click Launch Hackathon Demo Button (Hidden in Supplier Portal) */}
-        {userRole !== 'supplier' && (
+        {/* 1-Click Launch Hackathon Demo Button (Completely removed from Supplier Portal) */}
+        {!isSupplier && (
           <button
             onClick={handleLaunchDemo}
             disabled={isLaunchingDemo}
             className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition items-center space-x-1.5 active:scale-95"
-            title="Launch Parle-G 800g 100% Deterministic Hackathon Demo Scenario"
+            title="Launch Parle-G 800g Scenario"
           >
             <Rocket className={`w-3.5 h-3.5 ${isLaunchingDemo ? 'animate-bounce' : ''}`} />
             <span>{isLaunchingDemo ? t('loadingDemo') : t('launchDemo')}</span>
           </button>
         )}
 
-        {/* Live / Mock Mode Indicator */}
-        <div 
-          className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold ${
-            isOnline 
-              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-          }`}
-          title={isOnline ? "Connected to live FastAPI backend" : "Running in Standalone Demo Mode with local mock data store"}
-        >
-          {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-          <span className="hidden lg:inline">{isOnline ? t('fastapiConnected') : t('demoMode')}</span>
-        </div>
+        {/* Backend Indicator (Completely removed from Supplier Portal) */}
+        {!isSupplier && (
+          <div 
+            className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold ${
+              isOnline 
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+            }`}
+            title={isOnline ? "Connected to live FastAPI backend" : "Local Data Store"}
+          >
+            {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+            <span className="hidden lg:inline">{isOnline ? t('fastapiConnected') : 'Active Store'}</span>
+          </div>
+        )}
 
         {/* Notifications Icon */}
         <div className={`relative p-2 rounded-xl border cursor-pointer transition ${

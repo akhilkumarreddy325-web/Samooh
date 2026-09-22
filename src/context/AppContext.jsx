@@ -27,10 +27,10 @@ const translations = {
     engineLive: 'Procurement Engine Live',
     retailersActive: '30 Retailers Active',
     searchPlaceholder: 'Search products, pools, retailers...',
-    launchDemo: '🚀 Launch Hackathon Demo',
-    loadingDemo: 'Loading Demo...',
+    launchDemo: 'Launch Scenario',
+    loadingDemo: 'Loading Scenario...',
     fastapiConnected: 'FastAPI Connected',
-    demoMode: 'Demo Mode',
+    demoMode: 'Local Store Active',
     retailAdmin: 'Sri Lakshmi Kirana',
     hyderabadHub: 'Hyderabad South-West Cluster',
 
@@ -49,7 +49,7 @@ const translations = {
 
     // Dashboard Page
     groupProcurementDashboard: 'Group Procurement Dashboard',
-    demoStoreActive: 'Demo Store Active',
+    demoStoreActive: 'Verified Store Active',
     dashboardDesc: 'Real-time aggregate retail demand, wholesale pool progress, and group savings.',
     resetSeedData: 'Reset / Seed Demo Data',
     seeding: 'Seeding...',
@@ -204,10 +204,10 @@ const translations = {
     engineLive: 'खरीद इंजन सक्रिय',
     retailersActive: '30 रिटेलर्स सक्रिय',
     searchPlaceholder: 'उत्पाद, थोक पूल, रिटेलर्स खोजें...',
-    launchDemo: '🚀 हैकथॉन डेमो शुरू करें',
-    loadingDemo: 'डेमो लोड हो रहा है...',
+    launchDemo: 'परिदृश्य शुरू करें',
+    loadingDemo: 'लोड हो रहा है...',
     fastapiConnected: 'फ़ास्ट-एपीआई कनेक्टेड',
-    demoMode: 'डेमो मोड',
+    demoMode: 'लोकल स्टोर सक्रिय',
     retailAdmin: 'श्री लक्ष्मी किराना',
     hyderabadHub: 'हैदराबाद साउथ-वेस्ट क्लस्टर',
 
@@ -226,7 +226,7 @@ const translations = {
 
     // Dashboard Page
     groupProcurementDashboard: 'सामूहिक खरीद डैशबोर्ड',
-    demoStoreActive: 'डेमो स्टोर सक्रिय',
+    demoStoreActive: 'सत्यापित स्टोर सक्रिय',
     dashboardDesc: 'वास्तविक समय सामूहिक खुदरा मांग, थोक पूल प्रगति और समूह बचत की विस्तृत रिपोर्ट।',
     resetSeedData: 'डेमो डेटा रीसेट / री-सीड करें',
     seeding: 'सीडिंग जारी है...',

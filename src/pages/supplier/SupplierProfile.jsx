@@ -6,7 +6,7 @@ import {
 import { useApp } from '../../context/AppContext';
 
 export default function SupplierProfile() {
-  const { theme, currentSupplier, setCurrentSupplier, demoSuppliers, switchSupplier } = useApp();
+  const { theme, currentSupplier, setCurrentSupplier } = useApp();
   const [editing, setEditing] = useState(false);
   const [notification, setNotification] = useState(null);
 
