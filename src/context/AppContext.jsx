@@ -745,7 +745,13 @@ export function AppProvider({ children }) {
   }, []);
 
   const completeRetailerOnboarding = async (formData) => {
-    const uid = firebaseUser?.uid || user?.id || `usr_ret_${Date.now()}`;
+    if (!auth.currentUser && auth.authStateReady) {
+      await auth.authStateReady();
+    }
+    const uid = auth.currentUser?.uid || firebaseUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in with your account to complete onboarding.');
+    }
     const result = await saveRetailerOnboarding(uid, formData);
     
     // Update local state
@@ -753,15 +759,15 @@ export function AppProvider({ children }) {
       id: uid,
       storeName: formData.shopName || formData.storeName,
       ownerName: formData.ownerName,
-      email: firebaseUser?.email || user?.email || 'owner@kirana.in',
+      email: auth.currentUser?.email || firebaseUser?.email || user?.email || 'owner@kirana.in',
       city: formData.city || 'Hyderabad',
       clusterHub: `${formData.city || 'Hyderabad'} Kirana Cluster #1`,
       address: formData.address || `${formData.area || ''}, ${formData.city || ''}`,
       monthlyBudget: formatINR(formData.maxProcurementBudget || 250000),
       totalSaved: formatINR(0),
       rating: 4.9,
-      avatar: firebaseUser?.photoURL || null,
-      isGoogle: !!firebaseUser
+      avatar: auth.currentUser?.photoURL || firebaseUser?.photoURL || null,
+      isGoogle: !!(auth.currentUser || firebaseUser)
     };
     
     setUser(updatedUser);
@@ -774,7 +780,13 @@ export function AppProvider({ children }) {
   };
 
   const completeSupplierOnboarding = async (formData) => {
-    const uid = firebaseUser?.uid || currentSupplier?.id || `sup_${Date.now()}`;
+    if (!auth.currentUser && auth.authStateReady) {
+      await auth.authStateReady();
+    }
+    const uid = auth.currentUser?.uid || firebaseUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in with your account to complete onboarding.');
+    }
     const result = await saveSupplierOnboarding(uid, formData);
     
     // Update local supplier state
@@ -782,7 +794,7 @@ export function AppProvider({ children }) {
       id: uid,
       name: formData.businessName,
       contactPerson: formData.contactPerson,
-      email: firebaseUser?.email || currentSupplier?.email || 'supplier@wholesale.in',
+      email: auth.currentUser?.email || firebaseUser?.email || currentSupplier?.email || 'supplier@wholesale.in',
       phone: formData.contactPhone || '+91 98480 12345',
       address: formData.warehouseAddress || `${formData.area || ''}, ${formData.city || ''}`,
       location: formData.area || 'Hyderabad',

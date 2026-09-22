@@ -7,20 +7,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isSupplier(supplierId) {
-      return isAuthenticated() && (
-        request.auth.uid == supplierId || 
-        (request.auth.token.supplier_id != null && request.auth.token.supplier_id == supplierId)
-      );
-    }
-
-    function isRetailer(retailerId) {
-      return isAuthenticated() && (
-        request.auth.uid == retailerId || 
-        (request.auth.token.retailer_id != null && request.auth.token.retailer_id == retailerId)
-      );
-    }
-
     // 0. User Profiles (Samooh Account & Identity):
     // Users can read and write only their own profile document.
     match /users/{userId} {
@@ -32,8 +18,28 @@ service cloud.firestore {
     // is strictly restricted to the owning supplier.
     // Public catalog functionality (product discovery, wholesale prices, MOQ) is preserved via /products.
     match /suppliers/{supplierId} {
-      allow read: if isSupplier(supplierId);
-      allow create, update, delete: if isSupplier(supplierId);
+      allow read: if isAuthenticated() && (
+        request.auth.uid == supplierId ||
+        resource.data.supplier_id == request.auth.uid ||
+        resource.data.user_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && request.auth.token.supplier_id == supplierId)
+      );
+      allow create: if isAuthenticated() && (
+        request.auth.uid == supplierId ||
+        request.resource.data.supplier_id == request.auth.uid ||
+        request.resource.data.user_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && request.auth.token.supplier_id == supplierId)
+      );
+      allow update: if isAuthenticated() && (
+        request.auth.uid == supplierId ||
+        resource.data.supplier_id == request.auth.uid ||
+        resource.data.user_id == request.auth.uid ||
+        (request.auth.token.supplier_id != null && resource.data.supplier_id == request.auth.token.supplier_id)
+      );
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == supplierId ||
+        resource.data.supplier_id == request.auth.uid
+      );
     }
 
     // 2. Supplier Orders Collection:
@@ -62,10 +68,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && (
         request.resource.data.supplier_id == request.auth.uid ||
+        request.resource.data.supplierId == request.auth.uid ||
         (request.auth.token.supplier_id != null && request.resource.data.supplier_id == request.auth.token.supplier_id)
       );
       allow update, delete: if isAuthenticated() && (
         resource.data.supplier_id == request.auth.uid ||
+        resource.data.supplierId == request.auth.uid ||
         (request.auth.token.supplier_id != null && resource.data.supplier_id == request.auth.token.supplier_id)
       );
     }
@@ -74,7 +82,13 @@ service cloud.firestore {
     // Retailers can access and modify only their own store records.
     match /retailers/{retailerId} {
       allow read: if isAuthenticated();
-      allow write: if isRetailer(retailerId);
+      allow create, update: if isAuthenticated() && (
+        request.auth.uid == retailerId ||
+        request.resource.data.retailer_id == request.auth.uid ||
+        request.resource.data.user_id == request.auth.uid ||
+        (request.auth.token.retailer_id != null && request.auth.token.retailer_id == retailerId)
+      );
+      allow delete: if isAuthenticated() && request.auth.uid == retailerId;
     }
 
     // 5. Retailer Sales & Demand History:

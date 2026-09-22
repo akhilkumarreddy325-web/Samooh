@@ -76,7 +76,7 @@ export default function Onboarding() {
       productsSupplied: ['Grains & Staples', 'Rice (Raw & Boiled)', 'Edible & Cooking Oils', 'Sugar & Sweeteners'],
       configuredProducts: [
         {
-          id: 'prod_rice_01',
+          id: 'item_1',
           name: 'Sona Masoori Raw Rice (25kg Bag)',
           category: 'Rice (Raw & Boiled)',
           unit: 'kg',
@@ -93,7 +93,7 @@ export default function Onboarding() {
           ]
         },
         {
-          id: 'prod_oil_02',
+          id: 'item_2',
           name: 'Freedom Refined Sunflower Oil (15L Tin)',
           category: 'Edible & Cooking Oils',
           unit: 'litres',
@@ -109,7 +109,7 @@ export default function Onboarding() {
           ]
         },
         {
-          id: 'prod_sugar_03',
+          id: 'item_3',
           name: 'Premium M-30 Pure Sugar (50kg Bag)',
           category: 'Sugar & Sweeteners',
           unit: 'kg',

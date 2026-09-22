@@ -12,7 +12,7 @@ export default function SupplierInventoryStep({ data, onUpdate, onNext, onBack }
     }
     return [
       {
-        id: 'prod_seed_1',
+        id: 'item_1',
         name: 'Sona Masoori Raw Rice (25kg Bag)',
         category: 'Rice (Raw & Boiled)',
         unit: 'kg',
@@ -29,7 +29,7 @@ export default function SupplierInventoryStep({ data, onUpdate, onNext, onBack }
         ]
       },
       {
-        id: 'prod_seed_2',
+        id: 'item_2',
         name: 'Freedom Refined Sunflower Oil (15L Tin)',
         category: 'Edible & Cooking Oils',
         unit: 'litres',
@@ -45,7 +45,7 @@ export default function SupplierInventoryStep({ data, onUpdate, onNext, onBack }
         ]
       },
       {
-        id: 'prod_seed_3',
+        id: 'item_3',
         name: 'Premium M-30 Pure Sugar (50kg Bag)',
         category: 'Sugar & Sweeteners',
         unit: 'kg',

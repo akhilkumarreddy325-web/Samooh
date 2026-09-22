@@ -61,7 +61,7 @@ export function mapAuthError(error) {
     case 'auth/operation-not-allowed':
       return 'Google Sign-In provider is not enabled in the Firebase Console.';
     case 'permission-denied':
-      return 'We could not save your profile because access was denied. Please try signing in again.';
+      return 'Your session expired or the profile could not be saved. Please try signing in again.';
     case 'unavailable':
       return 'Database service is temporarily unavailable. Your information is preserved. Please click Retry.';
     default:
@@ -104,9 +104,10 @@ export async function handleRedirectResult() {
     if (result && result.user) {
       return { success: true, user: result.user };
     }
-    return { success: false, noRedirect: true };
+    return { success: false, user: null };
   } catch (err) {
-    return { success: false, error: mapAuthError(err) };
+    console.warn('[Samooh Auth] Redirect result error:', err.message);
+    return { success: false, error: mapAuthError(err), rawError: err };
   }
 }
 
@@ -116,14 +117,32 @@ export async function handleRedirectResult() {
 export async function getUserProfile(uid) {
   if (!uid) return null;
   try {
-    const ref = doc(db, 'users', uid);
-    const snap = await withTimeout(getDoc(ref), 5000, 'Profile lookup');
+    const userDocRef = doc(db, 'users', uid);
+    const snap = await withTimeout(getDoc(userDocRef), 5000, 'Fetching user profile');
     if (snap.exists()) {
-      return snap.data();
+      return { id: snap.id, ...snap.data() };
     }
     return null;
   } catch (err) {
-    console.warn(`[Samooh Auth] Could not fetch user profile for ${uid}:`, err.message);
+    console.warn(`[Samooh Auth] Error fetching user profile:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Fetches existing supplier profile from `suppliers/{uid}`
+ */
+export async function getSupplierProfile(uid) {
+  if (!uid) return null;
+  try {
+    const supDocRef = doc(db, 'suppliers', uid);
+    const snap = await withTimeout(getDoc(supDocRef), 5000, 'Fetching supplier profile');
+    if (snap.exists()) {
+      return { id: snap.id, ...snap.data() };
+    }
+    return null;
+  } catch (err) {
+    console.warn(`[Samooh Auth] Error fetching supplier profile:`, err.message);
     return null;
   }
 }
@@ -165,15 +184,20 @@ export async function initializeUserProfile(user, role = null) {
  * Guarantees atomic write and throws clear error if persistence fails.
  */
 export async function saveRetailerOnboarding(uid, data) {
-  if (!uid) throw new Error('User ID is required to complete retailer setup.');
+  // Ensure Firebase Auth state is ready
+  if (!auth.currentUser && auth.authStateReady) {
+    await auth.authStateReady();
+  }
+  const activeUid = auth.currentUser?.uid || uid;
+  if (!activeUid) throw new Error('User ID is required to complete retailer setup.');
 
   const nowIso = new Date().toISOString();
 
   // 1. Structured Retailer Profile Document
   const retailerDoc = {
-    id: uid,
-    retailer_id: uid,
-    user_id: uid,
+    id: activeUid,
+    retailer_id: activeUid,
+    user_id: activeUid,
     name: data.shopName || data.storeName || 'Kirana Store',
     storeName: data.shopName || data.storeName || 'Kirana Store',
     ownerName: data.ownerName || 'Store Owner',
@@ -226,11 +250,16 @@ export async function saveRetailerOnboarding(uid, data) {
   // Safe Batch Write with Timeout Guard
   try {
     const batch = writeBatch(db);
-    batch.set(doc(db, 'retailers', uid), retailerDoc, { merge: true });
-    batch.set(doc(db, 'users', uid), userDocUpdate, { merge: true });
+    batch.set(doc(db, 'retailers', activeUid), retailerDoc, { merge: true });
+    batch.set(doc(db, 'users', activeUid), userDocUpdate, { merge: true });
     await withTimeout(batch.commit(), 6000, 'Saving retailer profile');
   } catch (err) {
-    console.error('[Samooh Auth] Firestore retailer persistence error:', err);
+    console.error('[Samooh Auth] Firestore retailer persistence error:', {
+      code: err.code,
+      message: err.message,
+      authUid: auth.currentUser?.uid,
+      targetDoc: `retailers/${activeUid}`
+    });
     throw new Error(mapAuthError(err));
   }
 
@@ -243,15 +272,20 @@ export async function saveRetailerOnboarding(uid, data) {
  * Guarantees atomic write and throws clear error if persistence fails.
  */
 export async function saveSupplierOnboarding(uid, data) {
-  if (!uid) throw new Error('User ID is required to complete supplier setup.');
+  // Ensure Firebase Auth state is ready
+  if (!auth.currentUser && auth.authStateReady) {
+    await auth.authStateReady();
+  }
+  const activeUid = auth.currentUser?.uid || uid;
+  if (!activeUid) throw new Error('User ID is required to complete supplier setup.');
 
   const nowIso = new Date().toISOString();
 
   // 1. Structured Supplier Profile Document
   const supplierDoc = {
-    id: uid,
-    supplier_id: uid,
-    user_id: uid,
+    id: activeUid,
+    supplier_id: activeUid,
+    user_id: activeUid,
     name: data.businessName || data.name || 'Wholesale Supplier',
     contactPerson: data.contactPerson || 'Wholesale Partner',
     business_type: data.businessType || 'Wholesaler',
@@ -284,11 +318,16 @@ export async function saveSupplierOnboarding(uid, data) {
   };
 
   // 3. Prepare Supplier Wholesale Products & Tiers (Supplier controls MOQ & pricing)
+  // Ensure each product has a supplier-scoped unique ID so it never collides with
+  // another supplier's catalog items (which triggers Firestore permission-denied on update).
+  const timestampSuffix = Date.now().toString().slice(-6);
   const productDocs = (data.configuredProducts || []).map((p, idx) => {
-    const prodId = p.id || `prod_${uid.slice(0, 5)}_${Date.now()}_${idx}`;
+    const isOwnSupplierProdId = p.id && (p.id.startsWith(`prod_${activeUid.slice(0, 8)}_`) || p.id.startsWith(`prod_${activeUid}_`));
+    const prodId = isOwnSupplierProdId ? p.id : `prod_${activeUid.slice(0, 8)}_${idx + 1}_${timestampSuffix}`;
     return {
       id: prodId,
-      supplier_id: uid,
+      supplier_id: activeUid,
+      supplierId: activeUid,
       name: p.name || 'Wholesale Commodity',
       category: p.category || 'Grains & Staples',
       unit_of_measure: p.unit || 'kg',
@@ -310,8 +349,8 @@ export async function saveSupplierOnboarding(uid, data) {
   // Safe Batch Write with Timeout Guard
   try {
     const batch = writeBatch(db);
-    batch.set(doc(db, 'suppliers', uid), supplierDoc, { merge: true });
-    batch.set(doc(db, 'users', uid), userDocUpdate, { merge: true });
+    batch.set(doc(db, 'suppliers', activeUid), supplierDoc, { merge: true });
+    batch.set(doc(db, 'users', activeUid), userDocUpdate, { merge: true });
 
     for (const prod of productDocs) {
       batch.set(doc(db, 'products', prod.id), prod, { merge: true });
@@ -319,7 +358,17 @@ export async function saveSupplierOnboarding(uid, data) {
 
     await withTimeout(batch.commit(), 6000, 'Saving supplier profile');
   } catch (err) {
-    console.error('[Samooh Auth] Firestore supplier persistence error:', err);
+    console.error('[Samooh Auth] Firestore supplier persistence error:', {
+      code: err.code,
+      message: err.message,
+      authUid: auth.currentUser?.uid,
+      authEmail: auth.currentUser?.email,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      providerData: auth.currentUser?.providerData?.map(p => ({ providerId: p.providerId, email: p.email, uid: p.uid })),
+      targetSupplierDoc: `suppliers/${activeUid}`,
+      targetUserDoc: `users/${activeUid}`,
+      targetProductDocs: productDocs.map(p => `products/${p.id}`)
+    });
     throw new Error(mapAuthError(err));
   }
 
