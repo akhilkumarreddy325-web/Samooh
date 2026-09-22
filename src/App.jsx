@@ -59,12 +59,20 @@ const OrderProcessing = lazy(() => import('./pages/OrderProcessing'));
 const Login = lazy(() => import('./pages/Login'));
 const PreviousOrders = lazy(() => import('./pages/PreviousOrders'));
 
+// Supplier Portal Pages
+const SupplierDashboard = lazy(() => import('./pages/supplier/SupplierDashboard'));
+const SupplierOrders = lazy(() => import('./pages/supplier/SupplierOrders'));
+const SupplierProducts = lazy(() => import('./pages/supplier/SupplierProducts'));
+const SupplierPricing = lazy(() => import('./pages/supplier/SupplierPricing'));
+const SupplierAnalytics = lazy(() => import('./pages/supplier/SupplierAnalytics'));
+const SupplierProfile = lazy(() => import('./pages/supplier/SupplierProfile'));
+
 function PageLoader() {
   const { theme } = useApp();
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center space-y-3">
-        <div className="w-9 h-9 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-9 h-9 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
         <span className={`text-xs font-bold ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
           Loading Samooh...
         </span>
@@ -118,6 +126,7 @@ function MainLayout() {
         <main className="flex-1 overflow-y-auto">
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              {/* Retailer Routes */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/opportunities" element={<Opportunities />} />
               <Route path="/builder" element={<CustomDemandBuilder />} />
@@ -126,6 +135,14 @@ function MainLayout() {
               <Route path="/invoice" element={<SavingsBill />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/impact" element={<Impact />} />
+
+              {/* Supplier Portal Routes */}
+              <Route path="/supplier" element={<SupplierDashboard />} />
+              <Route path="/supplier/orders" element={<SupplierOrders />} />
+              <Route path="/supplier/products" element={<SupplierProducts />} />
+              <Route path="/supplier/pricing" element={<SupplierPricing />} />
+              <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
+              <Route path="/supplier/profile" element={<SupplierProfile />} />
             </Routes>
           </Suspense>
         </main>

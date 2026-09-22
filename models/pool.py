@@ -17,6 +17,8 @@ class ProcurementPool(BaseModel):
     created_at: str = Field(..., description="Pool creation timestamp")
     pooled_inventory: Optional[Dict[str, Any]] = Field(default=None, description="Detailed pooled inventory calculation")
     transport: Optional[Dict[str, Any]] = Field(default=None, description="Transport planning and vehicle recommendation")
+    supplier_evaluation: Optional[Dict[str, Any]] = Field(default=None, description="Supplier feasibility and explainability evaluation")
+
 
     class Config:
         json_schema_extra = {

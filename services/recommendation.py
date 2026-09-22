@@ -123,6 +123,7 @@ class RecommendationEngine:
                 "score": score,
                 "pooled_inventory": pool.get("pooled_inventory"),
                 "transport": pool.get("transport"),
+                "supplier_evaluation": pool.get("supplier_evaluation"),
                 "created_at": datetime.datetime.utcnow().isoformat() + "Z"
             }
             recommendations.append(rec)

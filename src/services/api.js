@@ -249,5 +249,155 @@ export async function recalculatePoolTransport(poolId, payload = {}) {
   }
 }
 
+// 9. Supplier Portal APIs
+export async function getSupplierDashboard(supplierId) {
+  try {
+    const res = await apiClient.get(`/api/suppliers/${supplierId}/dashboard`);
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] Serving Mock Supplier Dashboard');
+    return {
+      supplier_id: supplierId,
+      total_orders: 8,
+      pending_orders: 2,
+      accepted_orders: 4,
+      completed_orders: 2,
+      total_sales_value: 234850.0,
+      total_quantity_supplied: 380.0,
+      active_products: 5,
+      total_products: 5,
+      inventory_alerts_count: 1,
+      inventory_alerts: [
+        {
+          product_id: 'prod_001',
+          product_name: 'Sona Masoori Rice (25kg)',
+          type: 'LOW_STOCK',
+          severity: 'low',
+          message: 'LOW STOCK: Sona Masoori Rice has 850 units remaining.'
+        }
+      ],
+      recent_orders: []
+    };
+  }
+}
+
+export async function getSupplierAnalytics(supplierId) {
+  try {
+    const res = await apiClient.get(`/api/suppliers/${supplierId}/analytics`);
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] Serving Mock Supplier Analytics');
+    return {
+      supplier_id: supplierId,
+      total_orders: 12,
+      gross_sales: 245000.0,
+      discounts_given: 12500.0,
+      final_revenue: 232500.0,
+      total_quantity_supplied: 420.0,
+      product_wise_sales: [
+        { product_name: 'Sona Masoori Rice (25kg)', quantity: 240, revenue: 138000, orders_count: 6 },
+        { product_name: 'Royal Toor Dal Premium (10kg)', quantity: 180, revenue: 94500, orders_count: 6 }
+      ],
+      monthly_trends: [
+        {"month": "Apr 2026", "orders": 12, "revenue": 145000, "quantity": 180},
+        {"month": "May 2026", "orders": 16, "revenue": 178000, "quantity": 230},
+        {"month": "Jun 2026", "orders": 19, "revenue": 210000, "quantity": 310},
+        {"month": "Jul 2026", "orders": 24, "revenue": 232500, "quantity": 420}
+      ]
+    };
+  }
+}
+
+export async function getSupplierProducts(supplierId) {
+  try {
+    const res = await apiClient.get(`/api/suppliers/${supplierId}/products`);
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] Serving Mock Supplier Products');
+    return [
+      {
+        id: 'prod_001',
+        name: 'Sona Masoori Rice (25kg)',
+        category: 'Grains',
+        unit_of_measure: 'bag',
+        unit_weight_kg: 25.0,
+        retail_price: 1450.0,
+        wholesale_price: 1180.0,
+        min_wholesale_quantity: 40.0,
+        available_quantity: 850.0,
+        max_order_quantity: 1500.0,
+        supplier_id: supplierId,
+        lead_time_days: 2,
+        service_radius_km: 60.0,
+        discount_pct: 2.0,
+        is_available: true,
+        quantity_tiers: [
+          { min_quantity: 1.0, max_quantity: 39.0, price_per_unit: 1250.0 },
+          { min_quantity: 40.0, max_quantity: 99.0, price_per_unit: 1180.0 },
+          { min_quantity: 100.0, max_quantity: 299.0, price_per_unit: 1140.0 },
+          { min_quantity: 300.0, max_quantity: null, price_per_unit: 1090.0 }
+        ]
+      }
+    ];
+  }
+}
+
+export async function addSupplierProduct(supplierId, productData) {
+  try {
+    const res = await apiClient.post(`/api/suppliers/${supplierId}/products`, productData);
+    return res.data;
+  } catch (err) {
+    return { status: 'success', product: { ...productData, id: `prod_${Date.now()}`, supplier_id: supplierId } };
+  }
+}
+
+export async function updateSupplierProduct(supplierId, productId, updates) {
+  try {
+    const res = await apiClient.put(`/api/suppliers/${supplierId}/products/${productId}`, updates);
+    return res.data;
+  } catch (err) {
+    return { status: 'success', product: { id: productId, ...updates } };
+  }
+}
+
+export async function getSupplierOrders(supplierId, status = null) {
+  try {
+    const params = status && status !== 'ALL' ? { status } : {};
+    const res = await apiClient.get(`/api/suppliers/${supplierId}/orders`, { params });
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] Serving Mock Supplier Orders');
+    return [];
+  }
+}
+
+export async function getSupplierOrderDetail(supplierId, orderId) {
+  try {
+    const res = await apiClient.get(`/api/suppliers/${supplierId}/orders/${orderId}`);
+    return res.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function updateSupplierOrderStatus(supplierId, orderId, status, reason = null) {
+  try {
+    const res = await apiClient.post(`/api/suppliers/${supplierId}/orders/${orderId}/status`, { status, reason });
+    return res.data;
+  } catch (err) {
+    return { status: 'success', message: `Order updated to ${status} (Mock)` };
+  }
+}
+
+export async function validateOrderInventory(supplierId, orderId) {
+  try {
+    const res = await apiClient.post(`/api/suppliers/${supplierId}/orders/${orderId}/validate-inventory`);
+    return res.data;
+  } catch (err) {
+    return { is_sufficient: true, available_quantity: 500, requested_quantity: 40, shortage: 0 };
+  }
+}
+
 export default apiClient;
+
 

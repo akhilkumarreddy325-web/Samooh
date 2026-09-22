@@ -23,6 +23,7 @@ class GroupRecommendation(BaseModel):
     created_at: str = Field(..., description="Recommendation timestamp")
     pooled_inventory: Optional[Dict[str, Any]] = Field(default=None, description="Pooled inventory breakdown")
     transport: Optional[Dict[str, Any]] = Field(default=None, description="Transport planning and vehicle recommendation")
+    supplier_evaluation: Optional[Dict[str, Any]] = Field(default=None, description="Multi-supplier feasibility evaluation and selection explainability")
 
     class Config:
         json_schema_extra = {

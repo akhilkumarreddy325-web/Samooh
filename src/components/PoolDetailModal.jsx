@@ -95,6 +95,102 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
 
           {/* Pooled Inventory & Transport Recommendation Section */}
           <PooledInventorySection pool={pool} interactive={true} />
+
+          {/* Supplier Selection & Multi-Supplier Feasibility Explainability */}
+          {pool.supplier_evaluation && (
+            <div className={`p-4 rounded-2xl border space-y-3 ${
+              theme === 'light' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-500/5 border-amber-500/20'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>AI Supplier Selection & Feasibility Explainability</span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  {pool.supplier_evaluation.is_feasible ? '✓ Feasible Supplier Selected' : '⚠ Feasibility Warning'}
+                </span>
+              </div>
+
+              {/* Selected Supplier Highlight */}
+              <div className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
+                theme === 'light' ? 'bg-white border-amber-200' : 'bg-[#0B1020] border-amber-900/30'
+              }`}>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Optimal Wholesale Partner</div>
+                  <div className="text-sm font-black text-slate-900 dark:text-slate-100">
+                    {pool.supplier_evaluation.selected_supplier_name}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Wholesale Price</div>
+                  <div className="text-sm font-black text-amber-500">
+                    ₹{pool.supplier_evaluation.unit_price}/{pool.product_obj?.unit_of_measure || 'unit'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Explicit Selection Rationale List */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Why this supplier was chosen:
+                </span>
+                <div className="space-y-1 text-xs">
+                  {pool.supplier_evaluation.selection_reasons.map((reason, idx) => (
+                    <div key={idx} className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <span>{reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Evaluated Alternative Suppliers Table */}
+              {pool.supplier_evaluation.evaluated_suppliers && pool.supplier_evaluation.evaluated_suppliers.length > 1 && (
+                <div className="pt-2 border-t border-amber-500/10 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    All Evaluated Wholesale Suppliers:
+                  </span>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[11px]">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[9px] uppercase text-slate-400">
+                          <th className="pb-1">Supplier</th>
+                          <th className="pb-1 text-center">MOQ</th>
+                          <th className="pb-1 text-center">Stock</th>
+                          <th className="pb-1 text-center">Radius</th>
+                          <th className="pb-1 text-right">Price</th>
+                          <th className="pb-1 text-center">Status</th>
+                          <th className="pb-1">Evaluation Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {pool.supplier_evaluation.evaluated_suppliers.map((cand, idx) => (
+                          <tr key={idx} className="py-1">
+                            <td className="py-1.5 font-bold text-slate-700 dark:text-slate-300">{cand.supplier_name}</td>
+                            <td className="py-1.5 text-center">{cand.moq}</td>
+                            <td className="py-1.5 text-center">{cand.available_stock}</td>
+                            <td className="py-1.5 text-center">{cand.service_radius_km} km</td>
+                            <td className="py-1.5 text-right font-bold text-amber-500">₹{cand.unit_price}</td>
+                            <td className="py-1.5 text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                                cand.is_feasible ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'
+                              }`}>
+                                {cand.is_feasible ? 'FEASIBLE' : 'REJECTED'}
+                              </span>
+                            </td>
+                            <td className="py-1.5 text-slate-400">
+                              {cand.is_feasible 
+                                ? '✓ Meets all constraints' 
+                                : cand.rejection_reasons?.join(', ')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Modal Actions */}

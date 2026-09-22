@@ -34,6 +34,19 @@ const translations = {
     retailAdmin: 'Sri Lakshmi Kirana',
     hyderabadHub: 'Hyderabad South-West Cluster',
 
+    // Supplier Portal Navigation & Common
+    supplierPortal: 'Supplier Wholesale Core',
+    supplierDashboard: 'Supplier Dashboard',
+    supplierOrders: 'Procurement Orders',
+    supplierProducts: 'Products & Inventory',
+    supplierPricing: 'Pricing & MOQ',
+    supplierAnalytics: 'Supplier Analytics',
+    supplierProfile: 'Supplier Profile',
+    supplierModeActive: 'Wholesale Supplier Mode Active',
+    switchToSupplier: '🏢 Switch to Supplier Portal',
+    switchToRetailer: '🏪 Switch to Kirana Portal',
+    currentSupplierLabel: 'Active Supplier Partner',
+
     // Dashboard Page
     groupProcurementDashboard: 'Group Procurement Dashboard',
     demoStoreActive: 'Demo Store Active',
@@ -197,6 +210,19 @@ const translations = {
     demoMode: 'डेमो मोड',
     retailAdmin: 'श्री लक्ष्मी किराना',
     hyderabadHub: 'हैदराबाद साउथ-वेस्ट क्लस्टर',
+
+    // Supplier Portal Navigation & Common
+    supplierPortal: 'आपूर्तिकर्ता थोक केंद्र',
+    supplierDashboard: 'आपूर्तिकर्ता डैशबोर्ड',
+    supplierOrders: 'थोक खरीद ऑर्डर्स',
+    supplierProducts: 'उत्पाद और इन्वेंटरी',
+    supplierPricing: 'मूल्य निर्धारण और एमओक्यू',
+    supplierAnalytics: 'आपूर्तिकर्ता एनालिटिक्स',
+    supplierProfile: 'आपूर्तिकर्ता प्रोफ़ाइल',
+    supplierModeActive: 'आपूर्तिकर्ता मोड सक्रिय',
+    switchToSupplier: '🏢 आपूर्तिकर्ता पोर्टल पर जाएं',
+    switchToRetailer: '🏪 किराना पोर्टल पर जाएं',
+    currentSupplierLabel: 'सक्रिय थोक आपूर्तिकर्ता',
 
     // Dashboard Page
     groupProcurementDashboard: 'सामूहिक खरीद डैशबोर्ड',
@@ -387,6 +413,79 @@ export const DEMO_USERS = {
     rating: 4.7,
     avatar: null,
     isGoogle: false
+  }
+};
+
+export const DEMO_SUPPLIERS = {
+  deccan: {
+    id: 'sup_01',
+    name: 'Deccan Wholesale Grains & Pulses',
+    contactPerson: 'Rajesh Agarwal',
+    email: 'deccan@samooh.in',
+    phone: '+91 98480 12345',
+    address: 'Plot 45, Phase 2, Kukatpally Industrial Area, Hyderabad (500072)',
+    location: 'Kukatpally Industrial Area',
+    categories: ['Grains'],
+    serviceRadiusKm: 60.0,
+    leadTimeDays: 2,
+    rating: 4.8,
+    status: 'ACTIVE'
+  },
+  telangana_oil: {
+    id: 'sup_02',
+    name: 'Telangana Oil Mills & Refineries',
+    contactPerson: 'K. Sudhakar Rao',
+    email: 'telanganaoil@samooh.in',
+    phone: '+91 98490 23456',
+    address: 'Shed 12, Kattedan Industrial Estate, Hyderabad (500077)',
+    location: 'Kattedan Industrial Estate',
+    categories: ['Oils'],
+    serviceRadiusKm: 50.0,
+    leadTimeDays: 1,
+    rating: 4.7,
+    status: 'ACTIVE'
+  },
+  spices: {
+    id: 'sup_03',
+    name: 'South India Spice & Agri Hub',
+    contactPerson: 'M. Venkatesh',
+    email: 'spices@samooh.in',
+    phone: '+91 98491 34567',
+    address: 'Gate 3, Malakpet Wholesale Market, Hyderabad (500036)',
+    location: 'Malakpet Wholesale Market',
+    categories: ['Spices'],
+    serviceRadiusKm: 45.0,
+    leadTimeDays: 3,
+    rating: 4.6,
+    status: 'ACTIVE'
+  },
+  fmcg: {
+    id: 'sup_04',
+    name: 'FMCG Direct Distribution Ltd',
+    contactPerson: 'Anand Sharma',
+    email: 'fmcg@samooh.in',
+    phone: '+91 98492 45678',
+    address: 'Sector 4, Cherlapally Industrial Park, Hyderabad (500051)',
+    location: 'Cherlapally Industrial Park',
+    categories: ['Beverages', 'Personal Care'],
+    serviceRadiusKm: 70.0,
+    leadTimeDays: 1,
+    rating: 4.9,
+    status: 'ACTIVE'
+  },
+  southern_agro: {
+    id: 'sup_05',
+    name: 'Southern Agro Mills & Wholesale',
+    contactPerson: 'P. Nageswara Rao',
+    email: 'southernagro@samooh.in',
+    phone: '+91 98493 56789',
+    address: 'Medchal Wholesale Agro Complex, Hyderabad (501401)',
+    location: 'Medchal Agro Complex',
+    categories: ['Grains', 'Oils'],
+    serviceRadiusKm: 25.0,
+    leadTimeDays: 2,
+    rating: 4.5,
+    status: 'ACTIVE'
   }
 };
 
@@ -617,6 +716,96 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ==========================================
+  // Supplier Portal State & Role Management
+  // ==========================================
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('samooh_role') || 'retailer');
+
+  const [currentSupplier, setCurrentSupplier] = useState(() => {
+    const saved = localStorage.getItem('samooh_supplier');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEMO_SUPPLIERS.deccan;
+      }
+    }
+    return DEMO_SUPPLIERS.deccan;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('samooh_role', userRole);
+  }, [userRole]);
+
+  useEffect(() => {
+    if (currentSupplier) {
+      localStorage.setItem('samooh_supplier', JSON.stringify(currentSupplier));
+    }
+  }, [currentSupplier]);
+
+  const switchRole = (newRole) => {
+    const role = (newRole === 'supplier') ? 'supplier' : 'retailer';
+    setUserRole(role);
+    localStorage.setItem('samooh_role', role);
+  };
+
+  const switchSupplier = (supKey) => {
+    if (DEMO_SUPPLIERS[supKey]) {
+      setCurrentSupplier(DEMO_SUPPLIERS[supKey]);
+      setUserRole('supplier');
+      localStorage.setItem('samooh_role', 'supplier');
+    }
+  };
+
+  const loginSupplier = (email, password) => {
+    const found = Object.values(DEMO_SUPPLIERS).find(
+      s => s.email.toLowerCase() === email.toLowerCase()
+    );
+    if (found) {
+      setCurrentSupplier(found);
+      setUserRole('supplier');
+      return { success: true, supplier: found };
+    }
+    // Dynamic supplier session
+    const dynSupplier = {
+      id: `sup_${Date.now()}`,
+      name: email.split('@')[0].toUpperCase() + ' Wholesale Hub',
+      contactPerson: email.split('@')[0],
+      email: email,
+      phone: '+91 98480 99999',
+      address: 'Hyderabad Wholesale Agro Terminal',
+      location: 'Hyderabad',
+      categories: ['Grains', 'Oils'],
+      serviceRadiusKm: 50.0,
+      leadTimeDays: 2,
+      rating: 4.8,
+      status: 'ACTIVE'
+    };
+    setCurrentSupplier(dynSupplier);
+    setUserRole('supplier');
+    return { success: true, supplier: dynSupplier };
+  };
+
+  const registerSupplier = (supData) => {
+    const newSup = {
+      id: `sup_${Date.now()}`,
+      name: supData.name,
+      contactPerson: supData.contactPerson || supData.name,
+      email: supData.email,
+      phone: supData.phone || '+91 98480 00000',
+      address: supData.address || 'Hyderabad',
+      location: supData.location || 'Hyderabad',
+      categories: supData.categories || ['Grains'],
+      serviceRadiusKm: parseFloat(supData.serviceRadiusKm || 50),
+      leadTimeDays: parseInt(supData.leadTimeDays || 2),
+      rating: 4.8,
+      status: 'ACTIVE'
+    };
+    setCurrentSupplier(newSup);
+    setUserRole('supplier');
+    return { success: true, supplier: newSup };
+  };
+
   return (
     <AppContext.Provider value={{ 
       theme, 
@@ -635,7 +824,17 @@ export function AppProvider({ children }) {
       loginWithGoogle,
       login,
       logout,
-      switchUser
+      switchUser,
+      // Supplier Portal exports
+      userRole,
+      setUserRole,
+      switchRole,
+      currentSupplier,
+      setCurrentSupplier,
+      switchSupplier,
+      loginSupplier,
+      registerSupplier,
+      demoSuppliers: DEMO_SUPPLIERS
     }}>
       {children}
     </AppContext.Provider>
