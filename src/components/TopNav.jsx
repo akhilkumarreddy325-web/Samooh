@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu } from 'lucide-react';
+import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu, Truck } from 'lucide-react';
 import { checkHealth, triggerDemoScenario } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export default function TopNav({ onToggleMobileMenu }) {
-  const { theme, toggleTheme, lang, toggleLanguage, t, user, logout } = useApp();
+  const { theme, toggleTheme, lang, toggleLanguage, t, user, logout, userRole, currentSupplier } = useApp();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isOnline, setIsOnline] = useState(true);
@@ -109,16 +109,18 @@ export default function TopNav({ onToggleMobileMenu }) {
           {theme === 'light' ? <Sun className="w-4 h-4 text-amber-500 fill-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400 fill-indigo-400/20" />}
         </button>
 
-        {/* 1-Click Launch Hackathon Demo Button (Desktop/Tablet) */}
-        <button
-          onClick={handleLaunchDemo}
-          disabled={isLaunchingDemo}
-          className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition items-center space-x-1.5 active:scale-95"
-          title="Launch Parle-G 800g 100% Deterministic Hackathon Demo Scenario"
-        >
-          <Rocket className={`w-3.5 h-3.5 ${isLaunchingDemo ? 'animate-bounce' : ''}`} />
-          <span>{isLaunchingDemo ? t('loadingDemo') : t('launchDemo')}</span>
-        </button>
+        {/* 1-Click Launch Hackathon Demo Button (Hidden in Supplier Portal) */}
+        {userRole !== 'supplier' && (
+          <button
+            onClick={handleLaunchDemo}
+            disabled={isLaunchingDemo}
+            className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-md hover:shadow-lg hover:opacity-95 transition items-center space-x-1.5 active:scale-95"
+            title="Launch Parle-G 800g 100% Deterministic Hackathon Demo Scenario"
+          >
+            <Rocket className={`w-3.5 h-3.5 ${isLaunchingDemo ? 'animate-bounce' : ''}`} />
+            <span>{isLaunchingDemo ? t('loadingDemo') : t('launchDemo')}</span>
+          </button>
+        )}
 
         {/* Live / Mock Mode Indicator */}
         <div 
@@ -151,9 +153,13 @@ export default function TopNav({ onToggleMobileMenu }) {
           <button
             onClick={() => setShowProfileModal(!showProfileModal)}
             className="flex items-center space-x-2.5 hover:opacity-90 transition cursor-pointer text-left focus:outline-none"
-            title="View Store Profile & Account Options"
+            title={userRole === 'supplier' ? "View Supplier Profile & Facility Details" : "View Store Profile & Account Options"}
           >
-            {user?.avatar ? (
+            {userRole === 'supplier' ? (
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
+                <Truck className="w-4 h-4" />
+              </div>
+            ) : user?.avatar ? (
               <img src={user.avatar} alt="User Avatar" className="w-8 h-8 rounded-xl border border-blue-500 shadow-sm" />
             ) : (
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
@@ -162,10 +168,10 @@ export default function TopNav({ onToggleMobileMenu }) {
             )}
             <div className="hidden lg:block">
               <h4 className={`text-xs font-bold leading-tight ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
-                {user?.storeName || t('retailAdmin')}
+                {userRole === 'supplier' ? (currentSupplier?.name || 'Wholesale Supplier') : (user?.storeName || t('retailAdmin'))}
               </h4>
               <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                {user?.ownerName || 'Kirana Partner'}
+                {userRole === 'supplier' ? (currentSupplier?.contact_person || 'Verified Supplier Partner') : (user?.ownerName || 'Kirana Partner')}
               </span>
             </div>
           </button>
@@ -179,7 +185,11 @@ export default function TopNav({ onToggleMobileMenu }) {
             }`}>
               {/* Profile Card Header */}
               <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                {user?.avatar ? (
+                {userRole === 'supplier' ? (
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center font-black text-white text-lg shadow-md">
+                    <Truck className="w-6 h-6" />
+                  </div>
+                ) : user?.avatar ? (
                   <img src={user.avatar} alt="Avatar" className="w-12 h-12 rounded-2xl border border-blue-500 shadow-md" />
                 ) : (
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-md">
@@ -188,11 +198,11 @@ export default function TopNav({ onToggleMobileMenu }) {
                 )}
                 <div className="min-w-0 flex-1">
                   <h4 className={`text-sm font-bold truncate ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
-                    {user?.storeName}
+                    {userRole === 'supplier' ? currentSupplier?.name : user?.storeName}
                   </h4>
                   <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} flex items-center`}>
                     <User className="w-3 h-3 mr-1 text-blue-500" />
-                    {user?.ownerName}
+                    {userRole === 'supplier' ? currentSupplier?.contact_person : user?.ownerName}
                   </p>
                 </div>
               </div>
@@ -202,45 +212,58 @@ export default function TopNav({ onToggleMobileMenu }) {
                 <div className="flex items-start space-x-2">
                   <Mail className="w-3.5 h-3.5 text-purple-500 flex-shrink-0 mt-0.5" />
                   <span className={`truncate ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>
-                    {user?.email}
+                    {userRole === 'supplier' ? currentSupplier?.email : user?.email}
                   </span>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <Building className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
                   <span className={`font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-slate-200'}`}>
-                    {user?.clusterHub}
+                    {userRole === 'supplier' ? `Rating: ${currentSupplier?.rating || 4.9} ★ (${currentSupplier?.status || 'ACTIVE'})` : user?.clusterHub}
                   </span>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                   <span className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {user?.address}
+                    {userRole === 'supplier' ? currentSupplier?.address : user?.address}
                   </span>
                 </div>
 
-                {/* Savings Metric Pills */}
-                <div className="pt-2 grid grid-cols-2 gap-2 text-center">
-                  <div className="p-2 rounded-xl border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
-                    <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>Monthly Budget</span>
-                    <span className="font-bold text-blue-600 dark:text-accentBlue text-xs">{user?.monthlyBudget || '₹2,50,000'}</span>
+                {/* Metrics Pills */}
+                {userRole === 'supplier' ? (
+                  <div className="pt-2 grid grid-cols-2 gap-2 text-center">
+                    <div className="p-2 rounded-xl border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>Service Radius</span>
+                      <span className="font-bold text-amber-500 text-xs">{currentSupplier?.service_radius_km || 50} km</span>
+                    </div>
+                    <div className="p-2 rounded-xl border bg-emerald-500/10 border-emerald-500/20">
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Lead Time</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{currentSupplier?.lead_time_days || 1} Day(s)</span>
+                    </div>
                   </div>
-                  <div className="p-2 rounded-xl border bg-emerald-500/10 border-emerald-500/20">
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Total Saved</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{user?.totalSaved || '₹42,850'}</span>
+                ) : (
+                  <div className="pt-2 grid grid-cols-2 gap-2 text-center">
+                    <div className="p-2 rounded-xl border bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+                      <span className={`text-[10px] block ${theme === 'light' ? 'text-slate-400' : 'text-slate-500'}`}>Monthly Budget</span>
+                      <span className="font-bold text-blue-600 dark:text-accentBlue text-xs">{user?.monthlyBudget || '₹2,50,000'}</span>
+                    </div>
+                    <div className="p-2 rounded-xl border bg-emerald-500/10 border-emerald-500/20">
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Total Saved</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">{user?.totalSaved || '₹42,850'}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Action Buttons: Log Out & Switch Persona */}
+              {/* Action Buttons: Log Out */}
               <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
                 <button
                   onClick={handleLogout}
                   className="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold transition flex items-center justify-center space-x-2 border border-rose-500/20 active:scale-95"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Log Out & Switch Account</span>
+                  <span>Log Out</span>
                 </button>
               </div>
             </div>

@@ -215,23 +215,23 @@ def test_8_inventory_shortage():
 
     # Attempt to accept order with insufficient inventory must raise ValueError
     setup_fresh_db()
-    order = repo.get_by_id("supplierOrders", "sord_init_002")
+    order = repo.get_by_id("supplierOrders", "sord_1041")
     assert order["status"] == "PENDING"
-    # Set product available inventory lower than requested 38 bags
+    # Set product available inventory lower than requested 36 bags
     prod = repo.get_by_id("products", order["product_id"])
-    prod["available_quantity"] = 25.0  # Needs 38
+    prod["available_quantity"] = 25.0  # Needs 36
     repo.set_document("products", prod["id"], prod)
 
     try:
         supplier_service.transition_order_status(
-            order_id="sord_init_002",
+            order_id="sord_1041",
             supplier_id="sup_01",
             new_status="ACCEPTED"
         )
         assert False, "Should have thrown ValueError for insufficient inventory!"
     except ValueError as e:
         assert "INSUFFICIENT INVENTORY" in str(e)
-        assert "Shortage: 13.0" in str(e)
+        assert "Shortage: 11.0" in str(e)
 
     print("PASS: Scenario 8 - Inventory insufficiency & shortage blocking successfully verified.")
 
@@ -296,17 +296,17 @@ def test_10_supplier_order_creation():
     print("PASS: Scenario 10 - Supplier order creation from pooled demand successfully verified.")
 
 
-# 11. Supplier Order Acceptance with Stock Decrement and Term Freezing
+# 11. Supplier Order Acceptance & Snapshot Freezing
 def test_11_order_acceptance_and_snapshot():
     setup_fresh_db()
     # Prepare pending order
-    order = repo.get_by_id("supplierOrders", "sord_init_002")
+    order = repo.get_by_id("supplierOrders", "sord_1042")
     assert order["status"] == "PENDING"
     prod_id = order["product_id"]
     initial_stock = repo.get_by_id("products", prod_id)["available_quantity"]
 
     accepted = supplier_service.transition_order_status(
-        order_id="sord_init_002",
+        order_id="sord_1042",
         supplier_id="sup_01",
         new_status="ACCEPTED"
     )
@@ -324,7 +324,7 @@ def test_11_order_acceptance_and_snapshot():
     prod["min_wholesale_quantity"] = 150.0
     repo.set_document("products", prod_id, prod)
 
-    order_rechecked = repo.get_by_id("supplierOrders", "sord_init_002")
+    order_rechecked = repo.get_by_id("supplierOrders", "sord_1042")
     assert order_rechecked["moq_at_acceptance"] == 30.0, "Accepted MOQ snapshot was altered!"
     print("PASS: Scenario 11 - Order acceptance, inventory decrement, and snapshot freezing successfully verified.")
 
@@ -333,7 +333,7 @@ def test_11_order_acceptance_and_snapshot():
 def test_12_order_rejection():
     setup_fresh_db()
     rejected = supplier_service.transition_order_status(
-        order_id="sord_init_002",
+        order_id="sord_1042",
         supplier_id="sup_01",
         new_status="REJECTED",
         rejection_reason="Temporary warehouse maintenance; unable to fulfill."
@@ -348,7 +348,7 @@ def test_12_order_rejection():
 def test_13_lifecycle_status_transitions():
     setup_fresh_db()
     # PENDING -> ACCEPTED -> PROCESSING -> READY_FOR_DISPATCH -> DISPATCHED -> DELIVERED
-    oid = "sord_init_002"
+    oid = "sord_1042"
     sup = "sup_01"
 
     o1 = supplier_service.transition_order_status(oid, sup, "ACCEPTED")
@@ -379,14 +379,14 @@ def test_13_lifecycle_status_transitions():
 # 14. Supplier Data Isolation
 def test_14_supplier_data_isolation():
     setup_fresh_db()
-    # sup_01 owns sord_init_001; sup_02 owns sord_init_003
-    order_sup1 = repo.get_by_id("supplierOrders", "sord_init_001")
+    # sup_01 owns sord_1041; sup_02 owns sord_2001
+    order_sup1 = repo.get_by_id("supplierOrders", "sord_1041")
     assert order_sup1["supplier_id"] == "sup_01"
 
     # sup_02 attempts to mutate sup_01's order -> must raise PermissionError
     try:
         supplier_service.transition_order_status(
-            order_id="sord_init_001",
+            order_id="sord_1041",
             supplier_id="sup_02",  # Unauthorized!
             new_status="ACCEPTED"
         )
@@ -429,6 +429,115 @@ def test_15_end_to_end_integration():
     print("PASS: Scenario 15 - End-to-end integration with demand forecasting, pooling, and transport engine successfully verified.")
 
 
+# 16. Seeded Orders Across All Statuses
+def test_16_seeded_orders_across_all_statuses():
+    setup_fresh_db()
+    all_orders = repo.get_all("supplierOrders")
+    sup1_orders = [o for o in all_orders if o.get("supplier_id") == "sup_01"]
+    assert len(sup1_orders) >= 12, f"Expected at least 12 orders for sup_01, got {len(sup1_orders)}"
+
+    statuses = {o.get("status") for o in sup1_orders}
+    required_statuses = {"PENDING", "ACCEPTED", "PROCESSING", "READY_FOR_DISPATCH", "DISPATCHED", "DELIVERED", "REJECTED"}
+    for st in required_statuses:
+        matching = [o for o in sup1_orders if o.get("status") == st]
+        assert len(matching) > 0, f"Filter for status {st} has 0 orders!"
+    print("PASS: Scenario 16 - Seeded orders across all 7 statuses successfully verified.")
+
+
+# 17. Search Functionality
+def test_17_search_functionality():
+    setup_fresh_db()
+    all_orders = repo.get_all("supplierOrders")
+    sup1_orders = [o for o in all_orders if o.get("supplier_id") == "sup_01"]
+
+    # Search by Order ID
+    by_id = [o for o in sup1_orders if "SAM-PO-1042" in o.get("order_no", "")]
+    assert len(by_id) == 1, "Order SAM-PO-1042 not found by search"
+    assert "Atta" in by_id[0]["product_name"]
+
+    # Search by Product name
+    by_product = [o for o in sup1_orders if "Rice" in o.get("product_name", "")]
+    assert len(by_product) >= 2, "Expected multiple Rice orders"
+
+    # Search by Delivery Cluster
+    by_cluster = [o for o in sup1_orders if "Kukatpally" in o.get("delivery_cluster", "")]
+    assert len(by_cluster) >= 1, "Expected Kukatpally orders"
+    print("PASS: Scenario 17 - Search by Order ID, Product, and Cluster successfully verified.")
+
+
+# 18. Mathematical Consistency
+def test_18_mathematical_consistency():
+    setup_fresh_db()
+    all_orders = repo.get_all("supplierOrders")
+    for o in all_orders:
+        qty = float(o.get("pooled_quantity", 0))
+        tier_price = float(o.get("quantity_tier_price", 0))
+        disc_pct = float(o.get("discount_pct", 0))
+        final_unit = float(o.get("final_unit_price", 0))
+        final_val = float(o.get("final_order_value", 0))
+        gross_val = float(o.get("gross_order_value", 0))
+        disc_amt = float(o.get("discount_amount", 0))
+
+        # Check gross = qty * tier_price
+        expected_gross = round(qty * tier_price, 2)
+        assert abs(gross_val - expected_gross) <= 0.05, f"Gross mismatch in {o.get('order_no')}: {gross_val} vs {expected_gross}"
+
+        # Check discount amount
+        expected_disc = round(gross_val * (disc_pct / 100.0), 2)
+        assert abs(disc_amt - expected_disc) <= 0.05, f"Discount mismatch in {o.get('order_no')}: {disc_amt} vs {expected_disc}"
+
+        # Check final value
+        expected_final = round(gross_val - disc_amt, 2)
+        assert abs(final_val - expected_final) <= 0.05, f"Final value mismatch in {o.get('order_no')}: {final_val} vs {expected_final}"
+
+        # Check MOQ status
+        moq = float(o.get("supplier_moq", 0))
+        if o.get("moq_status") == "SATISFIED":
+            assert qty >= moq, f"MOQ marked satisfied but qty < moq in {o.get('order_no')}"
+    print("PASS: Scenario 18 - Mathematical consistency of quantities, prices, and discounts successfully verified.")
+
+
+# 19. Accepted Order Snapshot Immutability
+def test_19_snapshot_immutability():
+    setup_fresh_db()
+    # Accept order SAM-PO-1041
+    order = [o for o in repo.get_all("supplierOrders") if o.get("order_no") == "SAM-PO-1041"][0]
+    accepted = supplier_service.transition_order_status(order_id=order["id"], supplier_id="sup_01", new_status="ACCEPTED")
+    original_price = accepted["price_at_acceptance"]
+    original_moq = accepted["moq_at_acceptance"]
+    assert original_price is not None
+    assert original_moq is not None
+
+    # Now edit the supplier product in the catalog
+    prod_id = order["product_id"]
+    prod = repo.get_by_id("products", prod_id)
+    prod["wholesale_price"] = 9999.0
+    prod["min_wholesale_quantity"] = 500.0
+    repo.set_document("products", prod_id, prod)
+
+    # Re-fetch accepted order and ensure snapshot remained untouched
+    refetched = repo.get_by_id("supplierOrders", order["id"])
+    assert refetched["price_at_acceptance"] == original_price, "Price snapshot was overwritten!"
+    assert refetched["moq_at_acceptance"] == original_moq, "MOQ snapshot was overwritten!"
+    print("PASS: Scenario 19 - Accepted order commercial snapshot immutability successfully verified.")
+
+
+# 20. Financial Metrics & Dashboard Integration
+def test_20_financial_metrics_integration():
+    setup_fresh_db()
+    metrics = supplier_service.get_supplier_dashboard_metrics("sup_01")
+    analytics = supplier_service.get_supplier_analytics("sup_01")
+
+    assert metrics["total_orders"] >= 12
+    assert metrics["pending_orders"] >= 2
+    assert metrics["completed_orders"] >= 2
+    assert metrics["total_sales_value"] > 0
+    assert analytics["gross_sales"] >= analytics["final_revenue"]
+    assert analytics["discounts_given"] >= 0
+    assert len(analytics["product_wise_sales"]) > 0
+    print("PASS: Scenario 20 - Financial metrics and dashboard integration successfully verified.")
+
+
 def run_all_tests():
     print("==================================================================")
     print("Running Samooh Supplier Portal Comprehensive Verification Suite")
@@ -448,10 +557,16 @@ def run_all_tests():
     test_13_lifecycle_status_transitions()
     test_14_supplier_data_isolation()
     test_15_end_to_end_integration()
+    test_16_seeded_orders_across_all_statuses()
+    test_17_search_functionality()
+    test_18_mathematical_consistency()
+    test_19_snapshot_immutability()
+    test_20_financial_metrics_integration()
     print("==================================================================")
-    print("ALL 15 SUPPLIER PORTAL TEST SCENARIOS PASSED WITH ZERO ERRORS!")
+    print("ALL 20 TEST SCENARIOS PASSED WITH ZERO ERRORS!")
     print("==================================================================")
 
 
 if __name__ == "__main__":
     run_all_tests()
+

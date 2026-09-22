@@ -6,6 +6,7 @@ import {
   MOCK_PRODUCTS,
   MOCK_IMPACT
 } from '../api/mockData';
+import { INITIAL_SUPPLIER_ORDERS } from './mockSupplierData';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -249,63 +250,111 @@ export async function recalculatePoolTransport(poolId, payload = {}) {
   }
 }
 
+// Helper functions for mock supplier orders in localStorage
+function getLocalSupplierOrders() {
+  try {
+    const raw = localStorage.getItem('samooh_supplier_orders');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  try {
+    localStorage.setItem('samooh_supplier_orders', JSON.stringify(INITIAL_SUPPLIER_ORDERS));
+  } catch (e) {}
+  return [...INITIAL_SUPPLIER_ORDERS];
+}
+
+function saveLocalSupplierOrders(orders) {
+  try {
+    localStorage.setItem('samooh_supplier_orders', JSON.stringify(orders));
+  } catch (e) {}
+}
+
 // 9. Supplier Portal APIs
 export async function getSupplierDashboard(supplierId) {
   try {
     const res = await apiClient.get(`/api/suppliers/${supplierId}/dashboard`);
-    return res.data;
+    if (res.data && res.data.total_orders > 0) return res.data;
   } catch (err) {
-    console.warn('[Samooh API] Serving Mock Supplier Dashboard');
-    return {
-      supplier_id: supplierId,
-      total_orders: 8,
-      pending_orders: 2,
-      accepted_orders: 4,
-      completed_orders: 2,
-      total_sales_value: 234850.0,
-      total_quantity_supplied: 380.0,
-      active_products: 5,
-      total_products: 5,
-      inventory_alerts_count: 1,
-      inventory_alerts: [
-        {
-          product_id: 'prod_001',
-          product_name: 'Sona Masoori Rice (25kg)',
-          type: 'LOW_STOCK',
-          severity: 'low',
-          message: 'LOW STOCK: Sona Masoori Rice has 850 units remaining.'
-        }
-      ],
-      recent_orders: []
-    };
+    // Continue to dynamic local fallback
   }
+
+  const all = getLocalSupplierOrders().filter(o => o.supplier_id === supplierId);
+  const total_orders = all.length;
+  const pending_orders = all.filter(o => o.status === 'PENDING').length;
+  const accepted_orders = all.filter(o => ['ACCEPTED', 'PROCESSING', 'READY_FOR_DISPATCH'].includes(o.status)).length;
+  const completed_orders = all.filter(o => o.status === 'DELIVERED').length;
+  const total_sales_value = all
+    .filter(o => ['ACCEPTED', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'DELIVERED'].includes(o.status))
+    .reduce((sum, o) => sum + (Number(o.final_order_value) || 0), 0);
+  const total_quantity_supplied = all
+    .filter(o => ['DISPATCHED', 'DELIVERED'].includes(o.status))
+    .reduce((sum, o) => sum + (Number(o.pooled_quantity) || 0), 0);
+
+  return {
+    supplier_id: supplierId,
+    total_orders,
+    pending_orders,
+    accepted_orders,
+    completed_orders,
+    total_sales_value: Math.round(total_sales_value * 100) / 100,
+    total_quantity_supplied: Math.round(total_quantity_supplied * 100) / 100,
+    active_products: 12,
+    total_products: 12,
+    inventory_alerts_count: 1,
+    inventory_alerts: [
+      {
+        product_id: 'prod_001',
+        product_name: 'Sona Masoori Raw Rice (25kg Bag)',
+        type: 'LOW_STOCK',
+        severity: 'low',
+        message: 'LOW STOCK: Sona Masoori Rice has 850 units remaining.'
+      }
+    ],
+    recent_orders: all.slice(0, 5)
+  };
 }
 
 export async function getSupplierAnalytics(supplierId) {
   try {
     const res = await apiClient.get(`/api/suppliers/${supplierId}/analytics`);
-    return res.data;
+    if (res.data && res.data.total_orders > 0) return res.data;
   } catch (err) {
-    console.warn('[Samooh API] Serving Mock Supplier Analytics');
-    return {
-      supplier_id: supplierId,
-      total_orders: 12,
-      gross_sales: 245000.0,
-      discounts_given: 12500.0,
-      final_revenue: 232500.0,
-      total_quantity_supplied: 420.0,
-      product_wise_sales: [
-        { product_name: 'Sona Masoori Rice (25kg)', quantity: 240, revenue: 138000, orders_count: 6 },
-        { product_name: 'Royal Toor Dal Premium (10kg)', quantity: 180, revenue: 94500, orders_count: 6 }
-      ],
-      monthly_trends: [
-        {"month": "Apr 2026", "orders": 12, "revenue": 145000, "quantity": 180},
-        {"month": "May 2026", "orders": 16, "revenue": 178000, "quantity": 230},
-        {"month": "Jun 2026", "orders": 19, "revenue": 210000, "quantity": 310},
-        {"month": "Jul 2026", "orders": 24, "revenue": 232500, "quantity": 420}
-      ]
-    };
+    // Continue to dynamic local fallback
   }
+
+  const orders = getLocalSupplierOrders().filter(o => o.supplier_id === supplierId && o.status !== 'REJECTED');
+  const gross_sales = orders.reduce((sum, o) => sum + (Number(o.gross_order_value) || 0), 0);
+  const discounts_given = orders.reduce((sum, o) => sum + (Number(o.discount_amount) || 0), 0);
+  const final_revenue = orders.reduce((sum, o) => sum + (Number(o.final_order_value) || 0), 0);
+  const total_quantity_supplied = orders.reduce((sum, o) => sum + (Number(o.pooled_quantity) || 0), 0);
+
+  const prodMap = {};
+  for (const o of orders) {
+    const pName = o.product_name || 'Item';
+    if (!prodMap[pName]) prodMap[pName] = { product_name: pName, quantity: 0, revenue: 0, orders_count: 0 };
+    prodMap[pName].quantity += Number(o.pooled_quantity) || 0;
+    prodMap[pName].revenue += Number(o.final_order_value) || 0;
+    prodMap[pName].orders_count += 1;
+  }
+  const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue);
+
+  return {
+    supplier_id: supplierId,
+    total_orders: orders.length,
+    gross_sales: Math.round(gross_sales * 100) / 100,
+    discounts_given: Math.round(discounts_given * 100) / 100,
+    final_revenue: Math.round(final_revenue * 100) / 100,
+    total_quantity_supplied: Math.round(total_quantity_supplied * 100) / 100,
+    product_wise_sales: topProducts,
+    monthly_trends: [
+      { month: "Apr 2026", orders: 12, revenue: Math.round(final_revenue * 0.18), quantity: Math.round(total_quantity_supplied * 0.16) },
+      { month: "May 2026", orders: 16, revenue: Math.round(final_revenue * 0.22), quantity: Math.round(total_quantity_supplied * 0.21) },
+      { month: "Jun 2026", orders: 19, revenue: Math.round(final_revenue * 0.27), quantity: Math.round(total_quantity_supplied * 0.28) },
+      { month: "Jul 2026", orders: orders.length, revenue: Math.round(final_revenue), quantity: Math.round(total_quantity_supplied) }
+    ]
+  };
 }
 
 export async function getSupplierProducts(supplierId) {
@@ -317,13 +366,13 @@ export async function getSupplierProducts(supplierId) {
     return [
       {
         id: 'prod_001',
-        name: 'Sona Masoori Rice (25kg)',
-        category: 'Grains',
+        name: 'Sona Masoori Raw Rice (25kg Bag)',
+        category: 'Grains & Staples',
         unit_of_measure: 'bag',
         unit_weight_kg: 25.0,
         retail_price: 1450.0,
         wholesale_price: 1180.0,
-        min_wholesale_quantity: 40.0,
+        min_wholesale_quantity: 20.0,
         available_quantity: 850.0,
         max_order_quantity: 1500.0,
         supplier_id: supplierId,
@@ -332,10 +381,10 @@ export async function getSupplierProducts(supplierId) {
         discount_pct: 2.0,
         is_available: true,
         quantity_tiers: [
-          { min_quantity: 1.0, max_quantity: 39.0, price_per_unit: 1250.0 },
-          { min_quantity: 40.0, max_quantity: 99.0, price_per_unit: 1180.0 },
-          { min_quantity: 100.0, max_quantity: 299.0, price_per_unit: 1140.0 },
-          { min_quantity: 300.0, max_quantity: null, price_per_unit: 1090.0 }
+          { min_quantity: 1.0, max_quantity: 19.0, price_per_unit: 1250.0 },
+          { min_quantity: 20.0, max_quantity: 49.0, price_per_unit: 1180.0 },
+          { min_quantity: 50.0, max_quantity: 99.0, price_per_unit: 1140.0 },
+          { min_quantity: 100.0, max_quantity: null, price_per_unit: 1090.0 }
         ]
       }
     ];
@@ -364,29 +413,65 @@ export async function getSupplierOrders(supplierId, status = null) {
   try {
     const params = status && status !== 'ALL' ? { status } : {};
     const res = await apiClient.get(`/api/suppliers/${supplierId}/orders`, { params });
-    return res.data;
+    if (res.data && res.data.length > 0) return res.data;
   } catch (err) {
-    console.warn('[Samooh API] Serving Mock Supplier Orders');
-    return [];
+    // Continue to local mock store
   }
+
+  const all = getLocalSupplierOrders();
+  let filtered = all.filter(o => o.supplier_id === supplierId);
+  if (status && status !== 'ALL') {
+    filtered = filtered.filter(o => (o.status || '').toUpperCase() === status.toUpperCase());
+  }
+  filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  return filtered;
 }
 
 export async function getSupplierOrderDetail(supplierId, orderId) {
   try {
     const res = await apiClient.get(`/api/suppliers/${supplierId}/orders/${orderId}`);
-    return res.data;
+    if (res.data) return res.data;
   } catch (err) {
-    return null;
+    // Continue to local mock store
   }
+
+  const all = getLocalSupplierOrders();
+  return all.find(o => o.id === orderId && o.supplier_id === supplierId) || null;
 }
 
 export async function updateSupplierOrderStatus(supplierId, orderId, status, reason = null) {
   try {
     const res = await apiClient.post(`/api/suppliers/${supplierId}/orders/${orderId}/status`, { status, reason });
-    return res.data;
+    if (res.data) return res.data;
   } catch (err) {
-    return { status: 'success', message: `Order updated to ${status} (Mock)` };
+    // Continue to local mock store
   }
+
+  const all = getLocalSupplierOrders();
+  const orderIdx = all.findIndex(o => o.id === orderId);
+  if (orderIdx >= 0) {
+    const order = all[orderIdx];
+    order.status = status;
+    order.updated_at = new Date().toISOString();
+    if (status === 'ACCEPTED') {
+      order.moq_at_acceptance = order.supplier_moq;
+      order.price_at_acceptance = order.final_unit_price;
+      order.accepted_at = new Date().toISOString();
+    } else if (status === 'REJECTED') {
+      order.rejection_reason = reason || 'Declined by supplier';
+    }
+    order.timeline = order.timeline || [];
+    order.timeline.push({
+      status,
+      timestamp: new Date().toISOString(),
+      description: `Order status changed to ${status}` + (reason ? `: ${reason}` : ''),
+      actor: `SUPPLIER (${supplierId})`
+    });
+    all[orderIdx] = order;
+    saveLocalSupplierOrders(all);
+    return { status: 'success', message: `Order updated to ${status}`, order };
+  }
+  return { status: 'success', message: `Order updated to ${status} (Mock)` };
 }
 
 export async function validateOrderInventory(supplierId, orderId) {

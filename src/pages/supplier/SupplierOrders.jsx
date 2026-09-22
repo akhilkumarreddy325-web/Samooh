@@ -45,11 +45,16 @@ export default function SupplierOrders() {
   ];
 
   const filteredOrders = orders.filter(o => {
-    const term = searchTerm.toLowerCase();
-    const matchesSearch = (o.order_no && o.order_no.toLowerCase().includes(term)) ||
-                          (o.product_name && o.product_name.toLowerCase().includes(term)) ||
-                          (o.delivery_cluster && o.delivery_cluster.toLowerCase().includes(term));
-    return matchesSearch;
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase().trim();
+    return (
+      (o.order_no && o.order_no.toLowerCase().includes(term)) ||
+      (o.id && o.id.toLowerCase().includes(term)) ||
+      (o.product_name && o.product_name.toLowerCase().includes(term)) ||
+      (o.category && o.category.toLowerCase().includes(term)) ||
+      (o.delivery_cluster && o.delivery_cluster.toLowerCase().includes(term)) ||
+      (o.status && o.status.toLowerCase().includes(term))
+    );
   });
 
   return (
