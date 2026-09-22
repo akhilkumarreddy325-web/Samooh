@@ -78,9 +78,8 @@ class FirestoreRuleSimulator:
         uid = auth_user["uid"]
         sup_token_id = auth_user.get("token", {}).get("supplier_id")
 
-        if action == "read":
-            return True
-        elif action in ("create", "update", "delete"):
+        # Tightened rule: Read is restricted to the owning supplier only to protect private credentials & password
+        if action in ("read", "create", "update", "delete"):
             return (supplier_id == uid) or bool(sup_token_id and supplier_id == sup_token_id)
         return False
 
@@ -148,7 +147,6 @@ def run_tests():
     assert sim.check_supplier_order_access(supplier_a, order_a, "update") is True, "Supplier A can update own order"
     print("PASS: Requirement 1D - Supplier A can update own order lifecycle.")
 
-    # 3. Test Product & Pricing/MOQ/Tier Edits (Requirement 2 & 4)
     retailer_user = {"uid": "ret_001", "token": {"retailer_id": "ret_001", "role": "retailer"}}
     product_a = {
         "product_id": "prod_rice_01",
@@ -157,6 +155,29 @@ def run_tests():
         "moq": 300,
         "pricing_tiers": [{"min_qty": 500, "price": 45.0}]
     }
+
+    # Supplier Profile Read Access (Tightened Rule for sensitive credentials & password)
+    # Supplier A reading own profile -> ALLOW
+    assert sim.check_supplier_profile_access(supplier_a, "sup_01", "read") is True, "Supplier A can read own profile"
+    print("PASS: Tightened Rule - Supplier A can access their own supplier profile document.")
+
+    # Supplier B reading Supplier A's profile -> DENY
+    assert sim.check_supplier_profile_access(supplier_b, "sup_01", "read") is False, "Supplier B blocked from Supplier A profile"
+    print("PASS: Tightened Rule - Competitor Supplier B blocked from reading Supplier A profile & password.")
+
+    # Retailer reading Supplier A's profile -> DENY (Private credentials protected)
+    assert sim.check_supplier_profile_access(retailer_user, "sup_01", "read") is False, "Retailer blocked from raw supplier profile"
+    print("PASS: Tightened Rule - Retailer blocked from raw supplier profile (credentials protected).")
+
+    # Unauthenticated user reading Supplier A's profile -> DENY
+    assert sim.check_supplier_profile_access(unauthenticated, "sup_01", "read") is False, "Unauthenticated user blocked"
+    print("PASS: Tightened Rule - Unauthenticated user blocked from supplier profile.")
+
+    # Public Catalog Preservation: Retailers can read products
+    assert sim.check_product_edit_access(retailer_user, product_a, "read") is True, "Retailer can read public catalog"
+    print("PASS: Legitimate public catalog discovery preserved via /products collection.")
+
+    # 3. Test Product & Pricing/MOQ/Tier Edits (Requirement 2 & 4)
 
     # Supplier A updating their own product price/MOQ -> ALLOW
     assert sim.check_product_edit_access(supplier_a, product_a, "update") is True, "Supplier A can edit own product"

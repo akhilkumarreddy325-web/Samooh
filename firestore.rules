@@ -22,10 +22,11 @@ service cloud.firestore {
     }
 
     // 1. Suppliers Collection:
-    // Public profile details can be read by authenticated users for procurement catalog discovery.
-    // Document creation, updates, and profile edits strictly restricted to the owning supplier.
+    // Full profile (containing sensitive credentials like passwords, internal contact info, and business data)
+    // is strictly restricted to the owning supplier.
+    // Public catalog functionality (product discovery, wholesale prices, MOQ) is preserved via /products.
     match /suppliers/{supplierId} {
-      allow read: if isAuthenticated();
+      allow read: if isSupplier(supplierId);
       allow create, update, delete: if isSupplier(supplierId);
     }
 
