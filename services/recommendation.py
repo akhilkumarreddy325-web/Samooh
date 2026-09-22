@@ -114,11 +114,15 @@ class RecommendationEngine:
                 "threshold_status": status,
                 "threshold_quantity": thresh_qty,
                 "current_pool_quantity": tot_dem,
+                "unit_retail_price": savings_info.get("unit_retail_price", float(prod_obj.get("retail_price", 1450.0))),
+                "unit_wholesale_price": savings_info.get("unit_wholesale_price", float(prod_obj.get("wholesale_price", 1180.0))),
                 "estimated_total_savings": sav_amt,
                 "estimated_savings_percentage": sav_pct,
                 "average_cluster_distance_km": dist_km,
                 "explanation": explanation,
                 "score": score,
+                "pooled_inventory": pool.get("pooled_inventory"),
+                "transport": pool.get("transport"),
                 "created_at": datetime.datetime.utcnow().isoformat() + "Z"
             }
             recommendations.append(rec)

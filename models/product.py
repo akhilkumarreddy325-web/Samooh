@@ -20,6 +20,7 @@ class Product(BaseModel):
     min_wholesale_quantity: float = Field(..., description="Minimum group aggregate quantity required for wholesale discount")
     supplier_id: str = Field(..., description="ID of the primary wholesale supplier")
     supplier_name: str = Field(..., description="Name of the primary wholesale supplier")
+    unit_weight_kg: Optional[float] = Field(default=None, description="Physical weight of a single unit in kilograms")
     image_url: Optional[str] = Field(default=None, description="Product display image URL")
 
     class Config:

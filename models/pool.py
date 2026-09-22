@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 from pydantic import BaseModel, Field
 
 
@@ -15,6 +15,8 @@ class ProcurementPool(BaseModel):
     progress_percentage: float = Field(..., description="Percentage completion towards threshold")
     average_distance_km: float = Field(..., description="Average spatial distance between participating retailers")
     created_at: str = Field(..., description="Pool creation timestamp")
+    pooled_inventory: Optional[Dict[str, Any]] = Field(default=None, description="Detailed pooled inventory calculation")
+    transport: Optional[Dict[str, Any]] = Field(default=None, description="Transport planning and vehicle recommendation")
 
     class Config:
         json_schema_extra = {

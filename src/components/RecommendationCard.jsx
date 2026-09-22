@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, MapPin, Check, X, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Store, MapPin, Check, X, ArrowUpRight, Sparkles, Truck, Scale } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useApp } from '../context/AppContext';
 
@@ -98,6 +98,26 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
           </div>
           <div className="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
             {estimated_savings_percentage}% OFF
+          </div>
+        </div>
+
+        {/* Transport Fleet Recommendation Pill */}
+        <div className={`mt-3 p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+          theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
+        }`}>
+          <div className="flex items-center space-x-2 truncate">
+            <Truck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+            <span className={`truncate font-semibold text-[11px] ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
+              {recommendation.transport?.recommended_vehicle || 'Tata Ace (SCV)'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-1.5 flex-shrink-0">
+            <span className="text-[11px] font-mono text-slate-500">
+              {recommendation.transport?.total_load_kg ? `${Math.round(recommendation.transport.total_load_kg)} kg` : `${Math.round(current_pool_quantity * 25)} kg`}
+            </span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-accentBlue">
+              {recommendation.transport?.capacity_utilization_pct || Math.round((current_pool_quantity * 25 / 1000) * 100)}% Load
+            </span>
           </div>
         </div>
 

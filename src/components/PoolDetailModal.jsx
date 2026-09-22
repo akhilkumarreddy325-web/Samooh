@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Store, MapPin, Package, Sparkles, CheckCircle2 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import PooledInventorySection from './PooledInventorySection';
 import { useApp } from '../context/AppContext';
 
 export default function PoolDetailModal({ pool, onClose, onAccept }) {
@@ -92,61 +93,8 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
             </div>
           </div>
 
-          {/* Threshold Progress */}
-          <div>
-            <div className={`flex justify-between items-center text-xs font-semibold mb-2 ${
-              theme === 'light' ? 'text-slate-700' : 'text-slate-300'
-            }`}>
-              <span className="flex items-center">
-                <Package className="w-3.5 h-3.5 mr-1 text-blue-500" />
-                {t('thresholdProgress')}
-              </span>
-              <span>{pool.current_pool_quantity} / {pool.threshold_quantity} Units</span>
-            </div>
-            <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 border ${
-              theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-slate-800 border-slate-700'
-            }`}>
-              <div 
-                className={`h-full rounded-full transition-all duration-500 ${
-                  pool.threshold_status === 'ACHIEVED' ? 'bg-emerald-500' : 'bg-blue-600'
-                }`}
-                style={{ width: `${Math.min(100, (pool.current_pool_quantity / pool.threshold_quantity) * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Retailers Itemized List */}
-          <div>
-            <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center ${
-              theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-            }`}>
-              <Store className="w-4 h-4 mr-1 text-blue-500" />
-              {t('participatingStores')} ({pool.retailer_names ? pool.retailer_names.length : 0})
-            </h4>
-            <div className="space-y-2">
-              {pool.retailer_names && pool.retailer_names.map((name, idx) => (
-                <div key={idx} className={`p-3 rounded-xl border flex items-center justify-between ${
-                  theme === 'light'
-                    ? 'bg-slate-50/90 border-slate-200'
-                    : 'bg-slate-900/40 border-slate-800/80'
-                }`}>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-600 dark:text-accentBlue flex items-center justify-center font-bold text-xs">
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <h5 className={`text-sm font-semibold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{name}</h5>
-                      <span className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Kirana Store • Hyderabad</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">~₹{Math.round(pool.estimated_total_savings / pool.retailer_names.length).toLocaleString()} saved</span>
-                    <span className={`block text-[10px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Allocated Demand: ~10 units</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Pooled Inventory & Transport Recommendation Section */}
+          <PooledInventorySection pool={pool} interactive={true} />
         </div>
 
         {/* Modal Actions */}

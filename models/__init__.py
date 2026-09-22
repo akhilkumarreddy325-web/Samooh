@@ -5,6 +5,7 @@ from .forecast import DemandForecast
 from .pool import ProcurementPool
 from .savings import SavingsBreakdown
 from .recommendation import GroupRecommendation
+from .transport import VehicleFleetOption, PooledInventorySummary, TransportRecommendation
 
 __all__ = [
     "Retailer",
@@ -16,4 +17,7 @@ __all__ = [
     "ProcurementPool",
     "SavingsBreakdown",
     "GroupRecommendation",
+    "VehicleFleetOption",
+    "PooledInventorySummary",
+    "TransportRecommendation",
 ]

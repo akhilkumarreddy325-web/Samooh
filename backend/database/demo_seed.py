@@ -34,6 +34,7 @@ def seed_deterministic_demo() -> Dict[str, Any]:
         "name": "Parle-G Biscuit 800g Family Pack",
         "category": "Beverages & Snacks",
         "unit_of_measure": "carton",
+        "unit_weight_kg": 9.6,  # 12 packs x 800g = 9.6 kg per carton
         "retail_price": 120.0,
         "wholesale_price": 95.0,
         "min_wholesale_quantity": 100.0,
@@ -148,6 +149,20 @@ def seed_deterministic_demo() -> Dict[str, Any]:
     total_demand = 112.0
     threshold = 100.0
     progress_pct = round((total_demand / threshold) * 100, 1) # 112.0%
+    total_load_kg = round(total_demand * 9.6, 2) # 1,075.2 kg
+
+    # Compute transport recommendation for demo
+    from services.transport import transport_engine
+    pooled_inv = transport_engine.calculate_pooled_inventory(
+        retailer_demands=demands_map,
+        product=product_data[0],
+        moq_threshold=threshold
+    )
+    transport_rec = transport_engine.recommend_transport(
+        pooled_inventory=pooled_inv,
+        delivery_distance_km=1.85,
+        delivery_stops_count=5
+    )
 
     pool_data = [{
         "id": "pool_demo_parle_g",
@@ -161,12 +176,13 @@ def seed_deterministic_demo() -> Dict[str, Any]:
         "is_threshold_met": True,
         "progress_percentage": progress_pct,
         "average_distance_km": 1.85,
+        "pooled_inventory": pooled_inv,
+        "transport": transport_rec,
         "created_at": datetime.datetime.utcnow().isoformat() + "Z"
     }]
     repo.save_bulk("procurementPools", pool_data)
 
     # 7. Seed Recommendation
-    # Savings: Individual = 112 * 120 = 13,440. Pooled = 112 * 95 = 10,640. Savings = 2,800 (20.83%)
     rec_data = [{
         "id": "rec_demo_parle_g",
         "product_id": "prod_parle_g",
@@ -178,11 +194,15 @@ def seed_deterministic_demo() -> Dict[str, Any]:
         "threshold_status": "ACHIEVED",
         "threshold_quantity": 100.0,
         "current_pool_quantity": 112.0,
+        "unit_retail_price": 120.0,
+        "unit_wholesale_price": 95.0,
         "estimated_total_savings": 2800.0,
         "estimated_savings_percentage": 20.83,
         "average_cluster_distance_km": 1.85,
         "explanation": "A cluster of 5 nearby Kirana stores (within 1.85 km radius) has a combined 30-day forecast demand of 112 cartons of Parle-G 800g. This exceeds the supplier threshold of 100 cartons, unlocking an estimated total savings of ₹2,800.00 (20.83% wholesale discount).",
         "score": 0.98,
+        "pooled_inventory": pooled_inv,
+        "transport": transport_rec,
         "created_at": datetime.datetime.utcnow().isoformat() + "Z"
     }]
     repo.save_bulk("recommendations", rec_data)

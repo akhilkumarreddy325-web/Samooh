@@ -1,9 +1,28 @@
 import datetime
 import logging
-import numpy as np
-import pandas as pd
 from typing import List, Dict, Any, Optional
-from sklearn.ensemble import RandomForestRegressor
+
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except (ImportError, Exception):
+    pd = None
+    HAS_PANDAS = False
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except (ImportError, Exception):
+    np = None
+    HAS_NUMPY = False
+
+try:
+    from sklearn.ensemble import RandomForestRegressor
+    HAS_SKLEARN = True
+except (ImportError, Exception):
+    RandomForestRegressor = None
+    HAS_SKLEARN = False
+
 from backend.database.repository import repo
 
 logger = logging.getLogger("samooh.ai.forecasting")
@@ -101,6 +120,42 @@ class DemandForecastingEngine:
             logger.warning("No sales data available to build forecasts.")
             return []
 
+        products_map = {p['id']: p['name'] for p in products}
+        forecast_results = []
+        forecast_counter = 0
+
+        if not HAS_PANDAS:
+            from collections import defaultdict
+            sales_by_pair = defaultdict(list)
+            for s in all_sales:
+                pair = (s.get("retailer_id"), s.get("product_id"))
+                sales_by_pair[pair].append(float(s.get("quantity_sold", 1.0)))
+
+            for (ret_id, prod_id), quantities in sales_by_pair.items():
+                forecast_counter += 1
+                prod_name = products_map.get(prod_id, "Product")
+                recent = quantities[-30:] if len(quantities) >= 30 else quantities
+                avg_qty = sum(recent) / len(recent) if recent else 1.0
+                # Scale daily rate over horizon
+                demand = round(max(5.0, avg_qty * (horizon_days / max(1, len(recent)))), 2)
+
+                fc_obj = {
+                    "id": f"fc_{forecast_counter:04d}",
+                    "retailer_id": ret_id,
+                    "product_id": prod_id,
+                    "product_name": prod_name,
+                    "forecast_date": datetime.date.today().isoformat(),
+                    "horizon_days": horizon_days,
+                    "predicted_demand": demand,
+                    "model_used": "Moving Average Baseline",
+                    "confidence_score": 0.85
+                }
+                forecast_results.append(fc_obj)
+
+            repo.save_bulk("forecasts", forecast_results)
+            logger.info(f"Generated and saved {len(forecast_results)} demand forecasts (Pure Python Mode).")
+            return forecast_results
+
         sales_df_all = pd.DataFrame(all_sales)
         products_map = {p['id']: p['name'] for p in products}
         
@@ -115,13 +170,14 @@ class DemandForecastingEngine:
             prod_name = products_map.get(prod_id, "Product")
             
             # Alternate or compare model types
-            if len(group) >= 8:
+            if len(group) >= 8 and HAS_SKLEARN:
                 demand, confidence = self.forecast_random_forest(group, horizon_days)
                 model_name = "Random Forest Regressor"
             else:
                 demand = self.forecast_moving_average(group, horizon_days)
                 confidence = 0.80
                 model_name = "Moving Average Baseline"
+
 
             fc_obj = {
                 "id": f"fc_{forecast_counter:04d}",

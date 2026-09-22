@@ -1,7 +1,6 @@
 import random
 import datetime
 import numpy as np
-import pandas as pd
 from typing import Dict, List, Any
 from backend.database.repository import repo
 
@@ -51,34 +50,34 @@ SUPPLIERS_DATA = [
 
 PRODUCTS_DATA = [
     # Grains & Pulses
-    ("Sona Masoori Rice (25kg)", "Grains", "bag", 1450.0, 1180.0, 40.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
-    ("Royal Toor Dal Premium (10kg)", "Grains", "bag", 1600.0, 1320.0, 30.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
-    ("Chana Dal Special (10kg)", "Grains", "bag", 850.0, 690.0, 35.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
-    ("Wheat Whole Whole-grain (50kg)", "Grains", "bag", 2100.0, 1750.0, 25.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
-    ("Moong Dal Washed (10kg)", "Grains", "bag", 1150.0, 940.0, 30.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
+    ("Sona Masoori Rice (25kg)", "Grains", "bag", 25.0, 1450.0, 1180.0, 40.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
+    ("Royal Toor Dal Premium (10kg)", "Grains", "bag", 10.0, 1600.0, 1320.0, 30.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
+    ("Chana Dal Special (10kg)", "Grains", "bag", 10.0, 850.0, 690.0, 35.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
+    ("Wheat Whole Whole-grain (50kg)", "Grains", "bag", 50.0, 2100.0, 1750.0, 25.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
+    ("Moong Dal Washed (10kg)", "Grains", "bag", 10.0, 1150.0, 940.0, 30.0, "sup_01", "Deccan Wholesale Grains & Pulses"),
     
     # Oils & Dairy
-    ("Freedom Sunflower Oil (15L Tin)", "Oils", "tin", 1950.0, 1620.0, 35.0, "sup_02", "Telangana Oil Mills & Refineries"),
-    ("Gold Drop Groundnut Oil (15L Tin)", "Oils", "tin", 2400.0, 1980.0, 25.0, "sup_02", "Telangana Oil Mills & Refineries"),
-    ("Vijaya Pure Cow Ghee (1L Pack)", "Oils", "pack", 680.0, 560.0, 50.0, "sup_02", "Telangana Oil Mills & Refineries"),
-    ("Mustard Oil Kachi Ghani (15L)", "Oils", "tin", 2100.0, 1720.0, 20.0, "sup_02", "Telangana Oil Mills & Refineries"),
+    ("Freedom Sunflower Oil (15L Tin)", "Oils", "tin", 14.2, 1950.0, 1620.0, 35.0, "sup_02", "Telangana Oil Mills & Refineries"),
+    ("Gold Drop Groundnut Oil (15L Tin)", "Oils", "tin", 13.8, 2400.0, 1980.0, 25.0, "sup_02", "Telangana Oil Mills & Refineries"),
+    ("Vijaya Pure Cow Ghee (1L Pack)", "Oils", "pack", 0.95, 680.0, 560.0, 50.0, "sup_02", "Telangana Oil Mills & Refineries"),
+    ("Mustard Oil Kachi Ghani (15L)", "Oils", "tin", 14.0, 2100.0, 1720.0, 20.0, "sup_02", "Telangana Oil Mills & Refineries"),
 
     # Spices & Condiments
-    ("Guntur Red Chilli Powder (5kg)", "Spices", "pack", 1750.0, 1390.0, 30.0, "sup_03", "South India Spice & Agri Hub"),
-    ("Turmeric Powder Premium (5kg)", "Spices", "pack", 950.0, 750.0, 30.0, "sup_03", "South India Spice & Agri Hub"),
-    ("Tata Iodized Salt (1kg x 24 Carton)", "Spices", "carton", 600.0, 480.0, 40.0, "sup_03", "South India Spice & Agri Hub"),
-    ("Coriander Seeds / Dhaniya (5kg)", "Spices", "pack", 800.0, 620.0, 25.0, "sup_03", "South India Spice & Agri Hub"),
+    ("Guntur Red Chilli Powder (5kg)", "Spices", "pack", 5.0, 1750.0, 1390.0, 30.0, "sup_03", "South India Spice & Agri Hub"),
+    ("Turmeric Powder Premium (5kg)", "Spices", "pack", 5.0, 950.0, 750.0, 30.0, "sup_03", "South India Spice & Agri Hub"),
+    ("Tata Iodized Salt (1kg x 24 Carton)", "Spices", "carton", 24.0, 600.0, 480.0, 40.0, "sup_03", "South India Spice & Agri Hub"),
+    ("Coriander Seeds / Dhaniya (5kg)", "Spices", "pack", 5.0, 800.0, 620.0, 25.0, "sup_03", "South India Spice & Agri Hub"),
 
     # Beverages & Snacks
-    ("Red Label Tea Master Pack (1kg x 12)", "Beverages", "carton", 4800.0, 3950.0, 20.0, "sup_04", "FMCG Direct Distribution Ltd"),
-    ("Bru Instant Coffee (200g x 20 Pack)", "Beverages", "carton", 3600.0, 2980.0, 25.0, "sup_04", "FMCG Direct Distribution Ltd"),
-    ("Britannia Good Day Biscuit Case", "Beverages", "box", 1200.0, 960.0, 45.0, "sup_04", "FMCG Direct Distribution Ltd"),
-    ("Lays Chips Assorted Case (48 Packs)", "Beverages", "box", 960.0, 760.0, 50.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Red Label Tea Master Pack (1kg x 12)", "Beverages", "carton", 12.0, 4800.0, 3950.0, 20.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Bru Instant Coffee (200g x 20 Pack)", "Beverages", "carton", 4.0, 3600.0, 2980.0, 25.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Britannia Good Day Biscuit Case", "Beverages", "box", 8.5, 1200.0, 960.0, 45.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Lays Chips Assorted Case (48 Packs)", "Beverages", "box", 2.5, 960.0, 760.0, 50.0, "sup_04", "FMCG Direct Distribution Ltd"),
 
     # Personal Care & Household
-    ("Surf Excel Easy Wash (1kg x 20)", "Personal Care", "carton", 2800.0, 2250.0, 30.0, "sup_04", "FMCG Direct Distribution Ltd"),
-    ("Vim Dishwash Liquid (500ml x 24)", "Personal Care", "carton", 2500.0, 2020.0, 35.0, "sup_04", "FMCG Direct Distribution Ltd"),
-    ("Dettol Bathing Soap (125g x 36 Pack)", "Personal Care", "carton", 2160.0, 1750.0, 40.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Surf Excel Easy Wash (1kg x 20)", "Personal Care", "carton", 20.0, 2800.0, 2250.0, 30.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Vim Dishwash Liquid (500ml x 24)", "Personal Care", "carton", 12.5, 2500.0, 2020.0, 35.0, "sup_04", "FMCG Direct Distribution Ltd"),
+    ("Dettol Bathing Soap (125g x 36 Pack)", "Personal Care", "carton", 4.5, 2160.0, 1750.0, 40.0, "sup_04", "FMCG Direct Distribution Ltd"),
 ]
 
 
@@ -119,13 +118,14 @@ def seed_demo_data() -> Dict[str, Any]:
 
     # 4. Seed Products (20 products)
     products_list = []
-    for i, (pname, cat, uom, rprice, wprice, mqty, supid, supname) in enumerate(PRODUCTS_DATA, 1):
+    for i, (pname, cat, uom, uweight, rprice, wprice, mqty, supid, supname) in enumerate(PRODUCTS_DATA, 1):
         pid = f"prod_{i:03d}"
         prod = {
             "id": pid,
             "name": pname,
             "category": cat,
             "unit_of_measure": uom,
+            "unit_weight_kg": uweight,
             "retail_price": rprice,
             "wholesale_price": wprice,
             "min_wholesale_quantity": mqty,
@@ -146,7 +146,7 @@ def seed_demo_data() -> Dict[str, Any]:
 
     # To keep response fast & lightweight, generate realistic weekly aggregations / sample daily logs per retailer-product pair
     # Each retailer sells ~4 to 8 products out of the 20 catalog products
-    date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+    date_list = [start_date + datetime.timedelta(days=d) for d in range(0, 181, 3)]
 
     for ret in retailers_list:
         # Select 5 specific core products for this retailer
@@ -155,7 +155,7 @@ def seed_demo_data() -> Dict[str, Any]:
         for prod in assigned_prods:
             base_daily_qty = random.uniform(0.3, 1.8) # Base daily demand
             
-            for dt in date_range[::3]: # Every 3 days to simulate order pulses
+            for dt in date_list: # Every 3 days to simulate order pulses
                 dt_str = dt.strftime("%Y-%m-%d")
                 day_of_week = dt.weekday()
                 

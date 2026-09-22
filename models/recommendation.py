@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from .pool import ProcurementPool
 from .savings import SavingsBreakdown
@@ -21,6 +21,8 @@ class GroupRecommendation(BaseModel):
     explanation: str = Field(..., description="AI explainable natural language rationale")
     score: float = Field(..., description="Recommendation priority score (0.0 to 1.0)")
     created_at: str = Field(..., description="Recommendation timestamp")
+    pooled_inventory: Optional[Dict[str, Any]] = Field(default=None, description="Pooled inventory breakdown")
+    transport: Optional[Dict[str, Any]] = Field(default=None, description="Transport planning and vehicle recommendation")
 
     class Config:
         json_schema_extra = {

@@ -221,4 +221,33 @@ export async function seedData() {
   }
 }
 
+// 8. Transport & Fleet APIs
+export async function getVehicleFleet() {
+  try {
+    const res = await apiClient.get('/transport/fleet');
+    return res.data;
+  } catch (err) {
+    return {
+      status: 'success',
+      fleet: [
+        { id: "veh_3w_electric", name: "Piaggio Ape E-City / E-Loader", capacity_kg: 500, base_rate_inr: 350 },
+        { id: "veh_scv_tata_ace", name: "Tata Ace (SCV)", capacity_kg: 1000, base_rate_inr: 650 },
+        { id: "veh_mgv_eicher_pro", name: "Eicher Pro 2049 (MGV)", capacity_kg: 2500, base_rate_inr: 1400 },
+        { id: "veh_hgv_tata_407", name: "Tata 407 (HGV)", capacity_kg: 5000, base_rate_inr: 2500 }
+      ]
+    };
+  }
+}
+
+export async function recalculatePoolTransport(poolId, payload = {}) {
+  try {
+    const res = await apiClient.post(`/recommendations/${poolId}/recalculate-transport`, payload);
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] FastAPI backend unreachable. Serving local calculation.');
+    return { status: 'mock', message: 'Calculated in frontend fallback mode' };
+  }
+}
+
 export default apiClient;
+
