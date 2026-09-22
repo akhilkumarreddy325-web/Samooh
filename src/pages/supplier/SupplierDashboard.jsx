@@ -15,7 +15,8 @@ import {
   X,
   ShieldAlert,
   ArrowRight,
-  Eye
+  Eye,
+  MapPin
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { getSupplierDashboard, updateSupplierOrderStatus } from '../../services/api';
@@ -106,6 +107,15 @@ export default function SupplierDashboard() {
 
         <div className="flex items-center space-x-2">
           <button
+            onClick={() => navigate('/supplier/nearby-retailers')}
+            className="px-3.5 py-1.5 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
+            title="View Nearby Retailers Map"
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Nearby Retailers</span>
+          </button>
+
+          <button
             onClick={loadDashboard}
             className="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700/60 transition flex items-center space-x-1.5 shadow-sm"
             title="Refresh Dashboard"
@@ -191,6 +201,35 @@ export default function SupplierDashboard() {
             </div>
           );
         })}
+      </div>
+
+      {/* Nearby Retailers Interactive Map Quick Access Banner */}
+      <div className="p-4 sm:p-5 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50/60 dark:bg-blue-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-start space-x-3.5">
+          <div className="p-2.5 rounded-lg bg-blue-700 text-white flex-shrink-0">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Nearby Retailers Map
+              </h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-800">
+                MapLibre + OpenStreetMap + ORS
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Explore local Kirana stores with verified GPS locations within your delivery radius ({currentSupplier?.serviceRadiusKm || 50} km), and calculate live road driving routes with turn metrics.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/supplier/nearby-retailers')}
+          className="px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition shadow-sm flex items-center space-x-1.5 flex-shrink-0"
+        >
+          <span>Open Nearby Retailers</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Recent Orders Section */}

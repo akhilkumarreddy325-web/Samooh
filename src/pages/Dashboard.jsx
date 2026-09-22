@@ -25,13 +25,15 @@ import {
 import KPICard from '../components/KPICard';
 import RecommendationCard from '../components/RecommendationCard';
 import PoolDetailModal from '../components/PoolDetailModal';
+import RetailerLocationCard from '../components/RetailerLocationCard';
+import LocationPermissionPrompt from '../components/LocationPermissionPrompt';
 import { getDashboard, getRecommendations, seedData } from '../services/api';
 import { MOCK_DASHBOARD, MOCK_RECOMMENDATIONS } from '../api/mockData';
 import { formatINR } from '../utils/currency';
 import { useApp } from '../context/AppContext';
 
 export default function Dashboard() {
-  const { theme, t, setActiveInvoice, user, addOrderToHistory } = useApp();
+  const { theme, t, setActiveInvoice, user, addOrderToHistory, firebaseUser, userProfile } = useApp();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
@@ -39,6 +41,17 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [selectedPool, setSelectedPool] = useState(null);
   const [isSeeding, setIsSeeding] = useState(false);
+
+  // Retailer Location Permission Flow State
+  const [showLocationPrompt, setShowLocationPrompt] = useState(() => {
+    try {
+      const dismissed = sessionStorage.getItem('samooh_location_prompt_dismissed');
+      // Show prompt if location has not been permission-granted yet and not dismissed this session
+      return !userProfile?.location?.permissionGranted && !dismissed;
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     loadDashboardData();
@@ -217,6 +230,31 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* Geolocation Consent Modal Flow (One-time on login/dashboard if not yet requested) */}
+      {showLocationPrompt && (
+        <LocationPermissionPrompt
+          retailerId={firebaseUser?.uid || user?.id}
+          onComplete={(coords) => {
+            setShowLocationPrompt(false);
+          }}
+          onDismiss={() => {
+            setShowLocationPrompt(false);
+            try {
+              sessionStorage.setItem('samooh_location_prompt_dismissed', 'true');
+            } catch {}
+          }}
+        />
+      )}
+
+      {/* Retailer Store Location Status & Controls Card */}
+      <RetailerLocationCard
+        retailerId={firebaseUser?.uid || user?.id}
+        initialLocation={userProfile?.location}
+        onLocationUpdate={(updatedLoc) => {
+          console.info('[Dashboard] Store location updated:', updatedLoc);
+        }}
+      />
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

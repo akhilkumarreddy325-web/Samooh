@@ -67,6 +67,7 @@ const SupplierProducts = lazy(() => import('./pages/supplier/SupplierProducts'))
 const SupplierPricing = lazy(() => import('./pages/supplier/SupplierPricing'));
 const SupplierAnalytics = lazy(() => import('./pages/supplier/SupplierAnalytics'));
 const SupplierProfile = lazy(() => import('./pages/supplier/SupplierProfile'));
+const SupplierNearbyRetailers = lazy(() => import('./pages/supplier/SupplierNearbyRetailers'));
 
 function PageLoader() {
   const { theme } = useApp();
@@ -184,6 +185,7 @@ function MainLayout() {
               <Route path="/supplier/pricing" element={<SupplierPricing />} />
               <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
               <Route path="/supplier/profile" element={<SupplierProfile />} />
+              <Route path="/supplier/nearby-retailers" element={<SupplierNearbyRetailers />} />
             </Routes>
           </Suspense>
         </main>

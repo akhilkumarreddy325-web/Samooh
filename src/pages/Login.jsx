@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Layers, ShieldCheck, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { signInWithGoogle, getUserProfile, initializeUserProfile } from '../services/authService';
+import LoginBackgroundVideo from '../components/LoginBackgroundVideo';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -70,45 +71,56 @@ export default function Login() {
   const isLoading = authStatus === 'AUTHENTICATING' || authStatus === 'VERIFYING';
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-6 font-sans">
+    <div className="relative min-h-screen text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-6 font-sans overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+      {/* Cinematic Documentary Background Video (Kirana stores, Mandi warehouse, Logistics, Staples) */}
+      <LoginBackgroundVideo />
+
       {/* Top Brand Bar */}
-      <header className="max-w-md mx-auto w-full flex items-center justify-between py-2 border-b border-slate-200/80 dark:border-slate-800">
+      <header className="relative z-10 max-w-md mx-auto w-full flex items-center justify-between py-2.5 px-4 rounded-xl bg-slate-950/40 backdrop-blur-md border border-white/10 text-white shadow-sm">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-md bg-emerald-800 text-white flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center shadow-sm">
             <Layers className="w-4 h-4" />
           </div>
           <div className="leading-tight">
-            <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Samooh</span>
-            <span className="text-[10px] text-slate-400 block font-medium">B2B Procurement Platform</span>
+            <span className="text-sm font-bold tracking-tight text-white">Samooh</span>
+            <span className="text-[10px] text-slate-300 block font-medium">B2B Wholesale Procurement</span>
           </div>
         </div>
-        <div className="flex items-center space-x-1.5 text-xs text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400" />
+        <div className="flex items-center space-x-1.5 text-xs text-slate-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
           <span className="text-[11px] font-medium">Google OAuth 2.0</span>
         </div>
       </header>
 
       {/* Main Login Card */}
-      <main className="max-w-md mx-auto w-full my-auto py-8">
-        <div className="bg-white dark:bg-slate-800/95 rounded-xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8 shadow-sm text-center space-y-6">
-          
+      <main className="relative z-10 max-w-md mx-auto w-full my-auto py-6 sm:py-8">
+        <div 
+          className="rounded-[22px] p-7 sm:p-9 text-center space-y-6 transition-all duration-200"
+          style={{
+            background: 'rgba(255, 255, 255, 0.74)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.55)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.14)'
+          }}
+        >
           {/* Logo & Headline */}
-          <div className="space-y-2">
-            <div className="w-12 h-12 rounded-lg bg-emerald-800 text-white flex items-center justify-center mx-auto shadow-sm">
+          <div className="space-y-2.5">
+            <div className="w-12 h-12 rounded-xl bg-emerald-800 text-white flex items-center justify-center mx-auto shadow-sm">
               <Layers className="w-6 h-6" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
               Sign In to Samooh
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-              Collaborative wholesale procurement and logistics pooling for Indian Kirana stores & suppliers.
+            <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
+              Collective procurement & wholesale pooling for local Kirana retailers and verified suppliers across India.
             </p>
           </div>
 
           {/* Error Banner */}
           {authStatus === 'ERROR' && authError && (
-            <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs text-left flex items-start space-x-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-rose-50/95 border border-rose-200 text-rose-800 text-xs text-left flex items-start space-x-2.5 shadow-sm">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold block">Authentication Issue</span>
                 <span>{authError}</span>
@@ -118,24 +130,24 @@ export default function Login() {
 
           {/* Status Message (During Auth / Redirect) */}
           {(isLoading || authStatus === 'SUCCESS') && statusMessage && (
-            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-center space-x-2">
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-800 dark:text-emerald-400" />
+            <div className="p-3 rounded-xl bg-emerald-50/95 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-center space-x-2 shadow-sm">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-800" />
               <span>{statusMessage}</span>
             </div>
           )}
 
           {/* Single Google Sign-In Action */}
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="button"
               id="google-signin-button"
               disabled={isLoading || authStatus === 'SUCCESS'}
               onClick={handleGoogleSignIn}
-              className="w-full py-3 px-4 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-medium text-sm shadow-sm transition flex items-center justify-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-emerald-700/40"
+              className="w-full py-3.5 px-4 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-sm hover:shadow transition-all duration-150 flex items-center justify-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-emerald-700/40"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin text-emerald-800 dark:text-emerald-400" />
+                  <Loader2 className="w-5 h-5 animate-spin text-emerald-800" />
                   <span>Signing in with Google...</span>
                 </>
               ) : (
@@ -158,7 +170,7 @@ export default function Login() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                     />
                   </svg>
-                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                  <span className="font-semibold text-slate-800">
                     Continue with Google
                   </span>
                 </>
@@ -167,12 +179,12 @@ export default function Login() {
           </div>
 
           {/* Secure Trust Indicators */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-400 space-y-2">
-            <div className="flex items-center justify-center space-x-1.5 text-slate-500">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400" />
-              <span>Enterprise encrypted B2B authentication</span>
+          <div className="pt-4 border-t border-slate-900/10 text-[11px] text-slate-600 space-y-2">
+            <div className="flex items-center justify-center space-x-1.5 text-slate-700">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" />
+              <span className="font-medium">Enterprise encrypted B2B authentication</span>
             </div>
-            <p>
+            <p className="text-slate-500">
               By signing in, you access the verified Samooh wholesale procurement network.
             </p>
           </div>
@@ -180,8 +192,8 @@ export default function Login() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 text-[11px] text-slate-400">
-        Samooh AI • Group Procurement & Logistics Optimization Platform
+      <footer className="relative z-10 text-center py-4 text-xs text-slate-200/90 drop-shadow">
+        Samooh • Group Procurement & Logistics Platform for Indian Retailers
       </footer>
     </div>
   );

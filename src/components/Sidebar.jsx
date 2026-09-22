@@ -3,12 +3,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Sparkles, Store, LineChart, Layers, 
   ShieldCheck, ShoppingBag, FileText, PackageCheck, X, 
-  Truck, Building2, Tag
+  Truck, Building2, Tag, MapPin
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
-  const { theme, t, userRole, currentSupplier } = useApp();
+  const { theme, t, userRole, switchRole, currentSupplier } = useApp();
   const location = useLocation();
   const isSupplier = userRole === 'supplier' || location.pathname.startsWith('/supplier');
 
@@ -31,6 +31,7 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
     { labelKey: 'supplierPricing', path: '/supplier/pricing', icon: FileText, badge: 'MOQ' },
     { labelKey: 'supplierAnalytics', path: '/supplier/analytics', icon: LineChart },
     { labelKey: 'supplierProfile', path: '/supplier/profile', icon: Building2 },
+    { labelKey: 'supplierNearbyRetailers', label: 'Nearby Retailers', path: '/supplier/nearby-retailers', icon: MapPin, badge: 'MAP' },
   ];
 
   const currentNavItems = isSupplier ? supplierNavItems : retailerNavItems;
@@ -116,13 +117,15 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
               >
                 <div className="flex items-center space-x-2.5">
                   <Icon className="w-4 h-4 text-slate-500" />
-                  <span>{t(item.labelKey)}</span>
+                  <span>{item.label || t(item.labelKey) || 'Nearby Retailers'}</span>
                 </div>
                 {item.badge && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                    theme === 'light'
-                      ? 'bg-slate-50 text-slate-600 border-slate-200'
-                      : 'bg-slate-800 text-slate-400 border-slate-700'
+                    item.badge === 'MAP'
+                      ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+                      : theme === 'light'
+                        ? 'bg-slate-50 text-slate-600 border-slate-200'
+                        : 'bg-slate-800 text-slate-400 border-slate-700'
                   }`}>
                     {item.badge}
                   </span>
@@ -130,6 +133,35 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
               </NavLink>
             );
           })}
+
+          {/* Portal Quick Switch */}
+          <div className="pt-3 mt-3 border-t border-slate-200/80 dark:border-slate-700/60">
+            {isSupplier ? (
+              <NavLink
+                to="/"
+                onClick={() => {
+                  switchRole('retailer');
+                  onCloseMobile?.();
+                }}
+                className="flex items-center space-x-2 px-2.5 py-2 rounded-md text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition"
+              >
+                <Store className="w-4 h-4 text-blue-600" />
+                <span>Switch to Kirana Portal</span>
+              </NavLink>
+            ) : (
+              <NavLink
+                to="/supplier"
+                onClick={() => {
+                  switchRole('supplier');
+                  onCloseMobile?.();
+                }}
+                className="flex items-center space-x-2 px-2.5 py-2 rounded-md text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition"
+              >
+                <Truck className="w-4 h-4 text-emerald-700" />
+                <span>Switch to Supplier Portal</span>
+              </NavLink>
+            )}
+          </div>
         </nav>
       </div>
 

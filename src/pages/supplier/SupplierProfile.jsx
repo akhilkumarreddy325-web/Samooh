@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Building2, Star, Clock, Truck, Save, CheckCircle2, ShieldCheck
+  Building2, Star, Clock, Truck, Save, CheckCircle2, ShieldCheck,
+  MapPin, Navigation, Loader2, AlertCircle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../services/firebase';
+import { geocodeAddress } from '../../services/mapService';
 
 export default function SupplierProfile() {
-  const { currentSupplier, setCurrentSupplier } = useApp();
+  const navigate = useNavigate();
+  const { currentSupplier, setCurrentSupplier, firebaseUser } = useApp();
   const [editing, setEditing] = useState(false);
   const [notification, setNotification] = useState(null);
 
@@ -17,6 +23,25 @@ export default function SupplierProfile() {
   const [serviceRadiusKm, setServiceRadiusKm] = useState(currentSupplier?.serviceRadiusKm || 60);
   const [leadTimeDays, setLeadTimeDays] = useState(currentSupplier?.leadTimeDays || 2);
 
+  // Business location geocoding state
+  const [warehouseAddress, setWarehouseAddress] = useState(
+    currentSupplier?.businessLocation?.address || currentSupplier?.address || ''
+  );
+  const [warehouseCity, setWarehouseCity] = useState(
+    currentSupplier?.businessLocation?.city || currentSupplier?.city || 'Hyderabad'
+  );
+  const [warehouseState, setWarehouseState] = useState(
+    currentSupplier?.businessLocation?.state || 'Telangana'
+  );
+  const [warehousePincode, setWarehousePincode] = useState(
+    currentSupplier?.businessLocation?.pincode || ''
+  );
+  const [businessLocation, setBusinessLocation] = useState(
+    currentSupplier?.businessLocation || null
+  );
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState('');
+
   const handleSave = (e) => {
     e.preventDefault();
     const updated = {
@@ -27,12 +52,60 @@ export default function SupplierProfile() {
       phone,
       address,
       serviceRadiusKm: parseFloat(serviceRadiusKm),
-      leadTimeDays: parseInt(leadTimeDays)
+      leadTimeDays: parseInt(leadTimeDays),
+      businessLocation: businessLocation || currentSupplier?.businessLocation || null
     };
     setCurrentSupplier(updated);
     setNotification("Supplier profile updated successfully");
     setEditing(false);
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleGeocodeWarehouse = async () => {
+    const fullAddress = [warehouseAddress, warehouseCity, warehouseState, warehousePincode]
+      .filter(Boolean).join(', ');
+
+    if (!fullAddress.trim()) {
+      setGeocodeError('Please enter the warehouse address details before verifying.');
+      return;
+    }
+
+    setIsGeocoding(true);
+    setGeocodeError('');
+
+    try {
+      const result = await geocodeAddress(fullAddress);
+      const locationPayload = {
+        address: warehouseAddress,
+        city: warehouseCity,
+        state: warehouseState,
+        pincode: warehousePincode,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        formattedAddress: result.formattedAddress,
+        verified: true,
+        updatedAt: new Date().toISOString()
+      };
+
+      setBusinessLocation(locationPayload);
+
+      // Persist to Firestore if the supplier is authenticated
+      const supplierId = firebaseUser?.uid || currentSupplier?.id;
+      if (supplierId) {
+        await updateDoc(doc(db, 'suppliers', supplierId), {
+          businessLocation: locationPayload,
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      setCurrentSupplier({ ...currentSupplier, businessLocation: locationPayload });
+      setNotification('Warehouse location verified and saved.');
+      setTimeout(() => setNotification(null), 4000);
+    } catch (err) {
+      setGeocodeError(err.message || 'Unable to verify warehouse coordinates. Please check the address and try again.');
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   return (
@@ -232,6 +305,120 @@ export default function SupplierProfile() {
                       : 'bg-white border-slate-300 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800'
                   }`}
                 />
+              </div>
+            </div>
+
+            {/* ── Warehouse Business Location (Real Geocoded Coordinates) ─────── */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
+                  <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                    Warehouse Business Location
+                  </span>
+                </div>
+                {businessLocation?.verified && (
+                  <span className="inline-flex items-center space-x-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-medium">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Coordinates Verified</span>
+                  </span>
+                )}
+              </div>
+
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Enter your registered warehouse address. Click "Verify & Geocode" to resolve it to real geographic coordinates for the Nearby Retailers map and delivery routing.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Street / Warehouse Address</label>
+                  <input
+                    value={warehouseAddress}
+                    onChange={(e) => setWarehouseAddress(e.target.value)}
+                    placeholder="e.g. Plot 45, Phase 2, Kukatpally Industrial Area"
+                    className="w-full border rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">City</label>
+                  <input
+                    value={warehouseCity}
+                    onChange={(e) => setWarehouseCity(e.target.value)}
+                    placeholder="e.g. Hyderabad"
+                    className="w-full border rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">State</label>
+                  <input
+                    value={warehouseState}
+                    onChange={(e) => setWarehouseState(e.target.value)}
+                    placeholder="e.g. Telangana"
+                    className="w-full border rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Pincode</label>
+                  <input
+                    value={warehousePincode}
+                    onChange={(e) => setWarehousePincode(e.target.value)}
+                    placeholder="e.g. 500072"
+                    maxLength={6}
+                    className="w-full border rounded-md px-3 py-1.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-800"
+                  />
+                </div>
+              </div>
+
+              {/* Geocode Result Display */}
+              {businessLocation?.latitude && (
+                <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs space-y-1">
+                  <div className="flex items-center space-x-1.5 text-emerald-800 dark:text-emerald-300 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Real Coordinates Verified</span>
+                  </div>
+                  <p className="text-emerald-700 dark:text-emerald-400 text-[11px]">{businessLocation.formattedAddress}</p>
+                  <p className="text-slate-500 dark:text-slate-400 font-mono text-[10px]">
+                    {businessLocation.latitude.toFixed(5)}, {businessLocation.longitude.toFixed(5)}
+                  </p>
+                </div>
+              )}
+
+              {/* Geocode Error */}
+              {geocodeError && (
+                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs flex items-start space-x-2 text-amber-800 dark:text-amber-300">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  <span>{geocodeError}</span>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  disabled={isGeocoding}
+                  onClick={handleGeocodeWarehouse}
+                  className="py-2 px-3.5 rounded-lg bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-medium text-xs transition flex items-center space-x-2 shadow-sm disabled:opacity-60"
+                >
+                  {isGeocoding ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Geocoding Address...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-3.5 h-3.5" />
+                      <span>Verify & Geocode Location</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/supplier/nearby-retailers')}
+                  className="py-2 px-3.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs transition flex items-center space-x-2 shadow-sm"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>View Nearby Retailers Map</span>
+                </button>
               </div>
             </div>
 
