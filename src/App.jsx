@@ -112,10 +112,11 @@ function MainLayout() {
     }
 
     if (location.pathname === '/onboarding') {
-      if (!firebaseUser) {
+      const isDemoAccess = new URLSearchParams(location.search).get('demo') === 'true' || localStorage.getItem('samooh_demo_onboarding') === 'true';
+      if (!firebaseUser && !isDemoAccess) {
         return <Navigate to="/login" replace />;
       }
-      if (onboardingCompleted) {
+      if (onboardingCompleted && !isDemoAccess) {
         return <Navigate to={userRole === 'supplier' ? '/supplier' : '/'} replace />;
       }
     }
@@ -169,23 +170,23 @@ function MainLayout() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Retailer Routes */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/opportunities" element={<Opportunities />} />
-              <Route path="/builder" element={<CustomDemandBuilder />} />
-              <Route path="/orders" element={<PreviousOrders />} />
-              <Route path="/processing" element={<OrderProcessing />} />
-              <Route path="/invoice" element={<SavingsBill />} />
-              <Route path="/insights" element={<Insights />} />
-              <Route path="/impact" element={<Impact />} />
+              <Route path="/" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <Dashboard />} />
+              <Route path="/opportunities" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <Opportunities />} />
+              <Route path="/builder" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <CustomDemandBuilder />} />
+              <Route path="/orders" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <PreviousOrders />} />
+              <Route path="/processing" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <OrderProcessing />} />
+              <Route path="/invoice" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <SavingsBill />} />
+              <Route path="/insights" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <Insights />} />
+              <Route path="/impact" element={userRole === 'supplier' ? <Navigate to="/supplier" replace /> : <Impact />} />
 
               {/* Supplier Portal Routes */}
-              <Route path="/supplier" element={<SupplierDashboard />} />
-              <Route path="/supplier/orders" element={<SupplierOrders />} />
-              <Route path="/supplier/products" element={<SupplierProducts />} />
-              <Route path="/supplier/pricing" element={<SupplierPricing />} />
-              <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
-              <Route path="/supplier/profile" element={<SupplierProfile />} />
-              <Route path="/supplier/nearby-retailers" element={<SupplierNearbyRetailers />} />
+              <Route path="/supplier" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierDashboard />} />
+              <Route path="/supplier/orders" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierOrders />} />
+              <Route path="/supplier/products" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierProducts />} />
+              <Route path="/supplier/pricing" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierPricing />} />
+              <Route path="/supplier/analytics" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierAnalytics />} />
+              <Route path="/supplier/profile" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierProfile />} />
+              <Route path="/supplier/nearby-retailers" element={userRole === 'retailer' ? <Navigate to="/" replace /> : <SupplierNearbyRetailers />} />
             </Routes>
           </Suspense>
         </main>

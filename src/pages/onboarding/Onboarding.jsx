@@ -20,13 +20,11 @@ import SupplierPricingMoqStep from './supplier/SupplierPricingMoqStep';
 import SupplierDeliveryStep from './supplier/SupplierDeliveryStep';
 import SupplierReviewStep from './supplier/SupplierReviewStep';
 
-const ONBOARDING_DRAFT_KEY = 'samooh_onboarding_draft_v1';
-
 export default function Onboarding() {
   const { 
     firebaseUser, 
     user, 
-    currentSupplier,
+    userProfile,
     completeRetailerOnboarding, 
     completeSupplierOnboarding 
   } = useApp();
@@ -35,99 +33,58 @@ export default function Onboarding() {
   const [role, setRole] = useState(null);
   const [currentStep, setCurrentStep] = useState(0); // 0 = Role Selection, 1..N = Role Steps
 
-  // Unified Form State (Preserves all inputs across steps)
+  // Unified Form State (Empty by default for new users, never pre-populated with sample/demo data)
   const [formData, setFormData] = useState(() => {
-    try {
-      const saved = localStorage.getItem(ONBOARDING_DRAFT_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return parsed;
+    // If user has a scoped draft in localStorage, attempt to restore it
+    if (firebaseUser?.uid) {
+      try {
+        const saved = localStorage.getItem(`samooh_onboarding_draft_${firebaseUser.uid}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
+      } catch {
+        // Ignore parse failure
       }
-    } catch {
-      // Ignore parse failure
     }
+
+    // Existing user profile in Firestore (if re-onboarding/updating)
+    const existing = (firebaseUser?.uid && userProfile) ? userProfile : null;
+
     return {
-      // Retailer fields
-      shopName: user?.storeName || '',
-      ownerName: user?.ownerName || firebaseUser?.displayName || '',
-      businessType: 'Kirana Store',
-      city: user?.city || 'Hyderabad',
-      area: '',
-      address: user?.address || '',
-      contactPhone: '',
-      yearsInBusiness: '',
-      shopSize: '',
-      employeeCount: '',
-      productsSold: ['Rice', 'Cooking Oil', 'Pulses & Dal', 'Sugar', 'Wheat & Flour'],
-      productsNeeded: [
-        { name: 'Sona Masoori Rice', category: 'Rice', typical_quantity: 100, unit: 'kg', purchase_frequency: 'Weekly', approx_budget: 4800 },
-        { name: 'Sunflower Cooking Oil', category: 'Cooking Oil', typical_quantity: 50, unit: 'litres', purchase_frequency: 'Every 2 weeks', approx_budget: 5500 },
-        { name: 'Refined Sugar (M-30)', category: 'Sugar', typical_quantity: 40, unit: 'kg', purchase_frequency: 'Weekly', approx_budget: 1600 }
-      ],
-      purchaseFrequency: 'Weekly',
-      deliveryRadiusKm: 5.0,
-      maxProcurementBudget: 25000,
-      maxComfortableQuantity: 200,
+      // Common & Location fields (Empty by default)
+      state: existing?.state || existing?.businessLocation?.state || '',
+      district: existing?.district || existing?.businessLocation?.district || '',
+      city: existing?.city || existing?.businessLocation?.city || '',
+      area: existing?.area || existing?.businessLocation?.area || '',
+      address: existing?.address || existing?.businessLocation?.address || '',
+      pincode: existing?.pincode || existing?.businessLocation?.pincode || '',
+      businessLocation: existing?.businessLocation || null,
+      contactPhone: existing?.phone || existing?.contactPhone || '',
+
+      // Retailer fields (Empty by default for new users)
+      shopName: existing?.storeName || existing?.shopName || '',
+      ownerName: existing?.ownerName || firebaseUser?.displayName || '',
+      businessType: existing?.businessType || 'Kirana Store',
+      yearsInBusiness: existing?.yearsInBusiness || '',
+      shopSize: existing?.shopSize || '',
+      employeeCount: existing?.employeeCount || '',
+      productsSold: Array.isArray(existing?.productsSold) ? existing.productsSold : [],
+      productsNeeded: Array.isArray(existing?.productsNeeded) ? existing.productsNeeded : [],
+      purchaseFrequency: existing?.purchaseFrequency || 'Weekly',
+      deliveryRadiusKm: existing?.deliveryRadiusKm || 5.0,
+      maxProcurementBudget: existing?.maxProcurementBudget || 25000,
+      maxComfortableQuantity: existing?.maxComfortableQuantity || 200,
       participateGroupProcurement: true,
 
-      // Supplier fields
-      businessName: currentSupplier?.name || '',
-      contactPerson: currentSupplier?.contactPerson || firebaseUser?.displayName || '',
-      productsSupplied: ['Grains & Staples', 'Rice (Raw & Boiled)', 'Edible & Cooking Oils', 'Sugar & Sweeteners'],
-      configuredProducts: [
-        {
-          id: 'item_1',
-          name: 'Sona Masoori Raw Rice (25kg Bag)',
-          category: 'Rice (Raw & Boiled)',
-          unit: 'kg',
-          available_quantity: 2500,
-          max_supply_quantity: 10000,
-          replenishment_cycle: 'Weekly',
-          wholesale_price: 48,
-          moq: 200,
-          quantity_tiers: [
-            { min_quantity: 1, max_quantity: 99, price_per_unit: 52 },
-            { min_quantity: 100, max_quantity: 199, price_per_unit: 50 },
-            { min_quantity: 200, max_quantity: 499, price_per_unit: 48 },
-            { min_quantity: 500, max_quantity: null, price_per_unit: 45 }
-          ]
-        },
-        {
-          id: 'item_2',
-          name: 'Freedom Refined Sunflower Oil (15L Tin)',
-          category: 'Edible & Cooking Oils',
-          unit: 'litres',
-          available_quantity: 1200,
-          max_supply_quantity: 5000,
-          replenishment_cycle: 'Weekly',
-          wholesale_price: 110,
-          moq: 100,
-          quantity_tiers: [
-            { min_quantity: 1, max_quantity: 49, price_per_unit: 118 },
-            { min_quantity: 50, max_quantity: 99, price_per_unit: 114 },
-            { min_quantity: 100, max_quantity: null, price_per_unit: 110 }
-          ]
-        },
-        {
-          id: 'item_3',
-          name: 'Premium M-30 Pure Sugar (50kg Bag)',
-          category: 'Sugar & Sweeteners',
-          unit: 'kg',
-          available_quantity: 3000,
-          max_supply_quantity: 15000,
-          replenishment_cycle: 'Bi-weekly',
-          wholesale_price: 38,
-          moq: 150,
-          quantity_tiers: [
-            { min_quantity: 1, max_quantity: 149, price_per_unit: 42 },
-            { min_quantity: 150, max_quantity: 499, price_per_unit: 38 },
-            { min_quantity: 500, max_quantity: null, price_per_unit: 36 }
-          ]
-        }
-      ],
-      serviceRadiusKm: 50.0,
-      leadTimeDays: 2,
-      distributionArea: 'Hyderabad Greater Metro & Industrial Belts',
+      // Supplier fields (Empty by default for new users - NO FMCG or Deccan defaults)
+      businessName: existing?.businessName || existing?.name || '',
+      contactPerson: existing?.contactPerson || firebaseUser?.displayName || '',
+      productsSupplied: Array.isArray(existing?.productsSupplied) ? existing.productsSupplied : [],
+      configuredProducts: Array.isArray(existing?.configuredProducts) ? existing.configuredProducts : [],
+      serviceRadiusKm: existing?.serviceRadiusKm || 50.0,
+      leadTimeDays: existing?.leadTimeDays || 2,
+      distributionArea: existing?.distributionArea || '',
       pickupAvailable: true
     };
   });
@@ -136,14 +93,15 @@ export default function Onboarding() {
   const [submitError, setSubmitError] = useState('');
   const [setupComplete, setSetupComplete] = useState(false);
 
-  // Auto-save form draft to localStorage safely
+  // Auto-save form draft to localStorage safely (scoped to authenticated user)
   useEffect(() => {
+    if (!firebaseUser?.uid) return;
     try {
-      localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(formData));
+      localStorage.setItem(`samooh_onboarding_draft_${firebaseUser.uid}`, JSON.stringify(formData));
     } catch {
       // LocalStorage quota or restricted
     }
-  }, [formData]);
+  }, [formData, firebaseUser?.uid]);
 
   const updateFormData = (fields) => {
     setFormData(prev => ({ ...prev, ...fields }));
@@ -176,7 +134,10 @@ export default function Onboarding() {
 
       // Success: clear draft
       try {
-        localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+        if (firebaseUser?.uid) {
+          localStorage.removeItem(`samooh_onboarding_draft_${firebaseUser.uid}`);
+        }
+        localStorage.removeItem('samooh_onboarding_draft_v1');
       } catch {
         // Safe ignore
       }

@@ -17,7 +17,7 @@ const SUPPLIER_CATEGORIES = [
 ];
 
 export default function SupplierProductsStep({ data, onUpdate, onNext, onBack }) {
-  const [selectedCats, setSelectedCats] = useState(data.productsSupplied || ['Grains & Staples', 'Rice (Raw & Boiled)', 'Edible & Cooking Oils']);
+  const [selectedCats, setSelectedCats] = useState(Array.isArray(data.productsSupplied) ? data.productsSupplied : []);
   const [customCat, setCustomCat] = useState('');
   const [error, setError] = useState('');
 

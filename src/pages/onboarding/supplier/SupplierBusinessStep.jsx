@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Building2, User, MapPin, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Building2, User, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import LocationPicker from '../../../components/LocationPicker';
 
 const SUPPLIER_TYPES = [
   'Wholesaler',
@@ -19,8 +20,9 @@ export default function SupplierBusinessStep({ data, onUpdate, onNext, onBack })
     const errs = {};
     if (!data.businessName?.trim()) errs.businessName = 'Company / business name is required';
     if (!data.contactPerson?.trim()) errs.contactPerson = 'Primary contact person is required';
-    if (!data.city?.trim()) errs.city = 'City is required';
-    if (!data.area?.trim()) errs.area = 'Area / warehouse locality is required';
+    if (!data.state?.trim()) errs.state = 'State is required';
+    if (!data.district?.trim()) errs.district = 'District is required';
+    if (!data.city?.trim()) errs.city = 'Operating city or warehouse locality is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -116,43 +118,17 @@ export default function SupplierBusinessStep({ data, onUpdate, onNext, onBack })
             />
           </div>
         </div>
+      </div>
 
-        {/* City */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Operating City <span className="text-rose-600">*</span>
-          </label>
-          <div className="relative">
-            <MapPin className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="e.g. Hyderabad"
-              value={data.city || 'Hyderabad'}
-              onChange={(e) => onUpdate({ city: e.target.value })}
-              className={`w-full border rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
-                errors.city ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-              }`}
-            />
-          </div>
-          {errors.city && <span className="text-[11px] text-rose-600 mt-1 block">{errors.city}</span>}
-        </div>
-
-        {/* Area / Industrial Locality */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Warehouse Locality / Industrial Hub <span className="text-rose-600">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. Kukatpally Industrial Area Phase 2"
-            value={data.area || ''}
-            onChange={(e) => onUpdate({ area: e.target.value })}
-            className={`w-full border rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
-              errors.area ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-            }`}
-          />
-          {errors.area && <span className="text-[11px] text-rose-600 mt-1 block">{errors.area}</span>}
-        </div>
+      {/* Warehouse Location & State Autocomplete with Map Preview */}
+      <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+        <LocationPicker
+          value={data}
+          onChange={(loc) => onUpdate(loc)}
+          label="Warehouse Location & Operating State"
+          required
+          errors={errors}
+        />
       </div>
 
       {/* Warehouse Physical Address */}

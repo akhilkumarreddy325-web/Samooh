@@ -42,16 +42,40 @@ export default function Dashboard() {
   const [selectedPool, setSelectedPool] = useState(null);
   const [isSeeding, setIsSeeding] = useState(false);
 
-  // Retailer Location Permission Flow State
+  // Retailer Location Permission Flow State - Optional, never blocks dashboard
   const [showLocationPrompt, setShowLocationPrompt] = useState(() => {
     try {
       const dismissed = sessionStorage.getItem('samooh_location_prompt_dismissed');
-      // Show prompt if location has not been permission-granted yet and not dismissed this session
-      return !userProfile?.location?.permissionGranted && !dismissed;
+      if (dismissed) return false;
+      const hasCoords = Boolean(
+        userProfile?.location?.latitude != null ||
+        user?.location?.latitude != null
+      );
+      const isGranted = Boolean(userProfile?.location?.permissionGranted);
+      return !hasCoords && !isGranted;
     } catch {
       return false;
     }
   });
+
+  // Dismiss prompt automatically if user profile already has location saved
+  useEffect(() => {
+    try {
+      const dismissed = sessionStorage.getItem('samooh_location_prompt_dismissed');
+      if (dismissed) {
+        setShowLocationPrompt(false);
+        return;
+      }
+      const hasCoords = Boolean(
+        userProfile?.location?.latitude != null ||
+        user?.location?.latitude != null
+      );
+      const isGranted = Boolean(userProfile?.location?.permissionGranted);
+      if (hasCoords || isGranted) {
+        setShowLocationPrompt(false);
+      }
+    } catch (_) {}
+  }, [userProfile, user]);
 
   useEffect(() => {
     loadDashboardData();

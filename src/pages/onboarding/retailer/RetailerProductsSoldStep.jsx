@@ -20,7 +20,7 @@ const COMMON_CATEGORIES = [
 ];
 
 export default function RetailerProductsSoldStep({ data, onUpdate, onNext, onBack }) {
-  const [selectedProducts, setSelectedProducts] = useState(data.productsSold || ['Rice', 'Cooking Oil', 'Pulses & Dal', 'Sugar']);
+  const [selectedProducts, setSelectedProducts] = useState(Array.isArray(data.productsSold) ? data.productsSold : []);
   const [customItem, setCustomItem] = useState('');
   const [error, setError] = useState('');
 

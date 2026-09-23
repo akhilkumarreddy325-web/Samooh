@@ -11,7 +11,11 @@ export default function SupplierPricingMoqStep({ data, onUpdate, onNext, onBack 
   const handlePriceChange = (field, val) => {
     setValidationError('');
     const updated = [...products];
-    updated[activeProdIndex][field] = parseFloat(val) || 0;
+    updated[activeProdIndex] = {
+      ...updated[activeProdIndex],
+      [field]: val === '' ? '' : (parseFloat(val) || val),
+      [field === 'wholesale_price' ? 'price' : field]: val
+    };
     setProducts(updated);
   };
 
@@ -179,8 +183,8 @@ export default function SupplierPricingMoqStep({ data, onUpdate, onNext, onBack 
               <input
                 type="number"
                 min="0.1"
-                step="0.5"
-                value={currentProduct.wholesale_price || ''}
+                step="any"
+                value={currentProduct.wholesale_price ?? currentProduct.price ?? ''}
                 onChange={(e) => handlePriceChange('wholesale_price', e.target.value)}
                 className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
               />

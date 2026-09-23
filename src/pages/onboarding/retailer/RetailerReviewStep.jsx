@@ -71,8 +71,10 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
             <span className="font-semibold text-slate-900 dark:text-white">{data.businessType || 'Kirana Store'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">City & Area</span>
-            <span className="font-semibold text-slate-900 dark:text-white">{data.area ? `${data.area}, ` : ''}{data.city}</span>
+            <span className="text-[11px] text-slate-500 block">Location</span>
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {[data.area, data.city, data.district, data.state].filter(Boolean).join(', ')}
+            </span>
           </div>
         </div>
       </div>

@@ -154,7 +154,7 @@ export function getOrsApiKey() {
  *   summary: string,
  * }>}
  */
-export async function fetchDrivingRoute(origin, destination) {
+export async function fetchDrivingRoute(origin, destination, options = {}) {
   if (
     !origin?.latitude || !origin?.longitude ||
     !destination?.latitude || !destination?.longitude
@@ -162,18 +162,19 @@ export async function fetchDrivingRoute(origin, destination) {
     throw new Error('Valid origin and destination coordinates are required for routing.');
   }
 
+  const profile = options?.profile || 'driving-car';
   const cacheKey =
     origin.latitude.toFixed(5) + ',' + origin.longitude.toFixed(5) +
     '->' +
-    destination.latitude.toFixed(5) + ',' + destination.longitude.toFixed(5);
+    destination.latitude.toFixed(5) + ',' + destination.longitude.toFixed(5) +
+    '->' + profile;
 
   if (routeCache.has(cacheKey)) return routeCache.get(cacheKey);
 
   const apiKey = getOrsApiKey();
   if (!apiKey) {
     throw new Error(
-      'MISSING_ORS_KEY: Add VITE_OPENROUTESERVICE_API_KEY to .env.local. ' +
-      'Get a free key at https://openrouteservice.org/dev/'
+      'MISSING_ORS_KEY: Add VITE_OPENROUTESERVICE_API_KEY to environment for road routing.'
     );
   }
 
@@ -188,7 +189,7 @@ export async function fetchDrivingRoute(origin, destination) {
   let response;
   try {
     response = await fetch(
-      'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
+      `https://api.openrouteservice.org/v2/directions/${profile}/geojson`,
       {
         method: 'POST',
         headers: {
@@ -197,9 +198,13 @@ export async function fetchDrivingRoute(origin, destination) {
           Accept: 'application/geo+json',
         },
         body: JSON.stringify(body),
+        signal: options?.signal,
       }
     );
-  } catch (_) {
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw err;
+    }
     throw new Error('Could not reach OpenRouteService. Check your internet connection.');
   }
 
@@ -273,4 +278,203 @@ export function getOSMDirectionsUrl(origin, destination) {
  */
 export function clearRouteCache() {
   routeCache.clear();
+}
+
+/**
+ * Searches for places/localities in India with state-scoped query constraints via Nominatim.
+ * Debounced by the calling UI component.
+ *
+ * @param {string} query Search text (e.g. "War", "Madhapur", "Vijayawada")
+ * @param {string} [stateName] Selected Indian state to constrain search
+ * @param {AbortSignal} [signal] Optional abort signal for cancelling stale requests
+ * @returns {Promise<Array<{
+ *   id: string,
+ *   displayName: string,
+ *   locality: string,
+ *   city: string,
+ *   district: string,
+ *   state: string,
+ *   pincode: string,
+ *   latitude: number,
+ *   longitude: number,
+ *   source: string
+ * }>>}
+ */
+export async function searchLocationsInIndia(query, stateName = '', districtOrSignal = '', signal = null) {
+  let districtName = '';
+  let activeSignal = signal;
+  if (districtOrSignal instanceof AbortSignal || (districtOrSignal && typeof districtOrSignal === 'object' && 'aborted' in districtOrSignal)) {
+    activeSignal = districtOrSignal;
+    districtName = '';
+  } else if (typeof districtOrSignal === 'string') {
+    districtName = districtOrSignal;
+  }
+
+  if (!query || !query.trim() || query.trim().length < 2) {
+    return [];
+  }
+
+  const cleanQuery = query.trim();
+  const searchParts = [cleanQuery];
+  if (districtName && districtName.trim() && !cleanQuery.toLowerCase().includes(districtName.toLowerCase())) {
+    searchParts.push(districtName.trim());
+  }
+  if (stateName && stateName.trim() && !cleanQuery.toLowerCase().includes(stateName.toLowerCase())) {
+    searchParts.push(stateName.trim());
+  }
+  searchParts.push('India');
+
+  const fullQuery = searchParts.join(', ');
+
+  const params = new URLSearchParams({
+    q: fullQuery,
+    format: 'json',
+    limit: '6',
+    countrycodes: 'in',
+    addressdetails: '1',
+  });
+
+  try {
+    const response = await fetch(
+      'https://nominatim.openstreetmap.org/search?' + params.toString(),
+      {
+        signal: signal || undefined,
+        headers: {
+          'User-Agent': 'Samooh-B2B-Procurement/1.0 (hackathon prototype; contact: admin@samooh.in)',
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.warn(`[Nominatim] Search returned status ${response.status}`);
+      return [];
+    }
+
+    const items = await response.json();
+    if (!Array.isArray(items)) return [];
+
+    return items
+      .map((item) => {
+        const addr = item.address || {};
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+
+        if (isNaN(lat) || isNaN(lon)) return null;
+
+        const city =
+          addr.city ||
+          addr.town ||
+          addr.village ||
+          addr.suburb ||
+          addr.municipality ||
+          addr.county ||
+          '';
+
+        const locality =
+          addr.suburb ||
+          addr.neighbourhood ||
+          addr.residential ||
+          addr.road ||
+          addr.hamlet ||
+          addr.industrial ||
+          city ||
+          cleanQuery;
+
+        const district = addr.state_district || addr.district || addr.county || '';
+        const state = addr.state || stateName || '';
+        const pincode = addr.postcode || '';
+
+        return {
+          id: String(item.place_id || `${lat}_${lon}`),
+          displayName: item.display_name || fullQuery,
+          locality,
+          city,
+          district,
+          state,
+          pincode,
+          latitude: lat,
+          longitude: lon,
+          source: 'geocoded',
+        };
+      })
+      .filter(Boolean);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      return [];
+    }
+    console.warn('[Nominatim] Geocoding lookup error:', err);
+    return [];
+  }
+}
+
+/**
+ * Reverse geocodes device GPS coordinates via Nominatim to extract structured Indian address fields.
+ *
+ * @param {number} latitude
+ * @param {number} longitude
+ * @returns {Promise<{
+ *   city: string,
+ *   town: string,
+ *   village: string,
+ *   area: string,
+ *   district: string,
+ *   state: string,
+ *   pincode: string,
+ *   formattedAddress: string,
+ *   latitude: number,
+ *   longitude: number,
+ *   source: string
+ * }>}
+ */
+export async function reverseGeocodeIndia(latitude, longitude) {
+  if (latitude == null || longitude == null) {
+    throw new Error('Valid latitude and longitude are required for reverse geocoding.');
+  }
+
+  const params = new URLSearchParams({
+    lat: String(latitude),
+    lon: String(longitude),
+    format: 'json',
+    addressdetails: '1',
+  });
+
+  const response = await fetch(
+    'https://nominatim.openstreetmap.org/reverse?' + params.toString(),
+    {
+      headers: {
+        'User-Agent': 'Samooh-B2B-Procurement/1.0 (hackathon prototype; contact: admin@samooh.in)',
+        Accept: 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Reverse geocoding failed with HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const addr = data.address || {};
+
+  const town = addr.town || '';
+  const village = addr.village || '';
+  const city = addr.city || town || village || addr.suburb || addr.municipality || '';
+  const area = addr.suburb || addr.neighbourhood || addr.residential || addr.road || addr.hamlet || '';
+  const district = addr.state_district || addr.district || addr.county || '';
+  const state = addr.state || '';
+  const pincode = addr.postcode || '';
+
+  return {
+    city,
+    town,
+    village,
+    area,
+    district,
+    state,
+    pincode,
+    formattedAddress: data.display_name || `${city}, ${state}`,
+    latitude: Number(latitude),
+    longitude: Number(longitude),
+    source: 'gps_reverse_geocoded',
+  };
 }

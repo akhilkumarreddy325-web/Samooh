@@ -8,7 +8,7 @@ import {
 import { useApp } from '../context/AppContext';
 
 export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
-  const { theme, t, userRole, switchRole, currentSupplier } = useApp();
+  const { theme, t, userRole, currentSupplier } = useApp();
   const location = useLocation();
   const isSupplier = userRole === 'supplier' || location.pathname.startsWith('/supplier');
 
@@ -133,35 +133,6 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
               </NavLink>
             );
           })}
-
-          {/* Portal Quick Switch */}
-          <div className="pt-3 mt-3 border-t border-slate-200/80 dark:border-slate-700/60">
-            {isSupplier ? (
-              <NavLink
-                to="/"
-                onClick={() => {
-                  switchRole('retailer');
-                  onCloseMobile?.();
-                }}
-                className="flex items-center space-x-2 px-2.5 py-2 rounded-md text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition"
-              >
-                <Store className="w-4 h-4 text-blue-600" />
-                <span>Switch to Kirana Portal</span>
-              </NavLink>
-            ) : (
-              <NavLink
-                to="/supplier"
-                onClick={() => {
-                  switchRole('supplier');
-                  onCloseMobile?.();
-                }}
-                className="flex items-center space-x-2 px-2.5 py-2 rounded-md text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition"
-              >
-                <Truck className="w-4 h-4 text-emerald-700" />
-                <span>Switch to Supplier Portal</span>
-              </NavLink>
-            )}
-          </div>
         </nav>
       </div>
 

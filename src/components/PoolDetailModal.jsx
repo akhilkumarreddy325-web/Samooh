@@ -1,16 +1,43 @@
-import React from 'react';
-import { X, MapPin, CheckCircle2, ShieldCheck, Info } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, MapPin, CheckCircle2, ShieldCheck, Info, Navigation } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import PooledInventorySection from './PooledInventorySection';
-import { useApp } from '../context/AppContext';
+import RetailerSupplierRouteMap from './RetailerSupplierRouteMap';
+import { useApp, DEMO_SUPPLIERS } from '../context/AppContext';
+import { SAMPLE_WAREHOUSE } from '../data/sampleNetworkLocations';
 import { formatINR } from '../utils/currency';
 
 export default function PoolDetailModal({ pool, onClose, onAccept }) {
-  const { t } = useApp();
+  const { t, user, userProfile } = useApp();
+  const [selectedSupplierId, setSelectedSupplierId] = useState(null);
+
   if (!pool) return null;
 
   const unitRetail = pool.unit_retail_price || 1450.0;
   const unitWholesale = pool.unit_wholesale_price || 1180.0;
+
+  // Resolve currently active supplier for route display
+  const activeSupplier = useMemo(() => {
+    const targetId = selectedSupplierId || pool.supplier_evaluation?.selected_supplier_id || pool.supplier_id || 'sup_01';
+    const foundDemo = Object.values(DEMO_SUPPLIERS || {}).find(
+      s => s.id === targetId || s.name === pool.supplier_evaluation?.selected_supplier_name
+    );
+    if (foundDemo) return foundDemo;
+
+    return {
+      id: targetId,
+      name: pool.supplier_evaluation?.selected_supplier_name || 'Wholesale Supplier',
+      businessLocation: {
+        latitude: SAMPLE_WAREHOUSE.latitude,
+        longitude: SAMPLE_WAREHOUSE.longitude,
+        locality: SAMPLE_WAREHOUSE.locality,
+        city: SAMPLE_WAREHOUSE.city,
+        state: SAMPLE_WAREHOUSE.state,
+        address: SAMPLE_WAREHOUSE.address,
+        pincode: SAMPLE_WAREHOUSE.pincode
+      }
+    };
+  }, [selectedSupplierId, pool]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -139,32 +166,64 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {pool.supplier_evaluation.evaluated_suppliers.map((cand, idx) => (
-                          <tr key={idx} className="py-1">
-                            <td className="p-1.5 font-medium text-slate-800 dark:text-slate-200">{cand.supplier_name}</td>
-                            <td className="p-1.5 text-center">{cand.moq}</td>
-                            <td className="p-1.5 text-center">{cand.available_stock}</td>
-                            <td className="p-1.5 text-center">{cand.service_radius_km} km</td>
-                            <td className="p-1.5 text-right font-semibold text-slate-900 dark:text-white">{formatINR(cand.unit_price)}</td>
-                            <td className="p-1.5 text-center">
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                cand.is_feasible ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'
-                              }`}>
-                                {cand.is_feasible ? 'Feasible' : 'Rejected'}
-                              </span>
-                            </td>
-                            <td className="p-1.5 text-slate-500">
-                              {cand.is_feasible 
-                                ? 'Meets constraints' 
-                                : cand.rejection_reasons?.join(', ')}
-                            </td>
-                          </tr>
-                        ))}
+                        {pool.supplier_evaluation.evaluated_suppliers.map((cand, idx) => {
+                          const isSelected = (selectedSupplierId || pool.supplier_evaluation.selected_supplier_id) === cand.supplier_id;
+                          return (
+                            <tr
+                              key={cand.supplier_id || idx}
+                              onClick={() => setSelectedSupplierId(cand.supplier_id)}
+                              className={`py-1 cursor-pointer transition ${
+                                isSelected ? 'bg-blue-50/80 dark:bg-blue-950/40 font-semibold' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                              }`}
+                            >
+                              <td className="p-1.5 text-slate-800 dark:text-slate-200 flex items-center space-x-1">
+                                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mr-0.5" />}
+                                <span>{cand.supplier_name}</span>
+                              </td>
+                              <td className="p-1.5 text-center">{cand.moq}</td>
+                              <td className="p-1.5 text-center">{cand.available_stock}</td>
+                              <td className="p-1.5 text-center">{cand.service_radius_km} km</td>
+                              <td className="p-1.5 text-right font-semibold text-slate-900 dark:text-white">{formatINR(cand.unit_price)}</td>
+                              <td className="p-1.5 text-center">
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  cand.is_feasible ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'
+                                }`}>
+                                  {cand.is_feasible ? 'Feasible' : 'Rejected'}
+                                </span>
+                              </td>
+                              <td className="p-1.5 text-slate-500 text-[10px]">
+                                {cand.is_feasible 
+                                  ? 'Meets constraints' 
+                                  : cand.rejection_reasons?.join(', ')}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </div>
               )}
+
+              {/* Retailer Shop to Supplier Warehouse Route Map */}
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Retailer Shop → Supplier Warehouse Route</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Destination: {activeSupplier?.name}
+                  </span>
+                </div>
+
+                <RetailerSupplierRouteMap
+                  retailer={user}
+                  userProfile={userProfile}
+                  supplier={activeSupplier}
+                  height="250px"
+                />
+              </div>
             </div>
           )}
         </div>

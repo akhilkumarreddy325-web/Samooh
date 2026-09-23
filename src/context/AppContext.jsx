@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { 
   getUserProfile, 
+  getSupplierProfile,
   initializeUserProfile, 
   saveRetailerOnboarding, 
   saveSupplierOnboarding, 
@@ -10,6 +11,7 @@ import {
   handleRedirectResult 
 } from '../services/authService';
 import { formatINR } from '../utils/currency';
+import { SAMPLE_WAREHOUSE } from '../data/sampleNetworkLocations';
 
 const translations = {
   en: {
@@ -56,7 +58,6 @@ const translations = {
     supplierNearbyRetailers: 'Nearby Retailers',
     supplierModeActive: 'Wholesale Supplier Mode Active',
     switchToSupplier: '🏢 Switch to Supplier Portal',
-    switchToRetailer: '🏪 Switch to Kirana Portal',
     currentSupplierLabel: 'Active Supplier Partner',
 
     // Dashboard Page
@@ -234,7 +235,6 @@ const translations = {
     supplierNearbyRetailers: 'निकटवर्ती किराना रिटेलर्स',
     supplierModeActive: 'आपूर्तिकर्ता मोड सक्रिय',
     switchToSupplier: '🏢 आपूर्तिकर्ता पोर्टल पर जाएं',
-    switchToRetailer: '🏪 किराना पोर्टल पर जाएं',
     currentSupplierLabel: 'सक्रिय थोक आपूर्तिकर्ता',
 
     // Dashboard Page
@@ -432,12 +432,24 @@ export const DEMO_USERS = {
 export const DEMO_SUPPLIERS = {
   deccan: {
     id: 'sup_01',
-    name: 'Deccan Wholesale Grains & Pulses',
+    name: 'Deccan Wholesale Hub — Medchal',
     contactPerson: 'Rajesh Agarwal',
     email: 'deccan@samooh.in',
     phone: '+91 98480 12345',
-    address: 'Plot 45, Phase 2, Kukatpally Industrial Area, Hyderabad (500072)',
-    location: 'Kukatpally Industrial Area',
+    address: SAMPLE_WAREHOUSE.address,
+    location: SAMPLE_WAREHOUSE.locality,
+    city: SAMPLE_WAREHOUSE.city,
+    state: SAMPLE_WAREHOUSE.state,
+    pincode: SAMPLE_WAREHOUSE.pincode,
+    businessLocation: {
+      latitude: SAMPLE_WAREHOUSE.latitude,
+      longitude: SAMPLE_WAREHOUSE.longitude,
+      locality: SAMPLE_WAREHOUSE.locality,
+      city: SAMPLE_WAREHOUSE.city,
+      state: SAMPLE_WAREHOUSE.state,
+      address: SAMPLE_WAREHOUSE.address,
+      pincode: SAMPLE_WAREHOUSE.pincode
+    },
     categories: ['Grains'],
     serviceRadiusKm: 60.0,
     leadTimeDays: 2,
@@ -695,15 +707,20 @@ export function AppProvider({ children }) {
             localStorage.setItem('samooh_role', role);
 
             if (role === 'supplier') {
+              let supDoc = null;
+              try {
+                supDoc = await getSupplierProfile(fbUser.uid);
+              } catch (_) {}
               const supObj = {
                 id: fbUser.uid,
-                name: profile.name || profile.businessName || fbUser.displayName || 'Wholesale Supplier',
-                contactPerson: profile.contactPerson || fbUser.displayName || 'Supplier Partner',
+                name: supDoc?.name || supDoc?.businessName || profile.name || profile.businessName || fbUser.displayName || 'Wholesale Supplier',
+                contactPerson: supDoc?.contactPerson || profile.contactPerson || fbUser.displayName || 'Supplier Partner',
                 email: fbUser.email,
-                phone: profile.phone || '+91 98480 12345',
-                city: profile.city || 'Hyderabad',
-                location: profile.location || 'Hyderabad',
-                serviceRadiusKm: profile.serviceRadiusKm || 50,
+                phone: supDoc?.phone || supDoc?.contactPhone || profile.phone || '+91 98480 12345',
+                city: supDoc?.city || profile.city || 'Hyderabad',
+                location: supDoc?.location || profile.location || 'Hyderabad',
+                serviceRadiusKm: supDoc?.serviceRadiusKm || profile.serviceRadiusKm || 50,
+                businessLocation: supDoc?.businessLocation || profile.businessLocation || null,
                 status: 'ACTIVE'
               };
               setCurrentSupplier(supObj);
@@ -760,9 +777,12 @@ export function AppProvider({ children }) {
       storeName: formData.shopName || formData.storeName,
       ownerName: formData.ownerName,
       email: auth.currentUser?.email || firebaseUser?.email || user?.email || 'owner@kirana.in',
-      city: formData.city || 'Hyderabad',
-      clusterHub: `${formData.city || 'Hyderabad'} Kirana Cluster #1`,
+      city: formData.city || '',
+      state: formData.state || '',
+      clusterHub: `${formData.city || 'Regional'} Kirana Cluster #1`,
       address: formData.address || `${formData.area || ''}, ${formData.city || ''}`,
+      pincode: formData.pincode || '',
+      businessLocation: formData.businessLocation || null,
       monthlyBudget: formatINR(formData.maxProcurementBudget || 250000),
       totalSaved: formatINR(0),
       rating: 4.9,
@@ -796,9 +816,13 @@ export function AppProvider({ children }) {
       contactPerson: formData.contactPerson,
       email: auth.currentUser?.email || firebaseUser?.email || currentSupplier?.email || 'supplier@wholesale.in',
       phone: formData.contactPhone || '+91 98480 12345',
-      address: formData.warehouseAddress || `${formData.area || ''}, ${formData.city || ''}`,
-      location: formData.area || 'Hyderabad',
-      categories: formData.productsSupplied || ['Grains & Staples'],
+      address: formData.warehouseAddress || formData.address || `${formData.area || ''}, ${formData.city || ''}`,
+      city: formData.city || '',
+      state: formData.state || '',
+      location: formData.area || formData.city || '',
+      pincode: formData.pincode || '',
+      businessLocation: formData.businessLocation || null,
+      categories: Array.isArray(formData.productsSupplied) ? formData.productsSupplied : [],
       serviceRadiusKm: Number(formData.serviceRadiusKm || 50),
       leadTimeDays: Number(formData.leadTimeDays || 2),
       rating: 4.8,

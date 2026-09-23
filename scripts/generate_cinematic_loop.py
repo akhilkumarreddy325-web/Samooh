@@ -11,7 +11,9 @@ Features:
 """
 
 import os
+# pyrefly: ignore [missing-import]
 from PIL import Image
+# pyrefly: ignore [missing-import]
 import numpy as np
 import imageio.v2 as imageio
 

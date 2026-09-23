@@ -94,11 +94,11 @@ export default function SupplierDashboard() {
               Wholesale Portal
             </span>
             <span className="text-xs text-slate-500 font-normal">
-              {currentSupplier?.address || 'Hyderabad Logistics Hub'}
+              {currentSupplier?.address || currentSupplier?.location || 'Wholesale Logistics Hub'}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
-            {currentSupplier?.name || 'Deccan Wholesale Grains & Pulses'}
+            {currentSupplier?.name || 'Wholesale Supplier Hub'}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Manage wholesale catalog, volume pricing tiers, MOQ thresholds, and pooled Kirana cluster orders.

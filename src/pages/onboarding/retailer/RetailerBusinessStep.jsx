@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Store, User, MapPin, Building, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Store, User, Building, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import LocationPicker from '../../../components/LocationPicker';
 
 const BUSINESS_TYPES = [
   'Kirana Store',
@@ -18,8 +19,9 @@ export default function RetailerBusinessStep({ data, onUpdate, onNext, onBack })
     const errs = {};
     if (!data.shopName?.trim()) errs.shopName = 'Store name is required';
     if (!data.ownerName?.trim()) errs.ownerName = 'Owner / contact name is required';
-    if (!data.city?.trim()) errs.city = 'City is required';
-    if (!data.area?.trim()) errs.area = 'Area / locality is required';
+    if (!data.state?.trim()) errs.state = 'State is required';
+    if (!data.district?.trim()) errs.district = 'District is required';
+    if (!data.city?.trim()) errs.city = 'Operating city or locality is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -118,57 +120,85 @@ export default function RetailerBusinessStep({ data, onUpdate, onNext, onBack })
             />
           </div>
         </div>
+      </div>
 
-        {/* City */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            City <span className="text-rose-600">*</span>
-          </label>
-          <div className="relative">
-            <MapPin className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="e.g. Hyderabad"
-              value={data.city || 'Hyderabad'}
-              onChange={(e) => onUpdate({ city: e.target.value })}
-              className={`w-full border rounded-md pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
-                errors.city ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-              }`}
-            />
-          </div>
-          {errors.city && <span className="text-[11px] text-rose-600 mt-1 block">{errors.city}</span>}
-        </div>
+      {/* State & Location Autocomplete with Map Preview */}
+      <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+        <LocationPicker
+          value={data}
+          onChange={(loc) => onUpdate(loc)}
+          label="Store Operating Location & State"
+          required
+          errors={errors}
+        />
+      </div>
 
-        {/* Area / Locality */}
-        <div>
+      {/* Shop Address & Pincode */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="sm:col-span-2">
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Area / Locality <span className="text-rose-600">*</span>
+            Shop Address <span className="text-slate-400 font-normal">(Physical shop location)</span>
           </label>
           <input
             type="text"
-            placeholder="e.g. Banjara Hills Road No 12"
-            value={data.area || ''}
-            onChange={(e) => onUpdate({ area: e.target.value })}
-            className={`w-full border rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800 ${
-              errors.area ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'
-            }`}
+            placeholder="Enter your shop address (Door No, Street Name, Landmark)"
+            value={data.address || ''}
+            onChange={(e) => {
+              const newAddr = e.target.value;
+              onUpdate({
+                address: newAddr,
+                businessLocation: data.businessLocation ? {
+                  ...data.businessLocation,
+                  address: newAddr
+                } : (data.latitude && data.longitude ? {
+                  address: newAddr,
+                  area: data.area || data.city || '',
+                  city: data.city || '',
+                  district: data.district || '',
+                  state: data.state || '',
+                  pincode: data.pincode || '',
+                  latitude: data.latitude,
+                  longitude: data.longitude,
+                  source: 'manual_entry'
+                } : null)
+              });
+            }}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
           />
-          {errors.area && <span className="text-[11px] text-rose-600 mt-1 block">{errors.area}</span>}
         </div>
-      </div>
 
-      {/* Shop Address */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-          Full Physical Address (Optional)
-        </label>
-        <input
-          type="text"
-          placeholder="Door No, Street Name, Landmark"
-          value={data.address || ''}
-          onChange={(e) => onUpdate({ address: e.target.value })}
-          className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
-        />
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Pincode
+          </label>
+          <input
+            type="text"
+            maxLength={6}
+            placeholder="e.g. 500034"
+            value={data.pincode || ''}
+            onChange={(e) => {
+              const newPin = e.target.value.replace(/\D/g, '');
+              onUpdate({
+                pincode: newPin,
+                businessLocation: data.businessLocation ? {
+                  ...data.businessLocation,
+                  pincode: newPin
+                } : (data.latitude && data.longitude ? {
+                  address: data.address || '',
+                  area: data.area || data.city || '',
+                  city: data.city || '',
+                  district: data.district || '',
+                  state: data.state || '',
+                  pincode: newPin,
+                  latitude: data.latitude,
+                  longitude: data.longitude,
+                  source: 'manual_entry'
+                } : null)
+              });
+            }}
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
+          />
+        </div>
       </div>
 
       {/* Optional Business Metrics */}

@@ -15,12 +15,12 @@ export default function SupplierProfile() {
   const [editing, setEditing] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const [name, setName] = useState(currentSupplier?.name || 'Deccan Wholesale Grains');
-  const [contactPerson, setContactPerson] = useState(currentSupplier?.contactPerson || 'Rajesh Agarwal');
-  const [email, setEmail] = useState(currentSupplier?.email || 'deccan@samooh.in');
-  const [phone, setPhone] = useState(currentSupplier?.phone || '+91 98480 12345');
-  const [address, setAddress] = useState(currentSupplier?.address || 'Plot 45, Phase 2, Kukatpally, Hyderabad');
-  const [serviceRadiusKm, setServiceRadiusKm] = useState(currentSupplier?.serviceRadiusKm || 60);
+  const [name, setName] = useState(currentSupplier?.name || '');
+  const [contactPerson, setContactPerson] = useState(currentSupplier?.contactPerson || '');
+  const [email, setEmail] = useState(currentSupplier?.email || firebaseUser?.email || '');
+  const [phone, setPhone] = useState(currentSupplier?.phone || '');
+  const [address, setAddress] = useState(currentSupplier?.address || '');
+  const [serviceRadiusKm, setServiceRadiusKm] = useState(currentSupplier?.serviceRadiusKm || 50);
   const [leadTimeDays, setLeadTimeDays] = useState(currentSupplier?.leadTimeDays || 2);
 
   // Business location geocoding state
@@ -28,10 +28,10 @@ export default function SupplierProfile() {
     currentSupplier?.businessLocation?.address || currentSupplier?.address || ''
   );
   const [warehouseCity, setWarehouseCity] = useState(
-    currentSupplier?.businessLocation?.city || currentSupplier?.city || 'Hyderabad'
+    currentSupplier?.businessLocation?.city || currentSupplier?.city || ''
   );
   const [warehouseState, setWarehouseState] = useState(
-    currentSupplier?.businessLocation?.state || 'Telangana'
+    currentSupplier?.businessLocation?.state || ''
   );
   const [warehousePincode, setWarehousePincode] = useState(
     currentSupplier?.businessLocation?.pincode || ''
