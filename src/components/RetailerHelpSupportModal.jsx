@@ -19,18 +19,18 @@ import {
 } from '../services/supportService';
 
 const CATEGORIES = [
-  'Stock / Quantity',
-  'Payment',
-  'Order',
-  'Supplier',
-  'Delivery',
-  'Product',
-  'Account',
-  'Other'
+  { key: 'stockIssue', fallback: 'Stock issue', storedVal: 'Stock / Quantity' },
+  { key: 'paymentIssue', fallback: 'Payment issue', storedVal: 'Payment' },
+  { key: 'orderIssue', fallback: 'Order issue', storedVal: 'Order' },
+  { key: 'supplierIssue', fallback: 'Supplier issue', storedVal: 'Supplier' },
+  { key: 'deliveryIssue', fallback: 'Delivery issue', storedVal: 'Delivery' },
+  { key: 'productIssue', fallback: 'Product issue', storedVal: 'Product' },
+  { key: 'accountIssue', fallback: 'Account issue', storedVal: 'Account' },
+  { key: 'other', fallback: 'Other', storedVal: 'Other' }
 ];
 
 export default function RetailerHelpSupportModal({ isOpen, onClose }) {
-  const { theme, user, firebaseUser } = useApp();
+  const { theme, user, firebaseUser, t } = useApp();
 
   const [category, setCategory] = useState('');
   const [message, setMessage] = useState('');
@@ -70,7 +70,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) {
-      setError('Please describe your issue or query.');
+      setError(t('describeIssue') || 'Please describe your issue or query.');
       return;
     }
 
@@ -142,10 +142,10 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 id="help-support-title" className="text-base font-bold text-slate-900 dark:text-white">
-                Help & Support
+                {t('helpSupport') || 'Help & Support'}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Having an issue? Tell us what happened and we'll help.
+                {t('helpSupportSubtitle') || "Having an issue? Tell us what happened and we'll help."}
               </p>
             </div>
           </div>
@@ -168,10 +168,10 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
-                  Your issue has been submitted.
+                  {t('issueSubmittedTitle') || 'Your issue has been submitted.'}
                 </h3>
                 <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-1">
-                  We'll review your query and get back to you.
+                  {t('issueSubmittedDesc') || "We'll review your query and get back to you."}
                 </p>
               </div>
               <div className="pt-2 flex justify-center space-x-2">
@@ -180,14 +180,14 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   onClick={handleResetForNew}
                   className="px-3 py-1.5 rounded-md border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-slate-800 text-emerald-900 dark:text-emerald-200 text-xs font-medium hover:bg-emerald-50 dark:hover:bg-slate-700 transition"
                 >
-                  Submit Another Query
+                  {t('submitAnother') || 'Submit Another Query'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowHistory(true)}
                   className="px-3 py-1.5 rounded-md bg-emerald-800 text-white text-xs font-medium hover:bg-emerald-900 transition"
                 >
-                  View My Requests
+                  {t('viewMyRequests') || 'View My Requests'}
                 </button>
               </div>
             </div>
@@ -208,7 +208,8 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   htmlFor="support-category-select"
                   className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                 >
-                  What's the issue about? <span className="text-slate-400 font-normal">(optional)</span>
+                  {t('issueType') || "What's the issue about?"}{' '}
+                  <span className="text-slate-400 font-normal">{t('issueAboutOptional') || '(optional)'}</span>
                 </label>
                 <select
                   id="support-category-select"
@@ -216,10 +217,10 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-800 transition"
                 >
-                  <option value="">Select a category...</option>
+                  <option value="">{t('selectCategoryPrompt') || 'Select a category...'}</option>
                   {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                    <option key={cat.storedVal} value={cat.storedVal}>
+                      {t(cat.key) || cat.fallback}
                     </option>
                   ))}
                 </select>
@@ -231,14 +232,14 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   htmlFor="support-message-input"
                   className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
                 >
-                  Describe your issue or query
+                  {t('describeIssue') || 'Describe your issue or query'}
                 </label>
                 <textarea
                   id="support-message-input"
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe your issue or query..."
+                  placeholder={t('describeIssuePlaceholder') || 'Describe your issue or query...'}
                   className="w-full border border-slate-200 dark:border-slate-700 rounded-md p-2.5 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-800 resize-none transition"
                 />
               </div>
@@ -251,7 +252,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   className="px-4 py-2 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium shadow-sm transition flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmitting ? 'Submitting...' : 'Submit Issue'}</span>
+                  <span>{isSubmitting ? (t('submitting') || 'Submitting...') : (t('submitQuery') || 'Submit Issue')}</span>
                 </button>
               </div>
             </form>
@@ -264,17 +265,17 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
             </div>
             <div>
               <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                Need immediate help?
+                {t('needImmediateHelp') || 'Need immediate help?'}
               </span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
-                Call Support:{' '}
+                {t('callSupport') || 'Call Support'}:{' '}
                 {CONFIGURED_SUPPORT_PHONE ? (
                   <strong className="text-slate-700 dark:text-slate-200 font-medium">
                     {CONFIGURED_SUPPORT_PHONE}
                   </strong>
                 ) : (
                   <span className="text-slate-500 italic">
-                    Support contact will be available soon
+                    {t('supportContactSoon') || 'Support contact will be available soon'}
                   </span>
                 )}
               </span>
@@ -290,7 +291,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
             >
               <div className="flex items-center space-x-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
-                <span>My Requests</span>
+                <span>{t('myRequests') || 'My Requests'}</span>
                 {requests.length > 0 && (
                   <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">
                     {requests.length}
@@ -307,7 +308,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
             {showHistory && (
               <div className="mt-2.5 space-y-2 max-h-44 overflow-y-auto pr-0.5">
                 {loadingRequests ? (
-                  <p className="text-[11px] text-slate-400 py-2 text-center">Loading requests...</p>
+                  <p className="text-[11px] text-slate-400 py-2 text-center">{t('loadingRequests') || 'Loading requests...'}</p>
                 ) : requests.length > 0 ? (
                   requests.map((req) => (
                     <div 
@@ -337,7 +338,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
                   ))
                 ) : (
                   <p className="text-[11px] text-slate-400 py-2 text-center">
-                    No support requests submitted yet.
+                    {t('noRequestsYet') || 'No support requests submitted yet.'}
                   </p>
                 )}
               </div>
@@ -352,7 +353,7 @@ export default function RetailerHelpSupportModal({ isOpen, onClose }) {
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
           >
-            Close
+            {t('cancel') || 'Cancel'}
           </button>
         </div>
       </div>
