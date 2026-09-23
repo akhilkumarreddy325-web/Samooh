@@ -88,6 +88,51 @@ export const MOCK_RECOMMENDATIONS = [
         { vehicle_id: "veh_mgv_eicher_pro", vehicle_name: "Eicher Pro (MGV)", capacity_kg: 2500, capacity_utilization_pct: 43.5, is_feasible: true, estimated_cost_inr: 885 }
       ]
     },
+    supplier_evaluation: {
+      is_feasible: true,
+      selected_supplier_id: "sup_01",
+      selected_supplier_name: "Hyderabad Agro Wholesale Hub",
+      moq: 40.0,
+      available_stock: 120.0,
+      unit_price: 1180.0,
+      selection_reasons: [
+        "Supplier MOQ (40.0 bags) is satisfied by pooled volume (43.5 bags)",
+        "Supplier has 120.0 bags in stock (sufficient for 43.5 bags requirement)",
+        "Geographical coverage within delivery radius"
+      ],
+      evaluated_suppliers: [
+        {
+          supplier_id: "sup_01",
+          supplier_name: "Hyderabad Agro Wholesale Hub",
+          moq: 40.0,
+          available_stock: 120.0,
+          service_radius_km: 15.0,
+          unit_price: 1180.0,
+          is_feasible: true,
+          rejection_reasons: []
+        },
+        {
+          supplier_id: "sup_02",
+          supplier_name: "Sri Balaji Grain Merchants",
+          moq: 60.0,
+          available_stock: 200.0,
+          service_radius_km: 10.0,
+          unit_price: 1150.0,
+          is_feasible: false,
+          rejection_reasons: ["MOQ cannot be satisfied within the compatible retailer group (60.0 bags required > 43.5 bags)"]
+        },
+        {
+          supplier_id: "sup_03",
+          supplier_name: "Deccan Agro Supplies",
+          moq: 30.0,
+          available_stock: 25.0,
+          service_radius_km: 12.0,
+          unit_price: 1190.0,
+          is_feasible: false,
+          rejection_reasons: ["Available stock is below required pooled quantity (25.0 bags < 43.5 bags)"]
+        }
+      ]
+    },
     created_at: "2026-08-13T12:00:00Z"
   },
   {
@@ -148,6 +193,40 @@ export const MOCK_RECOMMENDATIONS = [
       alternative_options: [
         { vehicle_id: "veh_3w_electric", vehicle_name: "Piaggio Ape E-Loader", capacity_kg: 500, capacity_utilization_pct: 88.0, is_feasible: true, estimated_cost_inr: 536 },
         { vehicle_id: "veh_scv_tata_ace", vehicle_name: "Tata Ace (SCV)", capacity_kg: 1000, capacity_utilization_pct: 44.0, is_feasible: true, estimated_cost_inr: 852 }
+      ]
+    },
+    supplier_evaluation: {
+      is_feasible: false,
+      selected_supplier_id: "sup_04",
+      selected_supplier_name: "Vijaya Oil Refineries",
+      moq: 35.0,
+      available_stock: 90.0,
+      unit_price: 1620.0,
+      selection_reasons: [
+        "Supplier has sufficient stock (90.0 tins)",
+        "Lowest wholesale pricing tier"
+      ],
+      evaluated_suppliers: [
+        {
+          supplier_id: "sup_04",
+          supplier_name: "Vijaya Oil Refineries",
+          moq: 35.0,
+          available_stock: 90.0,
+          service_radius_km: 20.0,
+          unit_price: 1620.0,
+          is_feasible: false,
+          rejection_reasons: ["MOQ deficit: Pool volume 31.0 tins is below supplier MOQ of 35.0 tins (-4.0 tins needed)"]
+        },
+        {
+          supplier_id: "sup_05",
+          supplier_name: "Charminar Edible Traders",
+          moq: 20.0,
+          available_stock: 15.0,
+          service_radius_km: 8.0,
+          unit_price: 1680.0,
+          is_feasible: false,
+          rejection_reasons: ["Available stock is below required pooled quantity (15.0 tins < 31.0 tins)"]
+        }
       ]
     },
     created_at: "2026-08-13T12:30:00Z"
@@ -476,3 +555,137 @@ export const MOCK_IMPACT = {
     { product: "Surf Excel Easy Wash Carton", individual_price: 2800, pooled_price: 2250, savings_pct: 19.6, annual_savings: 66000 }
   ]
 };
+
+export const MOCK_OPPORTUNITIES = [
+  {
+    opportunityId: "opp_demo_001",
+    id: "opp_demo_001",
+    productId: "prod_001",
+    canonicalProductId: "grocery_rice_basmati",
+    productName: "Basmati Rice (25kg Bag)",
+    sectorId: "grocery",
+    category: "Grains & Cereals",
+    retailerIds: ["ret_001", "ret_002", "ret_005"],
+    retailerCount: 3,
+    retailerDemands: { "ret_001": 30.0, "ret_002": 25.0, "ret_005": 20.0 },
+    retailerNames: ["Sri Lakshmi Kirana Store", "Balaji Superette", "Sai Ram Provisions"],
+    supplierId: "sup_01",
+    supplierName: "Deccan Wholesale Grains",
+    combinedQuantity: 75.0,
+    unit: "bags (25kg)",
+    supplierAvailableQuantity: 500.0,
+    supplierMOQ: 50.0,
+    moqShortfall: 0.0,
+    estimatedUnitPrice: 1180.0,
+    estimatedTotalValue: 88500.0,
+    geographicDistanceKm: 3.8,
+    geographicFeasibility: "COMPATIBLE",
+    feasibility: "FEASIBLE",
+    status: "FEASIBLE",
+    opportunityScore: 92.5,
+    scoreLabel: "Feasible",
+    reasons: [
+      "3 retailers require the same canonical product (Basmati Rice)",
+      "Combined demand (75.0 bags) satisfies supplier MOQ (50.0 bags)",
+      "Supplier Deccan Wholesale Grains has 500.0 bags available",
+      "Average cluster distance is 3.8 km"
+    ],
+    constraints: [
+      "Supplier MOQ: 50.0 bags",
+      "Supplier Stock: 500.0 bags",
+      "Delivery Distance: 3.8 km"
+    ],
+    isAlreadyInPool: false,
+    existingPoolId: null,
+    isDemo: true,
+    createdAt: "2026-09-23T12:00:00Z",
+    updatedAt: "2026-09-23T12:00:00Z"
+  },
+  {
+    opportunityId: "opp_demo_002",
+    id: "opp_demo_002",
+    productId: "prod_002",
+    canonicalProductId: "grocery_pulses_toordal",
+    productName: "Toor Dal Premium (50kg Bag)",
+    sectorId: "grocery",
+    category: "Pulses",
+    retailerIds: ["ret_003", "ret_004"],
+    retailerCount: 2,
+    retailerDemands: { "ret_003": 15.0, "ret_004": 20.0 },
+    retailerNames: ["Venkateshwara Traders", "Bhavani Provision Store"],
+    supplierId: "sup_01",
+    supplierName: "Deccan Wholesale Grains",
+    combinedQuantity: 35.0,
+    unit: "bags (50kg)",
+    supplierAvailableQuantity: 400.0,
+    supplierMOQ: 50.0,
+    moqShortfall: 15.0,
+    estimatedUnitPrice: 4850.0,
+    estimatedTotalValue: 169750.0,
+    geographicDistanceKm: 4.2,
+    geographicFeasibility: "COMPATIBLE",
+    feasibility: "BELOW_MOQ",
+    status: "BELOW_MOQ",
+    opportunityScore: 68.0,
+    scoreLabel: "Needs 15.0 more demand",
+    reasons: [
+      "2 retailers require the same canonical product (Toor Dal)",
+      "Combined demand is 35.0 bags",
+      "Combined demand is below supplier MOQ (35.0 < 50.0 bags)",
+      "Supplier Deccan Wholesale Grains has 400.0 bags available"
+    ],
+    constraints: [
+      "Supplier MOQ: 50.0 bags",
+      "Needs 15.0 bags additional compatible demand",
+      "Available Supplier Stock: 400.0 bags"
+    ],
+    isAlreadyInPool: false,
+    existingPoolId: null,
+    isDemo: true,
+    createdAt: "2026-09-23T12:00:00Z",
+    updatedAt: "2026-09-23T12:00:00Z"
+  },
+  {
+    opportunityId: "opp_demo_003",
+    id: "opp_demo_003",
+    productId: "prod_009",
+    canonicalProductId: "grocery_oil_sunflower",
+    productName: "Freedom Refined Sunflower Oil (15L Tin)",
+    sectorId: "grocery",
+    category: "Cooking Essentials",
+    retailerIds: ["ret_001", "ret_006", "ret_007", "ret_008"],
+    retailerCount: 4,
+    retailerDemands: { "ret_001": 20.0, "ret_006": 20.0, "ret_007": 15.0, "ret_008": 15.0 },
+    retailerNames: ["Sri Lakshmi Kirana Store", "Maruti Wholesale", "Ganesh General Store", "Venkateshwara Traders"],
+    supplierId: "sup_02",
+    supplierName: "Telangana Oil Mills",
+    combinedQuantity: 70.0,
+    unit: "tin",
+    supplierAvailableQuantity: 45.0,
+    supplierMOQ: 35.0,
+    moqShortfall: 0.0,
+    estimatedUnitPrice: 1620.0,
+    estimatedTotalValue: 113400.0,
+    geographicDistanceKm: 5.1,
+    geographicFeasibility: "COMPATIBLE",
+    feasibility: "INSUFFICIENT_STOCK",
+    status: "INSUFFICIENT_STOCK",
+    opportunityScore: 71.0,
+    scoreLabel: "Limited by supplier stock",
+    reasons: [
+      "4 retailers require the same canonical product (Sunflower Oil)",
+      "Combined demand (70.0 tin) satisfies supplier MOQ (35.0 tin)",
+      "Supplier stock is below pooled requirement (45.0 < 70.0 tin)"
+    ],
+    constraints: [
+      "Supplier MOQ: 35.0 tin",
+      "Available Supplier Stock: 45.0 tin",
+      "Inventory shortage of 25.0 tin"
+    ],
+    isAlreadyInPool: false,
+    existingPoolId: null,
+    isDemo: true,
+    createdAt: "2026-09-23T12:00:00Z",
+    updatedAt: "2026-09-23T12:00:00Z"
+  }
+];

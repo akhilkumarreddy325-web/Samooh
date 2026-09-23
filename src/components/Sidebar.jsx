@@ -7,11 +7,13 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import RetailerHelpSupportModal from './RetailerHelpSupportModal';
+import SupplierHelpSupportModal from './SupplierHelpSupportModal';
 
 export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
   const { theme, t, userRole, currentSupplier } = useApp();
   const location = useLocation();
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSupplierHelpOpen, setIsSupplierHelpOpen] = useState(false);
   const isSupplier = userRole === 'supplier' || location.pathname.startsWith('/supplier');
 
   // Retailer Navigation Items
@@ -164,6 +166,31 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
           </div>
         )}
 
+        {/* Supplier Help & Support Trigger Option */}
+        {isSupplier && (
+          <div className="pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
+            <button
+              type="button"
+              id="supplier-help-support-button"
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                setIsSupplierHelpOpen(true);
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-md text-xs font-medium transition ${
+                theme === 'light'
+                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+              title="Supplier Help & Support"
+            >
+              <div className="flex items-center space-x-2.5">
+                <HelpCircle className="w-4 h-4 text-slate-500" />
+                <span>{t('helpSupport') || 'Help & Support'}</span>
+              </div>
+            </button>
+          </div>
+        )}
+
         {/* System Status Footer Card */}
         <div className={`p-3 rounded-md border text-xs ${
           theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-800/60 border-slate-700 text-slate-300'
@@ -213,6 +240,14 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile }) {
         <RetailerHelpSupportModal
           isOpen={isHelpOpen}
           onClose={() => setIsHelpOpen(false)}
+        />
+      )}
+
+      {/* Supplier Help & Support Modal */}
+      {isSupplier && (
+        <SupplierHelpSupportModal
+          isOpen={isSupplierHelpOpen}
+          onClose={() => setIsSupplierHelpOpen(false)}
         />
       )}
     </>

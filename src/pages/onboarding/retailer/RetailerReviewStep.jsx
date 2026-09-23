@@ -1,6 +1,7 @@
 import React from 'react';
 import { Store, ShoppingBag, ShieldCheck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
 import { formatINR } from '../../../utils/currency';
+import { getSectorById } from '../../../data/businessSectors';
 
 export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmitting, submitError, onBack }) {
   return (
@@ -67,8 +68,10 @@ export default function RetailerReviewStep({ data, onEditStep, onSubmit, isSubmi
             <span className="font-semibold text-slate-900 dark:text-white">{data.ownerName || 'Store Owner'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">Store Format</span>
-            <span className="font-semibold text-slate-900 dark:text-white">{data.businessType || 'Kirana Store'}</span>
+            <span className="text-[11px] text-slate-500 block">Sector / Format</span>
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {getSectorById(data.businessSectorId)?.name || data.businessType || 'Kirana Store'}
+            </span>
           </div>
           <div>
             <span className="text-[11px] text-slate-500 block">Location</span>

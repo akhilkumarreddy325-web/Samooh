@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu, Truck, ChevronDown, Check } from 'lucide-react';
+import { Search, Bell, Wifi, Rocket, Sparkles, Sun, Moon, Languages, LogOut, User, MapPin, Building, ShieldCheck, Mail, Store, Menu, Truck, ChevronDown, Check, HelpCircle } from 'lucide-react';
 import { checkHealth, triggerDemoScenario } from '../services/api';
 import { useApp } from '../context/AppContext';
+import SupplierHelpSupportModal from './SupplierHelpSupportModal';
 
 export default function TopNav({ onToggleMobileMenu }) {
   const { theme, toggleTheme, lang, setLang, supportedLanguages, t, user, logout, userRole, currentSupplier } = useApp();
@@ -13,6 +14,7 @@ export default function TopNav({ onToggleMobileMenu }) {
   const [isLaunchingDemo, setIsLaunchingDemo] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showSupplierHelpModal, setShowSupplierHelpModal] = useState(false);
   const langDropdownRef = useRef(null);
 
   const isSupplier = userRole === 'supplier' || location.pathname.startsWith('/supplier');
@@ -103,6 +105,19 @@ export default function TopNav({ onToggleMobileMenu }) {
           >
             <MapPin className="w-3.5 h-3.5 text-blue-600" />
             <span className="hidden md:inline">Nearby Retailers</span>
+          </button>
+        )}
+
+        {/* Quick Help & Support Button for Supplier */}
+        {isSupplier && (
+          <button
+            id="supplier-header-help-button"
+            onClick={() => setShowSupplierHelpModal(true)}
+            className="px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-xs font-medium transition flex items-center space-x-1.5 shadow-sm"
+            title="Supplier Help & Support"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden md:inline">{t('helpSupport') || 'Help & Support'}</span>
           </button>
         )}
 
@@ -301,8 +316,9 @@ export default function TopNav({ onToggleMobileMenu }) {
               {/* Quick Links inside Profile Dropdown */}
               <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1">
                 {isSupplier && (
-                  <button
-                    onClick={() => {
+                  <>
+                    <button
+                      onClick={() => {
                       setShowProfileModal(false);
                       navigate('/supplier/nearby-retailers');
                     }}
@@ -311,52 +327,71 @@ export default function TopNav({ onToggleMobileMenu }) {
                     <MapPin className="w-3.5 h-3.5 text-blue-600" />
                     <span>Nearby Retailers Map</span>
                   </button>
-                )}
-              </div>
-
-              {/* Retailer Settings Language Selector */}
-              {!isSupplier && (
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                    <span className="flex items-center space-x-1.5 font-medium">
-                      <Languages className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{t('language') || 'Language'}</span>
-                    </span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{currentLang.nativeName}</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-0.5">
-                    {(supportedLanguages || []).map((langItem) => (
-                      <button
-                        key={langItem.code}
-                        type="button"
-                        onClick={() => setLang(langItem.code)}
-                        className={`py-1 px-1.5 rounded text-[11px] font-medium transition text-center border ${
-                          lang === langItem.code
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700 font-bold'
-                            : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {langItem.nativeName}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  <button
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      setShowSupplierHelpModal(true);
+                    }}
+                    className="w-full py-1.5 px-2.5 rounded-md text-left text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2 transition"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>{t('helpSupport') || 'Help & Support'}</span>
+                  </button>
+                </>
               )}
-
-              {/* Action Buttons: Log Out */}
-              <div className="pt-2.5 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-1.5 px-3 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition flex items-center justify-center space-x-1.5"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Log Out</span>
-                </button>
-              </div>
             </div>
-          )}
-        </div>
+
+            {/* Retailer Settings Language Selector */}
+            {!isSupplier && (
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                  <span className="flex items-center space-x-1.5 font-medium">
+                    <Languages className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{t('language') || 'Language'}</span>
+                  </span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{currentLang.nativeName}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1 pt-0.5">
+                  {(supportedLanguages || []).map((langItem) => (
+                    <button
+                      key={langItem.code}
+                      type="button"
+                      onClick={() => setLang(langItem.code)}
+                      className={`py-1 px-1.5 rounded text-[11px] font-medium transition text-center border ${
+                        lang === langItem.code
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700 font-bold'
+                          : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {langItem.nativeName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons: Log Out */}
+            <div className="pt-2.5 border-t border-slate-200 dark:border-slate-800">
+              <button
+                onClick={handleLogout}
+                className="w-full py-1.5 px-3 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition flex items-center justify-center space-x-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </header>
-  );
+    </div>
+
+    {/* Supplier Help & Support Modal */}
+    {isSupplier && (
+      <SupplierHelpSupportModal
+        isOpen={showSupplierHelpModal}
+        onClose={() => setShowSupplierHelpModal(false)}
+      />
+    )}
+  </header>
+);
 }

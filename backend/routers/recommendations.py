@@ -35,6 +35,50 @@ def get_recommendations(
     }
 
 
+@router.get("/recommendations/{rec_id}/explanation")
+def get_recommendation_explanation(rec_id: str) -> Dict[str, Any]:
+    """
+    Retrieves the structured explainable procurement breakdown for a recommendation or pool.
+    Explains WHY the recommendation was made, decision factors, actual metrics, and rejected candidates.
+    """
+    recs = repo.get_all("recommendations")
+    matched_rec = next((r for r in recs if r.get("id") == rec_id or r.get("pool_id") == rec_id), None)
+    if matched_rec and matched_rec.get("explanation_details"):
+        return {
+            "status": "success",
+            "recommendation_id": rec_id,
+            "explanation": matched_rec["explanation_details"]
+        }
+    
+    # Check procurementPools collection directly
+    pool = repo.get_by_id("procurementPools", rec_id)
+    if pool and pool.get("explanation_details"):
+        return {
+            "status": "success",
+            "pool_id": rec_id,
+            "explanation": pool["explanation_details"]
+        }
+
+    if matched_rec:
+        from services.procurement import procurement_engine
+        product = repo.get_by_id("products", matched_rec.get("product_id")) or {}
+        supplier_eval = matched_rec.get("supplier_evaluation") or {}
+        transport_rec = matched_rec.get("transport") or {}
+        explanation = procurement_engine.generate_pool_explanation(
+            pool_data=matched_rec,
+            product=product,
+            supplier_eval=supplier_eval,
+            transport_rec=transport_rec
+        )
+        return {
+            "status": "success",
+            "recommendation_id": rec_id,
+            "explanation": explanation
+        }
+
+    raise HTTPException(status_code=404, detail=f"Recommendation or pool '{rec_id}' not found.")
+
+
 @router.post("/generate-recommendations")
 def trigger_generate_recommendations() -> Dict[str, Any]:
     """

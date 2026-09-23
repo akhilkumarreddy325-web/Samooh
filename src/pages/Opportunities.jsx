@@ -1,18 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Search, RefreshCw, Database } from 'lucide-react';
+import { Filter, Search, RefreshCw, Database, Sparkles, Layers, Users } from 'lucide-react';
 import RecommendationCard from '../components/RecommendationCard';
 import PoolDetailModal from '../components/PoolDetailModal';
-import { getRecommendations, generateRecommendations, seedData } from '../services/api';
+import ProcurementOpportunityCard from '../components/ProcurementOpportunityCard';
+import RetailerCompatibilityCard from '../components/RetailerCompatibilityCard';
+import { 
+  getRecommendations, 
+  generateRecommendations, 
+  seedData, 
+  getProcurementOpportunities, 
+  recalculateProcurementOpportunities,
+  getRetailerCompatibility
+} from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export default function Opportunities() {
   const { theme, t, setActiveInvoice, user, addOrderToHistory } = useApp();
   const navigate = useNavigate();
+
+  // Tab State: 'OPPORTUNITIES' (Engine View) | 'COMPATIBILITY' (Why Stores Match) | 'POOLS' (Active Group Pools)
+  const [activeTab, setActiveTab] = useState('OPPORTUNITIES');
+
+  // Opportunities State (Upgrade #2)
+  const [opportunities, setOpportunities] = useState([]);
+  const [filteredOpps, setFilteredOpps] = useState([]);
+  const [oppFilterStatus, setOppFilterStatus] = useState('ALL');
+
+  // Compatibility State (Prompt 3)
+  const [compatibilities, setCompatibilities] = useState([]);
+  const [filteredCompat, setFilteredCompat] = useState([]);
+  const [compatFilterStatus, setCompatFilterStatus] = useState('ALL');
+
+  // Recommendations / Pools State (Existing)
   const [recommendations, setRecommendations] = useState([]);
   const [filteredRecs, setFilteredRecs] = useState([]);
   const [selectedPool, setSelectedPool] = useState(null);
   const [filterStatus, setFilterStatus] = useState('ALL');
+  
+  // Shared Search & Category Filters
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -20,24 +46,58 @@ export default function Opportunities() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    loadRecommendations();
+    loadAllData();
   }, []);
 
-  async function loadRecommendations() {
+  async function loadAllData() {
     setLoading(true);
     setError(null);
     try {
-      const res = await getRecommendations();
-      const recs = res.data || [];
+      const [recsRes, oppsRes, compatRes] = await Promise.all([
+        getRecommendations(),
+        getProcurementOpportunities(),
+        getRetailerCompatibility(user?.uid || user?.id || null)
+      ]);
+      const recs = recsRes.data || [];
+      const opps = oppsRes.data || [];
+      const compats = compatRes?.results || [];
       setRecommendations(recs);
       setFilteredRecs(recs);
+      setOpportunities(opps);
+      setFilteredOpps(opps);
+      setCompatibilities(compats);
+      setFilteredCompat(compats);
     } catch (err) {
-      setError(err.message || 'Failed to fetch recommendations');
+      setError(err.message || 'Failed to load procurement opportunities');
     } finally {
       setLoading(false);
     }
   }
 
+  // Filter Opportunities
+  useEffect(() => {
+    let result = [...opportunities];
+
+    if (oppFilterStatus !== 'ALL') {
+      result = result.filter(o => o.status === oppFilterStatus);
+    }
+    if (filterCategory !== 'ALL') {
+      result = result.filter(o => o.category === filterCategory || o.sectorId === filterCategory.toLowerCase());
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(o => 
+        (o.productName && o.productName.toLowerCase().includes(q)) ||
+        (o.canonicalProductId && o.canonicalProductId.toLowerCase().includes(q)) ||
+        (o.category && o.category.toLowerCase().includes(q)) ||
+        (o.supplierName && o.supplierName.toLowerCase().includes(q))
+      );
+    }
+
+    setFilteredOpps(result);
+  }, [oppFilterStatus, filterCategory, searchQuery, opportunities]);
+
+  // Filter Recommendations / Pools
   useEffect(() => {
     let result = [...recommendations];
 
@@ -58,11 +118,47 @@ export default function Opportunities() {
     setFilteredRecs(result);
   }, [filterStatus, filterCategory, searchQuery, recommendations]);
 
+  // Filter Compatibility (Prompt 3)
+  useEffect(() => {
+    let result = [...compatibilities];
+
+    if (compatFilterStatus !== 'ALL') {
+      result = result.filter(c => c.compatibilityStatus === compatFilterStatus);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(c => 
+        (c.retailerBName && c.retailerBName.toLowerCase().includes(q)) ||
+        (c.sectorBId && c.sectorBId.toLowerCase().includes(q)) ||
+        (c.scoreLabel && c.scoreLabel.toLowerCase().includes(q)) ||
+        (c.compatibleProducts && c.compatibleProducts.some(p => 
+          (p.productName && p.productName.toLowerCase().includes(q)) ||
+          (p.canonicalProductId && p.canonicalProductId.toLowerCase().includes(q))
+        ))
+      );
+    }
+
+    setFilteredCompat(result);
+  }, [compatFilterStatus, searchQuery, compatibilities]);
+
+  const handleRecalculateOpportunities = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await recalculateProcurementOpportunities();
+      const opps = res.data || [];
+      setOpportunities(opps);
+    } catch (err) {
+      setError('Failed to recalculate opportunities: ' + err.message);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleRegenerate = async () => {
     setIsRefreshing(true);
     try {
       await generateRecommendations();
-      await loadRecommendations();
+      await loadAllData();
     } catch (err) {
       setError('Failed to regenerate: ' + err.message);
     } finally {
@@ -74,11 +170,23 @@ export default function Opportunities() {
     setIsRefreshing(true);
     try {
       await seedData();
-      await loadRecommendations();
+      await loadAllData();
     } catch (err) {
       setError('Failed to seed: ' + err.message);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleFormPoolFromOpportunity = (opportunity) => {
+    // Switch to active pools view and highlight matching recommendation
+    setActiveTab('POOLS');
+    const matched = recommendations.find(r => 
+      r.product_id === opportunity.productId || 
+      (opportunity.canonicalProductId && r.product_id === opportunity.canonicalProductId)
+    );
+    if (matched) {
+      setSelectedPool(matched);
     }
   };
 
@@ -138,11 +246,19 @@ export default function Opportunities() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center">
             {t('procurementOpportunities')}
             <span className="ml-2 text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              {filteredRecs.length} Pools Available
+              {activeTab === 'OPPORTUNITIES' 
+                ? `${filteredOpps.length} Evaluated` 
+                : activeTab === 'COMPATIBILITY'
+                ? `${filteredCompat.length} Partner Pairs`
+                : `${filteredRecs.length} Pools Available`}
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {t('opportunitiesDesc')}
+            {activeTab === 'OPPORTUNITIES' 
+              ? 'Real-time deterministic identification of group procurement opportunities matching retailer demand with wholesale supplier constraints.'
+              : activeTab === 'COMPATIBILITY'
+              ? 'Explainable Retailer Compatibility Engine: Evaluates spatial proximity, shared canonical products, demand volume synergy, and restock timing to identify natural buying groups.'
+              : t('opportunitiesDesc')}
           </p>
         </div>
 
@@ -155,15 +271,78 @@ export default function Opportunities() {
             <Database className="w-3.5 h-3.5 text-slate-400" />
             <span>{t('resetSeedData')}</span>
           </button>
-          <button 
-            onClick={handleRegenerate}
-            disabled={isRefreshing}
-            className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Re-evaluating...' : 'Re-evaluate Pools'}</span>
-          </button>
+          
+          {activeTab === 'OPPORTUNITIES' ? (
+            <button 
+              onClick={handleRecalculateOpportunities}
+              disabled={isRefreshing}
+              className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Scanning...' : 'Recalculate Opportunities'}</span>
+            </button>
+          ) : activeTab === 'COMPATIBILITY' ? (
+            <button 
+              onClick={loadAllData}
+              disabled={isRefreshing}
+              className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Scanning...' : 'Refresh Compatibility'}</span>
+            </button>
+          ) : (
+            <button 
+              onClick={handleRegenerate}
+              disabled={isRefreshing}
+              className="px-3.5 py-1.5 rounded-md bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium transition shadow-sm flex items-center space-x-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Re-evaluating...' : 'Re-evaluate Pools'}</span>
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Tab Navigation: Opportunities Engine vs Compatibility vs Active Pools */}
+      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-700">
+        <button
+          type="button"
+          onClick={() => setActiveTab('OPPORTUNITIES')}
+          className={`pb-2.5 px-3 text-xs font-bold transition flex items-center space-x-1.5 border-b-2 ${
+            activeTab === 'OPPORTUNITIES'
+              ? 'border-emerald-800 text-emerald-800 dark:border-emerald-400 dark:text-emerald-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Procurement Opportunities ({opportunities.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('COMPATIBILITY')}
+          className={`pb-2.5 px-3 text-xs font-bold transition flex items-center space-x-1.5 border-b-2 ${
+            activeTab === 'COMPATIBILITY'
+              ? 'border-emerald-800 text-emerald-800 dark:border-emerald-400 dark:text-emerald-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Retailer Compatibility ({compatibilities.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('POOLS')}
+          className={`pb-2.5 px-3 text-xs font-bold transition flex items-center space-x-1.5 border-b-2 ${
+            activeTab === 'POOLS'
+              ? 'border-emerald-800 text-emerald-800 dark:border-emerald-400 dark:text-emerald-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Active Procurement Pools ({recommendations.length})</span>
+        </button>
       </div>
 
       {/* Filter & Search Bar */}
@@ -173,7 +352,13 @@ export default function Opportunities() {
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text"
-            placeholder={t('searchPlaceholder')}
+            placeholder={
+              activeTab === 'OPPORTUNITIES' 
+                ? "Search product, canonical ID, or supplier..." 
+                : activeTab === 'COMPATIBILITY'
+                ? "Search partner store, shared product, or sector..."
+                : t('searchPlaceholder')
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full border border-slate-200 dark:border-slate-700 rounded-md pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-800"
@@ -185,19 +370,49 @@ export default function Opportunities() {
           <span className="text-xs font-medium text-slate-500 flex items-center mr-1">
             <Filter className="w-3.5 h-3.5 mr-1 text-slate-400" /> Status:
           </span>
-          {['ALL', 'ACHIEVED', 'NEAR_THRESHOLD', 'IN_PROGRESS'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ${
-                filterStatus === status 
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              {status === 'ALL' ? t('allOpps') : status === 'ACHIEVED' ? t('achieved') : status === 'NEAR_THRESHOLD' ? t('nearThreshold') : t('inProgress')}
-            </button>
-          ))}
+          {activeTab === 'OPPORTUNITIES' ? (
+            ['ALL', 'FEASIBLE', 'BELOW_MOQ', 'INSUFFICIENT_STOCK', 'ALREADY_IN_POOL'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setOppFilterStatus(status)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ${
+                  oppFilterStatus === status 
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {status === 'ALL' ? 'All Opportunities' : status.replace('_', ' ')}
+              </button>
+            ))
+          ) : activeTab === 'COMPATIBILITY' ? (
+            ['ALL', 'COMPATIBLE', 'PARTIALLY_COMPATIBLE', 'LOCATION_REQUIRED'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setCompatFilterStatus(status)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ${
+                  compatFilterStatus === status 
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {status === 'ALL' ? 'All Partners' : status.replace('_', ' ')}
+              </button>
+            ))
+          ) : (
+            ['ALL', 'ACHIEVED', 'NEAR_THRESHOLD', 'IN_PROGRESS'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ${
+                  filterStatus === status 
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {status === 'ALL' ? t('allOpps') : status === 'ACHIEVED' ? t('achieved') : status === 'NEAR_THRESHOLD' ? t('nearThreshold') : t('inProgress')}
+              </button>
+            ))
+          )}
         </div>
 
         {/* Category Dropdown */}
@@ -215,29 +430,62 @@ export default function Opportunities() {
         </select>
       </div>
 
-      {/* Loading Skeleton */}
+      {/* Main View Area */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="h-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"></div>
           ))}
         </div>
-      ) : filteredRecs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredRecs.map((rec) => (
-            <RecommendationCard
-              key={rec.id || rec.pool_id || Math.random()}
-              recommendation={rec}
-              onAccept={handleAccept}
-              onReject={handleReject}
-              onViewDetails={setSelectedPool}
-            />
-          ))}
-        </div>
+      ) : activeTab === 'OPPORTUNITIES' ? (
+        filteredOpps.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredOpps.map((opp) => (
+              <ProcurementOpportunityCard
+                key={opp.opportunityId || opp.id || Math.random()}
+                opportunity={opp}
+                onFormPool={handleFormPoolFromOpportunity}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="p-12 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <p className="text-slate-500 text-xs">No procurement opportunities match the current filter criteria.</p>
+          </div>
+        )
+      ) : activeTab === 'COMPATIBILITY' ? (
+        filteredCompat.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCompat.map((compat) => (
+              <RetailerCompatibilityCard
+                key={compat.compatibilityId || Math.random()}
+                result={compat}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="p-12 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <p className="text-slate-500 text-xs">No compatible retailer partners match the current criteria.</p>
+          </div>
+        )
       ) : (
-        <div className="p-12 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <p className="text-slate-500 text-xs">No procurement pools match the current filter criteria.</p>
-        </div>
+        filteredRecs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredRecs.map((rec) => (
+              <RecommendationCard
+                key={rec.id || rec.pool_id || Math.random()}
+                recommendation={rec}
+                onAccept={handleAccept}
+                onReject={handleReject}
+                onViewDetails={setSelectedPool}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="p-12 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <p className="text-slate-500 text-xs">No procurement pools match the current filter criteria.</p>
+          </div>
+        )
       )}
 
       {/* Pool Detail Modal */}
@@ -254,3 +502,4 @@ export default function Opportunities() {
     </div>
   );
 }
+

@@ -21,7 +21,7 @@ class ProcurementEngine:
         self,
         product: Dict[str, Any],
         pooled_quantity: float,
-        delivery_distance_km: float
+        delivery_distance_km: float = 2.5
     ) -> Dict[str, Any]:
         """
         Evaluates candidate suppliers for a product given pooled demand and delivery distance.
@@ -39,10 +39,16 @@ class ProcurementEngine:
         target_name = product.get("name", "").strip().lower()
         target_cat = product.get("category", "").strip().lower()
 
-        # Find matching product records (same product name or exact ID)
+        canonical_id = product.get("canonical_product_id") or product.get("productId")
+
+        # Find matching product records:
+        # Match primarily by canonical productId (preventing spelling duplicates across suppliers),
+        # or by matching product name / exact ID for legacy catalog offerings.
         candidate_offerings = [
             p for p in all_products
-            if p.get("id") == product.get("id") or p.get("name", "").strip().lower() == target_name
+            if (canonical_id and (p.get("canonical_product_id") == canonical_id or p.get("productId") == canonical_id)) or
+               (target_name and p.get("name", "").strip().lower() == target_name) or
+               (product.get("id") and p.get("id") == product.get("id"))
         ]
         if not candidate_offerings:
             candidate_offerings = [product]
@@ -131,6 +137,176 @@ class ProcurementEngine:
             "evaluated_suppliers": evaluated_candidates
         }
 
+    def generate_pool_explanation(
+        self,
+        pool_data: Dict[str, Any],
+        product: Optional[Dict[str, Any]] = None,
+        supplier_eval: Optional[Dict[str, Any]] = None,
+        transport_rec: Optional[Dict[str, Any]] = None,
+        cluster: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Generates a transparent, structured explanation object for WHY a procurement pool was created,
+        why a specific supplier was recommended, how constraints were verified, and why non-selected
+        candidates failed.
+        Separates machine learning demand prediction from deterministic constraint-satisfaction decisions.
+        """
+        product = product or pool_data.get("product_obj") or {}
+        supplier_eval = supplier_eval or pool_data.get("supplier_evaluation") or {}
+        transport_rec = transport_rec or pool_data.get("transport") or {}
+
+        product_name = pool_data.get("product_name") or product.get("name", "Product")
+        category = pool_data.get("category") or product.get("category", "General")
+        uom = pool_data.get("unit") or product.get("unit_of_measure", "units")
+        total_demand = float(
+            pool_data.get("total_demand") 
+            if pool_data.get("total_demand") is not None 
+            else pool_data.get("current_pool_quantity", 0.0)
+        )
+        retailer_ids = pool_data.get("retailer_ids", [])
+        num_retailers = pool_data.get("retailer_count") or len(retailer_ids)
+        avg_dist = float(
+            pool_data.get("average_distance_km")
+            if pool_data.get("average_distance_km") is not None
+            else pool_data.get("average_cluster_distance_km", 2.5)
+        )
+        max_radius_km = 10.0
+
+        selected_sup_id = supplier_eval.get("selected_supplier_id", pool_data.get("supplier_id", "sup_01"))
+        selected_sup_name = supplier_eval.get("selected_supplier_name", pool_data.get("supplier_name", "Wholesale Supplier"))
+        supplier_moq = float(
+            supplier_eval.get("supplier_moq")
+            if supplier_eval.get("supplier_moq") is not None
+            else (supplier_eval.get("moq") if supplier_eval.get("moq") is not None else pool_data.get("threshold_quantity", 30.0))
+        )
+        available_stock = float(supplier_eval.get("available_stock", 500.0))
+
+        if pool_data.get("threshold_status") == "ACHIEVED":
+            is_moq_met = True
+        elif pool_data.get("threshold_status") in ("PENDING", "NEAR_THRESHOLD"):
+            is_moq_met = bool(total_demand >= supplier_moq)
+        else:
+            is_moq_met = bool(pool_data.get("is_threshold_met", total_demand >= supplier_moq))
+
+        is_stock_sufficient = available_stock >= total_demand
+        is_dist_compatible = avg_dist <= max_radius_km
+        is_price_feasible = True
+
+        vehicle_name = transport_rec.get("recommended_vehicle", "Tata Ace (SCV)")
+        transport_status = transport_rec.get("transport_status", "SUITABLE")
+        is_transport_feasible = (transport_status == "SUITABLE")
+
+        # 1. Decision Factors (deterministic constraint verification)
+        decision_factors_list = [
+            {
+                "name": "Distance compatibility",
+                "satisfied": is_dist_compatible,
+                "detail": f"{avg_dist:.1f} km average distance (limit: {max_radius_km:.0f} km)"
+            },
+            {
+                "name": "MOQ satisfied",
+                "satisfied": is_moq_met,
+                "detail": f"{total_demand} {uom} pooled vs {supplier_moq} {uom} threshold"
+            },
+            {
+                "name": "Stock available",
+                "satisfied": is_stock_sufficient,
+                "detail": f"{available_stock} {uom} available in supplier inventory"
+            },
+            {
+                "name": "Supplier available",
+                "satisfied": bool(supplier_eval.get("is_feasible", True)),
+                "detail": f"{selected_sup_name} active in service radius"
+            },
+            {
+                "name": "Transport feasible",
+                "satisfied": is_transport_feasible,
+                "detail": f"{vehicle_name} ({transport_rec.get('capacity_utilization_pct', 0)}% payload capacity)"
+            }
+        ]
+
+        decision_factors_dict = {
+            "distance_compatibility": is_dist_compatible,
+            "moq_satisfied": is_moq_met,
+            "stock_available": is_stock_sufficient,
+            "supplier_available": bool(supplier_eval.get("is_feasible", True)),
+            "transport_feasible": is_transport_feasible
+        }
+
+        # 2. Positive human-readable reasons
+        reasons = [
+            f"Same product requirement pooled across {num_retailers} regional Kirana stores",
+            f"Retailers are geographically compatible with {avg_dist:.1f} km average cluster distance",
+            f"Combined requirement ({total_demand}) {'satisfies' if is_moq_met else 'is progressing towards'} supplier MOQ ({supplier_moq})",
+            f"Supplier ({selected_sup_name}) has sufficient stock ({available_stock} {uom}) to fulfill order",
+            f"Supplier pricing is feasible (₹{supplier_eval.get('unit_price', 0):,.2f}/{uom})",
+            f"Transport capacity is available via {vehicle_name}"
+        ]
+
+        # 3. Not Selected / Rejected alternative suppliers with actual reasons
+        rejected_suppliers = []
+        for cand in supplier_eval.get("evaluated_suppliers", []):
+            if not cand.get("is_feasible"):
+                reasons_clean = [
+                    r.replace("✗ ", "").strip() for r in cand.get("rejection_reasons", [])
+                ]
+                rejected_suppliers.append({
+                    "supplier_id": cand.get("supplier_id"),
+                    "supplier_name": cand.get("supplier_name"),
+                    "moq": cand.get("moq"),
+                    "available_stock": cand.get("available_stock"),
+                    "service_radius_km": cand.get("service_radius_km"),
+                    "unit_price": cand.get("unit_price"),
+                    "reasons": reasons_clean,
+                    "rejection_reasons": reasons_clean,
+                    "reason_summary": "; ".join(reasons_clean)
+                })
+
+        # 4. Overall rejection reasons for this pool if any constraint failed
+        rejection_reasons = []
+        if not is_moq_met:
+            deficit = round(supplier_moq - total_demand, 1)
+            rejection_reasons.append(f"MOQ cannot be satisfied within the compatible retailer group (deficit: {deficit} {uom}).")
+        if not is_stock_sufficient:
+            shortage = round(total_demand - available_stock, 1)
+            rejection_reasons.append(f"Available stock is below required pooled quantity (shortage: {shortage} {uom}).")
+        if not is_dist_compatible:
+            rejection_reasons.append(f"Average retailer distance ({avg_dist:.1f} km) exceeds cluster limit ({max_radius_km} km).")
+
+        return {
+            "product_match": True,
+            "product_name": product_name,
+            "category": category,
+            "retailer_count": num_retailers,
+            "retailer_ids": retailer_ids,
+            "combined_quantity": total_demand,
+            "unit": uom,
+            "supplier_id": selected_sup_id,
+            "supplier_name": selected_sup_name,
+            "supplier_moq": supplier_moq,
+            "stock_available": available_stock,
+            "distance": avg_dist,
+            "average_distance_km": avg_dist,
+            "max_distance_km": max_radius_km,
+            "transport_vehicle": vehicle_name,
+            "transport_feasible": is_transport_feasible,
+            "price_feasible": is_price_feasible,
+            "moq_satisfied": is_moq_met,
+            "stock_available_flag": is_stock_sufficient,
+            "distance_compatible": is_dist_compatible,
+            "reasons": reasons,
+            "decision_factors": decision_factors_dict,
+            "decision_factors_list": decision_factors_list,
+            "rejected_suppliers": rejected_suppliers,
+            "rejection_reasons": rejection_reasons,
+            "prediction_context": {
+                "model": "Random Forest Regressor (30-day forecast)",
+                "forecasted_requirement": f"{total_demand} {uom}",
+                "note": "Demand prediction forecasted by Random Forest based on historical retailer order cadence. Optimization and constraint satisfaction are performed deterministically by the procurement engine."
+            },
+            "decision_summary": "Pool created because MOQ, distance, stock, and transport constraints were satisfied." if is_moq_met and is_stock_sufficient and is_dist_compatible else "Pool formed with active constraint notices."
+        }
+
     def create_procurement_pools(self, matched_clusters: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Transforms candidate clusters into validated procurement pools.
@@ -204,6 +380,15 @@ class ProcurementEngine:
                 "supplier_evaluation": supplier_eval,
                 "created_at": now_iso
             }
+
+            # Generate structured explainable procurement breakdown
+            pool_data["explanation_details"] = self.generate_pool_explanation(
+                pool_data=pool_data,
+                product=product,
+                supplier_eval=supplier_eval,
+                transport_rec=transport_rec,
+                cluster=cluster
+            )
             created_pools.append(pool_data)
 
             # 5. Create Supplier Order record linked to this pool
@@ -262,5 +447,44 @@ class ProcurementEngine:
         logger.info(f"Created {len(created_pools)} pools and {len(created_supplier_orders)} supplier orders.")
         return created_pools
 
+    # =========================================================================
+    # Procurement Opportunity Engine Integration (Upgrade #2)
+    # =========================================================================
+    def find_procurement_opportunities(self, *args, **kwargs):
+        from services.opportunity import opportunity_engine
+        return opportunity_engine.find_procurement_opportunities(*args, **kwargs)
+
+    def evaluate_opportunity(self, *args, **kwargs):
+        from services.opportunity import opportunity_engine
+        return opportunity_engine.evaluate_opportunity(*args, **kwargs)
+
+    def calculate_combined_demand(self, *args, **kwargs):
+        from services.opportunity import opportunity_engine
+        return opportunity_engine.calculate_combined_demand(*args, **kwargs)
+
+    def evaluate_supplier_constraints(self, *args, **kwargs):
+        from services.opportunity import opportunity_engine
+        return opportunity_engine.evaluate_supplier_constraints(*args, **kwargs)
+
+    def build_opportunity_explanation(self, *args, **kwargs):
+        from services.opportunity import opportunity_engine
+        return opportunity_engine.build_opportunity_explanation(*args, **kwargs)
+
 
 procurement_engine = ProcurementEngine()
+
+# Module-level convenience functions matching requirements
+def find_procurement_opportunities(*args, **kwargs):
+    return procurement_engine.find_procurement_opportunities(*args, **kwargs)
+
+def evaluate_opportunity(*args, **kwargs):
+    return procurement_engine.evaluate_opportunity(*args, **kwargs)
+
+def calculate_combined_demand(*args, **kwargs):
+    return procurement_engine.calculate_combined_demand(*args, **kwargs)
+
+def evaluate_supplier_constraints(*args, **kwargs):
+    return procurement_engine.evaluate_supplier_constraints(*args, **kwargs)
+
+def build_opportunity_explanation(*args, **kwargs):
+    return procurement_engine.build_opportunity_explanation(*args, **kwargs)

@@ -234,5 +234,20 @@ export default {
   catDelivery: 'డెలివరీ సమస్య',
   catProduct: 'ఉత్పత్తి సమస్య',
   catAccount: 'ఖాతా సమస్య',
-  catOther: 'ఇతర'
+  catOther: 'ఇతర',
+
+  // Supplier Help & Support
+  supplierHelpSubtitle: 'ఏదైనా ప్రశ్న, సమస్య లేదా ఇబ్బంది ఉందా? మేము మీకు ఎలా సహాయపడవచ్చో చెప్పండి.',
+  retailerQuery: 'రిటైలర్ సందేహం',
+  inventoryIssue: 'ఇన్వెంటరీ సమస్య',
+  pricingIssue: 'ధరల సమస్య',
+  moqIssue: 'కనిష్ట పరిమాణం (MOQ) సమస్య',
+  technicalIssue: 'సాంకేతిక సమస్య',
+  platformIssue: 'ప్లాట్‌ఫారమ్ సమస్య',
+  supplierDescribePlaceholder: 'దయచేసి మీ ప్రశ్న, సమస్య లేదా ఇబ్బందిని వివరించండి...',
+  orderOrPoolId: 'ఆర్డర్ / పూల్ ID (ఐచ్ఛికం)',
+  orderOrPoolIdPlaceholder: 'ఉదా. ord_901 లేదా pool_01',
+  additionalDetails: 'అదనపు వివరాలు (ఐచ్ఛికం)',
+  supplierQuerySubmittedTitle: 'మీ సందేహం విజయవంతంగా సమర్పించబడింది.',
+  supplierQuerySubmittedDesc: 'మా మద్దతు బృందం దీనిని సమీక్షిస్తుంది.'
 };

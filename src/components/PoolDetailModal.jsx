@@ -3,6 +3,7 @@ import { X, MapPin, CheckCircle2, ShieldCheck, Info, Navigation } from 'lucide-r
 import StatusBadge from './StatusBadge';
 import PooledInventorySection from './PooledInventorySection';
 import RetailerSupplierRouteMap from './RetailerSupplierRouteMap';
+import ExplainableRecommendation from './ExplainableRecommendation';
 import { useApp, DEMO_SUPPLIERS } from '../context/AppContext';
 import { SAMPLE_WAREHOUSE } from '../data/sampleNetworkLocations';
 import { formatINR } from '../utils/currency';
@@ -69,18 +70,8 @@ export default function PoolDetailModal({ pool, onClose, onAccept }) {
 
         {/* Content Body */}
         <div className="p-4 sm:p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          {/* Explanation Banner */}
-          <div className="p-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 flex items-start space-x-2.5">
-            <Info className="w-4 h-4 text-emerald-800 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                Procurement Evaluation
-              </h4>
-              <p className="text-xs mt-0.5 leading-relaxed text-slate-600 dark:text-slate-400">
-                {pool.explanation}
-              </p>
-            </div>
-          </div>
+          {/* Explainable Procurement Engine Section */}
+          <ExplainableRecommendation recommendation={pool} mode="modal" defaultExpanded={true} />
 
           {/* Pricing & Progress Highlights */}
           <div className="grid grid-cols-3 gap-3">

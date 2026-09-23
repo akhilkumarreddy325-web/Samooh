@@ -1,6 +1,7 @@
 import React from 'react';
 import { Store, MapPin, Check, X, ArrowUpRight, Truck } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import ExplainableRecommendation from './ExplainableRecommendation';
 import { useApp } from '../context/AppContext';
 import { formatINR } from '../utils/currency';
 
@@ -15,8 +16,7 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
     current_pool_quantity,
     estimated_total_savings,
     estimated_savings_percentage,
-    average_cluster_distance_km,
-    explanation
+    average_cluster_distance_km
   } = recommendation;
 
   const progressPct = Math.min(100, Math.round((current_pool_quantity / threshold_quantity) * 100));
@@ -104,10 +104,8 @@ export default function RecommendationCard({ recommendation, onAccept, onReject,
           </div>
         </div>
 
-        {/* Procurement Explanation Snippet */}
-        <p className="mt-2.5 text-xs line-clamp-2 leading-relaxed text-slate-500 dark:text-slate-400">
-          {explanation}
-        </p>
+        {/* Explainable Procurement Engine Rationale */}
+        <ExplainableRecommendation recommendation={recommendation} mode="card" />
       </div>
 
       {/* Action Buttons */}

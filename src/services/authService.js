@@ -202,6 +202,8 @@ export async function saveRetailerOnboarding(uid, data) {
     storeName: data.shopName || data.storeName || 'Kirana Store',
     ownerName: data.ownerName || 'Store Owner',
     store_type: data.businessType || 'Kirana Store',
+    businessSectorId: data.businessSectorId || 'grocery',
+    selectedProductIds: Array.isArray(data.selectedProductIds) ? data.selectedProductIds : [],
     city: data.city || '',
     district: data.district || data.businessLocation?.district || '',
     state: data.state || '',
@@ -237,14 +239,22 @@ export async function saveRetailerOnboarding(uid, data) {
 
     // Step 3 & 4: Initial Demand Profile & Retailer Affordability (NOT supplier MOQ)
     procurement_profile: {
-      products_needed: Array.isArray(data.productsNeeded) ? data.productsNeeded.map(p => ({
-        product_name: p.name || p.product_name,
-        category: p.category || 'General Staples',
-        typical_quantity: Number(p.typical_quantity || p.quantity || 0),
-        unit: p.unit || 'kg',
-        purchase_frequency: p.purchase_frequency || data.purchaseFrequency || 'Weekly',
-        approx_budget: Number(p.approx_budget || p.budget || 0)
-      })) : [],
+      business_sector_id: data.businessSectorId || 'grocery',
+      selected_product_ids: Array.isArray(data.selectedProductIds) ? data.selectedProductIds : [],
+      products_needed: Array.isArray(data.productsNeeded) ? data.productsNeeded.map(p => {
+        const canonicalId = p.productId || p.canonical_product_id || p.id;
+        return {
+          productId: canonicalId,
+          product_id: canonicalId,
+          canonical_product_id: canonicalId,
+          product_name: p.name || p.product_name,
+          category: p.category || 'General Staples',
+          typical_quantity: Number(p.typical_quantity || p.quantity || 0),
+          unit: p.unit || 'kg',
+          purchase_frequency: p.purchase_frequency || data.purchaseFrequency || 'Weekly',
+          approx_budget: Number(p.approx_budget || p.budget || 0)
+        };
+      }) : [],
       purchase_frequency: data.purchaseFrequency || 'Weekly',
       preferred_delivery_radius_km: Number(data.deliveryRadiusKm || 5.0),
       maximum_procurement_value: Number(data.maxProcurementBudget || 25000),
@@ -307,6 +317,7 @@ export async function saveSupplierOnboarding(uid, data) {
   const nowIso = new Date().toISOString();
 
   // 1. Structured Supplier Profile Document
+  // 1. Structured Supplier Profile Document
   const supplierDoc = {
     id: activeUid,
     supplier_id: activeUid,
@@ -314,6 +325,8 @@ export async function saveSupplierOnboarding(uid, data) {
     name: data.businessName || data.name || 'Wholesale Supplier',
     contactPerson: data.contactPerson || 'Wholesale Partner',
     business_type: data.businessType || 'Wholesaler',
+    businessSectorId: data.businessSectorId || 'grocery',
+    selectedProductIds: Array.isArray(data.selectedProductIds) ? data.selectedProductIds : [],
     city: data.city || '',
     state: data.state || '',
     location: data.area || data.city || '',
@@ -354,10 +367,14 @@ export async function saveSupplierOnboarding(uid, data) {
   const productDocs = (data.configuredProducts || []).map((p, idx) => {
     const isOwnSupplierProdId = p.id && (p.id.startsWith(`prod_${activeUid.slice(0, 8)}_`) || p.id.startsWith(`prod_${activeUid}_`));
     const prodId = isOwnSupplierProdId ? p.id : `prod_${activeUid.slice(0, 8)}_${idx + 1}_${timestampSuffix}`;
+    const canonicalId = p.productId || p.canonical_product_id || p.id;
     return {
       id: prodId,
       supplier_id: activeUid,
       supplierId: activeUid,
+      productId: canonicalId,
+      product_id: canonicalId,
+      canonical_product_id: canonicalId,
       name: p.name || 'Wholesale Commodity',
       category: p.category || 'Grains & Staples',
       unit_of_measure: p.unit || 'kg',

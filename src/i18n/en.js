@@ -234,5 +234,20 @@ export default {
   catDelivery: "Delivery issue",
   catProduct: "Product issue",
   catAccount: "Account issue",
-  catOther: "Other"
+  catOther: "Other",
+
+  // Supplier Help & Support
+  supplierHelpSubtitle: "Have a question, issue, or problem? Tell us how we can help.",
+  retailerQuery: "Retailer query",
+  inventoryIssue: "Inventory issue",
+  pricingIssue: "Pricing issue",
+  moqIssue: "MOQ issue",
+  technicalIssue: "Technical issue",
+  platformIssue: "Platform issue",
+  supplierDescribePlaceholder: "Please explain your question, issue, or problem...",
+  orderOrPoolId: "Order / Pool ID (optional)",
+  orderOrPoolIdPlaceholder: "e.g. ord_901 or pool_01",
+  additionalDetails: "Additional details (optional)",
+  supplierQuerySubmittedTitle: "Your query has been submitted.",
+  supplierQuerySubmittedDesc: "Our support team will review it."
 };

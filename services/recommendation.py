@@ -124,6 +124,7 @@ class RecommendationEngine:
                 "pooled_inventory": pool.get("pooled_inventory"),
                 "transport": pool.get("transport"),
                 "supplier_evaluation": pool.get("supplier_evaluation"),
+                "explanation_details": pool.get("explanation_details"),
                 "created_at": datetime.datetime.utcnow().isoformat() + "Z"
             }
             recommendations.append(rec)

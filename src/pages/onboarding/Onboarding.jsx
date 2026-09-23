@@ -61,6 +61,8 @@ export default function Onboarding() {
       pincode: existing?.pincode || existing?.businessLocation?.pincode || '',
       businessLocation: existing?.businessLocation || null,
       contactPhone: existing?.phone || existing?.contactPhone || '',
+      businessSectorId: existing?.businessSectorId || 'grocery',
+      selectedProductIds: Array.isArray(existing?.selectedProductIds) ? existing.selectedProductIds : [],
 
       // Retailer fields (Empty by default for new users)
       shopName: existing?.storeName || existing?.shopName || '',

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Building2, User, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import LocationPicker from '../../../components/LocationPicker';
+import SectorSelector from '../../../components/SectorSelector';
+import { getSectorById } from '../../../data/businessSectors';
 
 const SUPPLIER_TYPES = [
   'Wholesaler',
@@ -44,6 +46,19 @@ export default function SupplierBusinessStep({ data, onUpdate, onNext, onBack })
           Provide your enterprise or warehouse details to join Samooh's wholesale distributor network.
         </p>
       </div>
+
+      {/* Sector Selection */}
+      <SectorSelector
+        label="What commercial sector does your wholesale enterprise supply?"
+        selectedSectorId={data.businessSectorId || 'grocery'}
+        onSelectSector={(sectorId) => {
+          const sec = getSectorById(sectorId);
+          onUpdate({ 
+            businessSectorId: sectorId,
+            businessType: sec?.name || data.businessType || 'Wholesaler'
+          });
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Business Name */}

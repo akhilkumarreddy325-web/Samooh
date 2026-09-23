@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Store, User, Building, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import LocationPicker from '../../../components/LocationPicker';
+import SectorSelector from '../../../components/SectorSelector';
+import { getSectorById } from '../../../data/businessSectors';
 
 const BUSINESS_TYPES = [
   'Kirana Store',
@@ -43,6 +45,18 @@ export default function RetailerBusinessStep({ data, onUpdate, onNext, onBack })
           Enter your Kirana store details to establish your localized procurement identity.
         </p>
       </div>
+
+      {/* Sector Selection */}
+      <SectorSelector
+        selectedSectorId={data.businessSectorId || 'grocery'}
+        onSelectSector={(sectorId) => {
+          const sec = getSectorById(sectorId);
+          onUpdate({ 
+            businessSectorId: sectorId,
+            businessType: sec?.name || data.businessType || 'Kirana Store'
+          });
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Shop Name */}

@@ -12,6 +12,7 @@ try:
         DEFAULT_FORECAST_HORIZON_DAYS: int = 30
         MAX_MATCHING_RADIUS_KM: float = 10.0
         MIN_SIMILARITY_SCORE: float = 0.5
+        ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development").lower()
 
         class Config:
             env_file = ".env"
@@ -28,5 +29,6 @@ except ImportError:
         DEFAULT_FORECAST_HORIZON_DAYS: int = 30
         MAX_MATCHING_RADIUS_KM: float = 10.0
         MIN_SIMILARITY_SCORE: float = 0.5
+        ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development").lower()
 
 settings = Settings()

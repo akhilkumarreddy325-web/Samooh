@@ -234,5 +234,20 @@ export default {
   catDelivery: 'ವಿತರಣಾ ಸಮಸ್ಯೆ',
   catProduct: 'ಉತ್ಪನ್ನ ಸಮಸ್ಯೆ',
   catAccount: 'ಖಾತೆ ಸಮಸ್ಯೆ',
-  catOther: 'ಇತರೆ'
+  catOther: 'ಇತರೆ',
+
+  // Supplier Help & Support
+  supplierHelpSubtitle: 'ಯಾವುದಾದರೂ ಪ್ರಶ್ನೆ, ಸಮಸ್ಯೆ ಅಥವಾ ತೊಂದರೆ ಇದೆಯೇ? ನಾವು ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು ಎಂಬುದನ್ನು ತಿಳಿಸಿ.',
+  retailerQuery: 'ಚಿಲ್ಲರೆ ವ್ಯಾಪಾರಿ ಪ್ರಶ್ನೆ',
+  inventoryIssue: 'ದಾಸ್ತಾನು ಸಮಸ್ಯೆ',
+  pricingIssue: 'ಬೆಲೆ ಸಮಸ್ಯೆ',
+  moqIssue: 'ಕನಿಷ್ಠ ಪ್ರಮಾಣ (MOQ) ಸಮಸ್ಯೆ',
+  technicalIssue: 'ತಾಂತ್ರಿಕ ಸಮಸ್ಯೆ',
+  platformIssue: 'ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಸಮಸ್ಯೆ',
+  supplierDescribePlaceholder: 'ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆ, ಸಮಸ್ಯೆ ಅಥವಾ ತೊಂದರೆಯನ್ನು ವಿವರಿಸಿ...',
+  orderOrPoolId: 'ಆರ್ಡರ್ / ಪೂಲ್ ಐಡಿ (ಐಚ್ಛಿಕ)',
+  orderOrPoolIdPlaceholder: 'ಉದಾ. ord_901 ಅಥವಾ pool_01',
+  additionalDetails: 'ಹೆಚ್ಚುವರಿ ವಿವರಗಳು (ಐಚ್ಛಿಕ)',
+  supplierQuerySubmittedTitle: 'ನಿಮ್ಮ ಪ್ರಶ್ನೆ ಸಲ್ಲಿಕೆಯಾಗಿದೆ.',
+  supplierQuerySubmittedDesc: 'ನಮ್ಮ ಬೆಂಬಲ ತಂಡ ಇದನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ.'
 };

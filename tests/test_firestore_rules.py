@@ -113,6 +113,16 @@ class FirestoreRuleSimulator:
             return False
         return False
 
+    def check_procurement_opportunity_access(self, auth_user: dict, opportunity_data: dict, action: str = "read") -> bool:
+        if not auth_user or "uid" not in auth_user:
+            return False
+        if action == "read":
+            return True
+        elif action in ("create", "update", "delete", "write"):
+            # Client writes strictly DENIED
+            return False
+        return False
+
 
 
 def run_tests():
@@ -282,6 +292,43 @@ def run_tests():
     assert sim.check_support_request_access(retailer_user, support_req_a, "update") is False, "Support requests are immutable"
     assert sim.check_support_request_access(retailer_user, support_req_a, "delete") is False, "Support requests cannot be deleted"
     print("PASS: Support requests cannot be mutated or deleted by unauthorized clients.")
+
+    # 7. Test Procurement Opportunities Client Write Protection (Upgrade #2 Security Fix)
+    assert "match /procurementOpportunities/{oppId}" in content, "Missing procurementOpportunities rule"
+    assert "allow write: if false;" in content, "procurementOpportunities must have client writes strictly denied"
+    
+    mock_opp = {
+        "opportunityId": "opp_test_01",
+        "productId": "p_01",
+        "supplierId": "sup_01",
+        "retailerIds": ["ret_001", "ret_002"],
+        "combinedQuantity": 500,
+        "status": "FEASIBLE"
+    }
+
+    # Authenticated user reading opportunities -> ALLOW
+    assert sim.check_procurement_opportunity_access(retailer_user, mock_opp, "read") is True, "Authenticated user should read opportunities"
+    assert sim.check_procurement_opportunity_access(supplier_a, mock_opp, "read") is True, "Authenticated supplier should read opportunities"
+    print("PASS: Authenticated retailers and suppliers can read procurement opportunities.")
+
+    # Unauthenticated user reading opportunities -> DENY
+    assert sim.check_procurement_opportunity_access(unauthenticated, mock_opp, "read") is False, "Unauthenticated user blocked from opportunities"
+    print("PASS: Unauthenticated users blocked from reading procurement opportunities.")
+
+    # Client creating opportunity -> DENY
+    assert sim.check_procurement_opportunity_access(retailer_user, mock_opp, "create") is False, "Retailer cannot create opportunity"
+    assert sim.check_procurement_opportunity_access(supplier_a, mock_opp, "create") is False, "Supplier cannot create opportunity"
+    print("PASS: Clients blocked from creating Firestore opportunities.")
+
+    # Client updating opportunity -> DENY
+    assert sim.check_procurement_opportunity_access(retailer_user, mock_opp, "update") is False, "Retailer cannot update opportunity"
+    assert sim.check_procurement_opportunity_access(supplier_a, mock_opp, "update") is False, "Supplier cannot update opportunity"
+    print("PASS: Clients blocked from updating Firestore opportunities.")
+
+    # Client deleting opportunity -> DENY
+    assert sim.check_procurement_opportunity_access(retailer_user, mock_opp, "delete") is False, "Retailer cannot delete opportunity"
+    assert sim.check_procurement_opportunity_access(supplier_a, mock_opp, "delete") is False, "Supplier cannot delete opportunity"
+    print("PASS: Clients blocked from deleting Firestore opportunities.")
 
     print("==================================================================")
     print("ALL FIRESTORE SECURITY RULE TEST SCENARIOS PASSED WITH ZERO ERRORS!")

@@ -234,5 +234,20 @@ export default {
   catDelivery: 'டெலிவரி சிக்கல்',
   catProduct: 'தயாரிப்பு சிக்கல்',
   catAccount: 'கணக்கு சிக்கல்',
-  catOther: 'மற்றவை'
+  catOther: 'மற்றவை',
+
+  // Supplier Help & Support
+  supplierHelpSubtitle: 'ஏதேனும் கேள்வி, சிக்கல் அல்லது பிரச்சனை உள்ளதா? நாங்கள் எவ்வாறு உதவ முடியும் என்பதைக் கூறுங்கள்.',
+  retailerQuery: 'சில்லறை விற்பனையாளர் கேள்வி',
+  inventoryIssue: 'சரக்கு இருப்பு சிக்கல்',
+  pricingIssue: 'விலை நிர்ணய சிக்கல்',
+  moqIssue: 'குறைந்தபட்ச அளவு (MOQ) சிக்கல்',
+  technicalIssue: 'தொழில்நுட்ப சிக்கல்',
+  platformIssue: 'தள சிக்கல்',
+  supplierDescribePlaceholder: 'உங்கள் கேள்வி, சிக்கல் அல்லது பிரச்சனையை விவரிக்கவும்...',
+  orderOrPoolId: 'ஆர்டர் / பூல் ஐடி (விருப்பத்தேர்வு)',
+  orderOrPoolIdPlaceholder: 'எ.கா. ord_901 அல்லது pool_01',
+  additionalDetails: 'கூடுதல் விவரங்கள் (விருப்பத்தேர்வு)',
+  supplierQuerySubmittedTitle: 'உங்கள் கேள்வி சமர்ப்பிக்கப்பட்டது.',
+  supplierQuerySubmittedDesc: 'எங்கள் ஆதரவுக் குழு இதை மதிப்பாய்வு செய்யும்.'
 };

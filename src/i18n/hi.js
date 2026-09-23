@@ -234,5 +234,20 @@ export default {
   catDelivery: 'डिलीवरी समस्या',
   catProduct: 'उत्पाद समस्या',
   catAccount: 'खाता समस्या',
-  catOther: 'अन्य'
+  catOther: 'अन्य',
+
+  // Supplier Help & Support
+  supplierHelpSubtitle: 'क्या आपके पास कोई प्रश्न, समस्या या कठिनाई है? हमें बताएं कि हम कैसे मदद कर सकते हैं।',
+  retailerQuery: 'रिटेलर प्रश्न',
+  inventoryIssue: 'इन्वेंटरी समस्या',
+  pricingIssue: 'मूल्य निर्धारण समस्या',
+  moqIssue: 'न्यूनतम मात्रा (MOQ) समस्या',
+  technicalIssue: 'तकनीकी समस्या',
+  platformIssue: 'प्लेटफ़ॉर्म समस्या',
+  supplierDescribePlaceholder: 'कृपया अपने प्रश्न, समस्या या कठिनाई का विवरण दें...',
+  orderOrPoolId: 'ऑर्डर / पूल आईडी (वैकल्पिक)',
+  orderOrPoolIdPlaceholder: 'उदा. ord_901 या pool_01',
+  additionalDetails: 'अतिरिक्त विवरण (वैकल्पिक)',
+  supplierQuerySubmittedTitle: 'आपकी क्वेरी दर्ज कर ली गई है।',
+  supplierQuerySubmittedDesc: 'हमारी सहायता टीम इसकी समीक्षा करेगी।'
 };

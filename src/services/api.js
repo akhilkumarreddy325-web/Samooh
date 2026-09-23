@@ -4,9 +4,12 @@ import {
   MOCK_RECOMMENDATIONS,
   MOCK_RETAILERS,
   MOCK_PRODUCTS,
-  MOCK_IMPACT
+  MOCK_IMPACT,
+  MOCK_OPPORTUNITIES
 } from '../api/mockData';
 import { INITIAL_SUPPLIER_ORDERS } from './mockSupplierData';
+
+import { auth } from './firebase';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -18,6 +21,22 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
+});
+
+// Request interceptor: Attach Firebase Auth bearer token when available
+apiClient.interceptors.request.use(async (config) => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (err) {
+    console.warn('[Samooh API] Failed to attach Firebase auth token:', err);
+  }
+  return config;
 });
 
 // Fast response handler without long retry pauses
@@ -124,6 +143,197 @@ export async function generateRecommendations() {
     return res.data;
   } catch (err) {
     return { status: 'success', message: 'Recommendations generated (Mock Mode)', data: MOCK_RECOMMENDATIONS };
+  }
+}
+
+export async function getRecommendationExplanation(recommendationId) {
+  try {
+    const res = await apiClient.get(`/recommendations/${recommendationId}/explanation`);
+    return res.data;
+  } catch (err) {
+    const match = MOCK_RECOMMENDATIONS.find(r => r.id === recommendationId || r.pool_id === recommendationId);
+    return {
+      status: 'success',
+      recommendation_id: recommendationId,
+      explanation: match?.explanation_details || null
+    };
+  }
+}
+
+// 2B. Procurement Opportunities API (Upgrade #2)
+export async function getProcurementOpportunities(filters = {}) {
+  try {
+    const params = {};
+    if (filters.sectorId) params.sector_id = filters.sectorId;
+    if (filters.canonicalProductId) params.canonical_product_id = filters.canonicalProductId;
+    if (filters.supplierId) params.supplier_id = filters.supplierId;
+    if (filters.retailerId) params.retailer_id = filters.retailerId;
+    if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+
+    const res = await apiClient.get('/procurement/opportunities', { params });
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] FastAPI backend unreachable. Serving Mock Opportunities (isDemo: true).');
+    let data = [...MOCK_OPPORTUNITIES];
+    if (filters.status && filters.status !== 'ALL') {
+      data = data.filter(o => o.status === filters.status);
+    }
+    if (filters.canonicalProductId) {
+      data = data.filter(o => o.canonicalProductId === filters.canonicalProductId);
+    }
+    return {
+      status: 'success',
+      count: data.length,
+      data
+    };
+  }
+}
+
+export async function recalculateProcurementOpportunities(filters = {}) {
+  try {
+    const res = await apiClient.post('/procurement/opportunities/recalculate');
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] FastAPI backend unreachable. Serving fresh Mock Opportunities.');
+    return {
+      status: 'success',
+      message: 'Recalculated opportunities (Mock Mode)',
+      count: MOCK_OPPORTUNITIES.length,
+      data: MOCK_OPPORTUNITIES
+    };
+  }
+}
+
+// 2C. Retailer Compatibility Engine API (Prompt 3)
+export async function getRetailerCompatibility(retailerId = null, maxRadiusKm = null) {
+  try {
+    const params = {};
+    if (retailerId) params.retailer_id = retailerId;
+    if (maxRadiusKm) params.max_radius_km = maxRadiusKm;
+
+    const res = await apiClient.get('/procurement/compatibility', { params });
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] FastAPI backend unreachable. Serving Deterministic Mock Compatibility Results (isDemo: true).');
+    const mockResults = [
+      {
+        compatibilityId: 'comp_ret_001_ret_002',
+        retailerAId: retailerId || 'ret_001',
+        retailerBId: 'ret_002',
+        retailerAName: 'Sri Lakshmi Kirana',
+        retailerBName: 'Balaji Provisions & Supermarket',
+        sectorAId: 'grocery',
+        sectorBId: 'grocery',
+        isSameSector: true,
+        compatibilityStatus: 'COMPATIBLE',
+        compatibilityScore: 88.5,
+        scoreLabel: 'Strong Compatibility',
+        productMatchScore: 80.0,
+        distanceScore: 92.5,
+        quantityCompatibilityScore: 85.0,
+        timingCompatibilityScore: 100.0,
+        sectorCompatibilityScore: 100.0,
+        distanceKm: 2.4,
+        maxRadiusKm: 10.0,
+        geographicStatus: 'COMPATIBLE',
+        compatibleProducts: [
+          {
+            productId: 'grocery_rice_sona_masoori_25kg',
+            canonicalProductId: 'grocery_rice_sona_masoori_25kg',
+            productName: 'Sona Masoori Rice (25kg Bag)',
+            unit: 'bags',
+            retailerAQuantity: 15,
+            retailerBQuantity: 20,
+            combinedQuantity: 35
+          }
+        ],
+        aOnlyProducts: [],
+        bOnlyProducts: [],
+        totalSharedDemand: 35.0,
+        timingCompatibility: 'COMPATIBLE',
+        reasons: [
+          'Both retailers require standardized products: Sona Masoori Rice (25kg Bag).',
+          'Stores are 2.4 km apart, within the 10.0 km procurement radius.',
+          'Aggregated volume of 35 bags provides combined buying leverage.',
+          'Procurement timing windows align (Weekly Restock).',
+          'Both stores operate in the same sector (Grocery).'
+        ],
+        constraints: [
+          'Supplier wholesale feasibility and MOQ verification evaluated downstream by Opportunity Engine.'
+        ],
+        exclusions: [],
+        calculatedAt: new Date().toISOString(),
+        isDemo: true
+      },
+      {
+        compatibilityId: 'comp_ret_001_ret_003',
+        retailerAId: retailerId || 'ret_001',
+        retailerBId: 'ret_003',
+        retailerAName: 'Sri Lakshmi Kirana',
+        retailerBName: 'Iyengar Hot Bakery & Sweets',
+        sectorAId: 'grocery',
+        sectorBId: 'bakery',
+        isSameSector: false,
+        compatibilityStatus: 'COMPATIBLE',
+        compatibilityScore: 74.0,
+        scoreLabel: 'Moderate Compatibility',
+        productMatchScore: 60.0,
+        distanceScore: 84.0,
+        quantityCompatibilityScore: 75.0,
+        timingCompatibilityScore: 50.0,
+        sectorCompatibilityScore: 75.0,
+        distanceKm: 4.8,
+        maxRadiusKm: 10.0,
+        geographicStatus: 'COMPATIBLE',
+        compatibleProducts: [
+          {
+            productId: 'grocery_refined_sugar_50kg',
+            canonicalProductId: 'grocery_refined_sugar_50kg',
+            productName: 'Refined Sugar M-30 Grade (50kg Bag)',
+            unit: 'bags',
+            retailerAQuantity: 8,
+            retailerBQuantity: 15,
+            combinedQuantity: 23
+          }
+        ],
+        aOnlyProducts: [],
+        bOnlyProducts: [],
+        totalSharedDemand: 23.0,
+        timingCompatibility: 'UNKNOWN',
+        reasons: [
+          'Both retailers require standardized products: Refined Sugar M-30 Grade (50kg Bag).',
+          'Stores are 4.8 km apart, within the 10.0 km procurement radius.',
+          'Cross-sector synergy: Grocery and Bakery share standardized items.'
+        ],
+        constraints: [
+          'Insufficient timing data: Restock schedule alignment to be confirmed downstream.',
+          'Supplier wholesale feasibility and MOQ verification evaluated downstream by Opportunity Engine.'
+        ],
+        exclusions: [],
+        calculatedAt: new Date().toISOString(),
+        isDemo: true
+      }
+    ];
+
+    return {
+      status: 'success',
+      retailerId: retailerId || 'ret_001',
+      count: mockResults.length,
+      results: mockResults
+    };
+  }
+}
+
+export async function getPairwiseCompatibility(retailerAId, retailerBId) {
+  try {
+    const res = await apiClient.get(`/procurement/compatibility/pair/${retailerAId}/${retailerBId}`);
+    return res.data;
+  } catch (err) {
+    console.warn('[Samooh API] FastAPI unreachable. Serving pairwise fallback.');
+    return {
+      status: 'success',
+      compatibility: null
+    };
   }
 }
 

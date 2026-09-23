@@ -13,7 +13,9 @@ from backend.routers import (
     forecasts,
     recommendations,
     demo,
-    suppliers
+    suppliers,
+    opportunities,
+    compatibility
 )
 
 # Configure logging
@@ -43,6 +45,8 @@ app.include_router(forecasts.router)
 app.include_router(recommendations.router)
 app.include_router(demo.router)
 app.include_router(suppliers.router)
+app.include_router(opportunities.router)
+app.include_router(compatibility.router)
 
 
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Building2, Package, Truck, CheckCircle2, ArrowLeft, Loader2, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
 import { formatINR } from '../../../utils/currency';
+import { getSectorById } from '../../../data/businessSectors';
 
 export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmitting, submitError, onBack }) {
   return (
@@ -67,8 +68,10 @@ export default function SupplierReviewStep({ data, onEditStep, onSubmit, isSubmi
             <span className="font-semibold text-slate-900 dark:text-white">{data.contactPerson || 'Contact'}</span>
           </div>
           <div>
-            <span className="text-[11px] text-slate-500 block">Classification</span>
-            <span className="font-semibold text-slate-900 dark:text-white">{data.businessType || 'Wholesaler'}</span>
+            <span className="text-[11px] text-slate-500 block">Sector / Classification</span>
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {getSectorById(data.businessSectorId)?.name || data.businessType || 'Wholesaler'}
+            </span>
           </div>
           <div>
             <span className="text-[11px] text-slate-500 block">Location</span>

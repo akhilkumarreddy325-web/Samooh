@@ -112,6 +112,16 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
+    // 7B. Procurement Opportunities:
+    // System-generated, deterministic buying opportunities.
+    // Read: All authenticated retailers and suppliers.
+    // Client Writes (create, update, delete): Strictly DENIED.
+    // Generated and updated exclusively through the trusted backend/admin pipeline.
+    match /procurementOpportunities/{oppId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
     // 8. AI Opportunities & Recommendations:
     match /recommendations/{recId} {
       allow read: if isAuthenticated() && (
@@ -128,17 +138,33 @@ service cloud.firestore {
     }
 
     // 10. Support Requests Collection:
-    // Retailers can create their own support requests with their authenticated UID.
-    // A retailer can read only their own submitted support requests.
-    // Do not expose one retailer's support requests to another retailer or suppliers.
+    // Retailers and Suppliers can create their own support requests with their authenticated UID.
+    // Retailers can read only their own submitted support requests.
+    // Suppliers can read only their own submitted support requests.
+    // Strict isolation: retailers cannot access supplier requests; suppliers cannot access retailer requests.
     match /supportRequests/{requestId} {
       allow read: if isAuthenticated() && (
-        resource.data.retailerId == request.auth.uid ||
-        resource.data.retailer_id == request.auth.uid
+        (resource.data.retailerId == request.auth.uid || resource.data.retailer_id == request.auth.uid) ||
+        (resource.data.supplierId == request.auth.uid || resource.data.supplier_id == request.auth.uid || resource.data.userId == request.auth.uid)
       );
       allow create: if isAuthenticated() && (
-        request.resource.data.retailerId == request.auth.uid ||
-        request.resource.data.retailer_id == request.auth.uid
+        (request.resource.data.retailerId == request.auth.uid || request.resource.data.retailer_id == request.auth.uid) ||
+        (request.resource.data.supplierId == request.auth.uid || request.resource.data.supplier_id == request.auth.uid || request.resource.data.userId == request.auth.uid)
+      );
+      allow update, delete: if false;
+    }
+
+    // 11. Product Requests Collection:
+    // When a user requests a product not in the standardized catalog.
+    // Authenticated users can create requests and read their own requests.
+    match /productRequests/{requestId} {
+      allow read: if isAuthenticated() && (
+        resource.data.requestedBy == request.auth.uid ||
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.requestedBy == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid
       );
       allow update, delete: if false;
     }
