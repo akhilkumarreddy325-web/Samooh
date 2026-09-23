@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "python tests/test_onboarding_location.py && python tests/test_onboarding.py && python tests/test_supplier_portal.py && python tests/test_firestore_rules.py",
+    "test": "python tests/test_onboarding_location.py && python tests/test_onboarding.py && python tests/test_supplier_portal.py && python tests/test_firestore_rules.py && python tests/test_retailer_help_support.py",
     "preview": "vite preview",
     "firebase:login": "npx firebase-tools login",
     "deploy": "npm run build && npx firebase-tools deploy --only hosting --project samooh1"

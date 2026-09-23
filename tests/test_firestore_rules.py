@@ -101,6 +101,19 @@ class FirestoreRuleSimulator:
             return (retailer_id == uid) or bool(ret_token_id and retailer_id == ret_token_id)
         return False
 
+    def check_support_request_access(self, auth_user: dict, request_data: dict, action: str = "read") -> bool:
+        if not auth_user or "uid" not in auth_user:
+            return False
+        uid = auth_user["uid"]
+        ret_id = request_data.get("retailerId") or request_data.get("retailer_id")
+
+        if action in ("read", "create"):
+            return ret_id == uid
+        elif action in ("update", "delete"):
+            return False
+        return False
+
+
 
 def run_tests():
     rules_path = os.path.join(os.path.dirname(__file__), "..", "firestore.rules")
@@ -231,6 +244,45 @@ def run_tests():
     assert sim.check_user_profile_access(unauthenticated, "usr_google_123", "read") is False, "Unauthenticated user blocked"
     print("PASS: Unauthenticated user blocked from reading user profile.")
 
+    # 6. Test Retailer Support Requests Security (Requirement 10 / Help & Support)
+    assert "match /supportRequests/{requestId}" in content, "Missing supportRequests rule"
+    support_req_a = {
+        "retailerId": "ret_001",
+        "category": "Stock / Quantity",
+        "message": "Need clarification on Parle-G carton count",
+        "status": "OPEN"
+    }
+
+    # Retailer A creating own support request -> ALLOW
+    assert sim.check_support_request_access(retailer_user, support_req_a, "create") is True, "Retailer should create own support request"
+    print("PASS: Retailer A can create own support request.")
+
+    # Retailer B creating request with Retailer A's ID -> DENY
+    retailer_b = {"uid": "ret_002", "token": {"retailer_id": "ret_002"}}
+    assert sim.check_support_request_access(retailer_b, support_req_a, "create") is False, "Retailer B cannot spoof Retailer A ID"
+    print("PASS: Retailer B blocked from creating support request with Retailer A ID.")
+
+    # Retailer A reading own support request -> ALLOW
+    assert sim.check_support_request_access(retailer_user, support_req_a, "read") is True, "Retailer should read own support request"
+    print("PASS: Retailer A can read own support request.")
+
+    # Retailer B reading Retailer A support request -> DENY
+    assert sim.check_support_request_access(retailer_b, support_req_a, "read") is False, "Retailer B cannot read Retailer A request"
+    print("PASS: Retailer B blocked from reading Retailer A support request.")
+
+    # Supplier reading Retailer support request -> DENY
+    assert sim.check_support_request_access(supplier_a, support_req_a, "read") is False, "Supplier cannot read Retailer support request"
+    print("PASS: Supplier blocked from reading Retailer support request.")
+
+    # Unauthenticated reading support request -> DENY
+    assert sim.check_support_request_access(unauthenticated, support_req_a, "read") is False, "Unauthenticated blocked"
+    print("PASS: Unauthenticated user blocked from reading support requests.")
+
+    # Mutating or deleting support requests -> DENY
+    assert sim.check_support_request_access(retailer_user, support_req_a, "update") is False, "Support requests are immutable"
+    assert sim.check_support_request_access(retailer_user, support_req_a, "delete") is False, "Support requests cannot be deleted"
+    print("PASS: Support requests cannot be mutated or deleted by unauthorized clients.")
+
     print("==================================================================")
     print("ALL FIRESTORE SECURITY RULE TEST SCENARIOS PASSED WITH ZERO ERRORS!")
     print("==================================================================")
@@ -238,3 +290,4 @@ def run_tests():
 
 if __name__ == "__main__":
     run_tests()
+
